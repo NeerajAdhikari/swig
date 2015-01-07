@@ -1,5 +1,43 @@
 #include "Matrix.h"
 
+Matrix Matrix::translation(float tx, float ty, float tz){
+    Matrix inst(4,4);
+    inst.initialize(
+            1,0,0,tx,
+            0,1,0,ty,
+            0,0,1,tz,
+            0,0,0,1
+            );
+    // something goes here
+    return inst;
+}
+
+Matrix Matrix::scaling(float sx, float sy, float sz, float x, float y, float z){
+    Matrix inst(4,4);
+    inst.initialize(
+            sx,0,0,(1-sx)*x,
+            0,sy,0,(1-sy)*y,
+            0,0,sz,(1-sz)*z,
+            1,1,1,1
+            );
+    // something goes here
+    return inst;
+}
+
+Matrix Matrix::identity(unsigned n) {
+    Matrix inst(n,n);
+    for(int i=0;i<inst.space();i++)
+        inst(i) = (i%(n+1) == 0);
+    return inst;
+}
+
+Matrix Matrix::zero(unsigned n,unsigned m){
+    Matrix inst(n,m);
+    for(int i=0;i<inst.space();i++)
+        inst(i) = 0;
+    return inst;
+}
+
 Matrix::~Matrix(){
     delete []m_matrix;
 }

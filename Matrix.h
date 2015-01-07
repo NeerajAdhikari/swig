@@ -4,8 +4,20 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <cstdarg>
+#include <cstring>
 #include "ex.h"
 #include "helper.h"
+
+
+// LEFT
+// Transpose
+// Inverse
+// Determinant
+
+// TODO
+// ROTATION
+// SKEW
 
 // Matrix Class
 class Matrix {
@@ -14,6 +26,20 @@ class Matrix {
         unsigned m_row, m_col;
         unsigned m_space;
     public:
+
+        // Two instances of Matrix isn't created
+
+        // Returns an identity matrix of size nxn
+        static Matrix identity(unsigned n);
+
+        // Returns a zero matrix of size n,m
+        static Matrix zero(unsigned n, unsigned m);
+
+        // Returns a translation matrix by (tx,ty,tz)
+        static Matrix translation(float tx, float ty, float tz);
+
+        // Returns a scaling matrix by sx:sy:sz about (x,y,z)
+        static Matrix scaling(float sx, float sy, float sz, float x, float y, float z);
 
         ~Matrix();
 
@@ -61,6 +87,20 @@ class Matrix {
             if(place >= space())
                 throw ex::OutOfBounds();
             return *(m_matrix+place);
+        }
+
+        // Initialize the whole matrix
+        // Some deep shit initializer this is
+        // Couldn't use variadic args because it
+        // didn't support int and float at the same time
+        template<typename... Types>
+        void initialize(Types... args) {
+            const int size = sizeof...(args);
+            if(size!=space())
+                throw ex::DimensionMismatch();
+            float dummy[] = { static_cast<float>(args)... };
+            // memcpy performed for efficiency
+            std::memcpy ( m_matrix, dummy , size*sizeof(float) );
         }
 
         Matrix operator+(const Matrix& m) const;
