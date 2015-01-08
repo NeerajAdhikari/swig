@@ -1,27 +1,28 @@
 #include "Matrix.h"
 
-Matrix Matrix::translation(float tx, float ty, float tz){
-    Matrix inst(4,4);
-    inst.initialize(
+
+Matrix Matrix::transformation = Matrix(4,4);
+
+const Matrix& Matrix::translation(float tx, float ty, float tz){
+    transformation.initialize(
             1,0,0,tx,
             0,1,0,ty,
             0,0,1,tz,
             0,0,0,1
             );
-    // something goes here
-    return inst;
+    return transformation;
 }
 
-Matrix Matrix::scaling(float sx, float sy, float sz, float x, float y, float z){
-    Matrix inst(4,4);
-    inst.initialize(
+const Matrix& Matrix::scaling(float sx, float sy, float sz, float x, float y, float z){
+    // NOTE: Matrix is  static because it has fixed space
+    // and scaling matrix can be required many times
+    transformation.initialize(
             sx,0,0,(1-sx)*x,
             0,sy,0,(1-sy)*y,
             0,0,sz,(1-sz)*z,
             1,1,1,1
             );
-    // something goes here
-    return inst;
+    return transformation;
 }
 
 Matrix Matrix::identity(unsigned n) {
@@ -39,6 +40,7 @@ Matrix Matrix::zero(unsigned n,unsigned m){
 }
 
 Matrix::~Matrix(){
+    std::cout << "Matrix destroyed"<< std::endl;
     delete []m_matrix;
 }
 

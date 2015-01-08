@@ -16,8 +16,10 @@
 // Determinant
 
 // TODO
-// ROTATION
-// SKEW
+// projection
+// rotation
+// skew
+// composite
 
 // Matrix Class
 class Matrix {
@@ -25,9 +27,10 @@ class Matrix {
         float* m_matrix;
         unsigned m_row, m_col;
         unsigned m_space;
-    public:
 
-        // Two instances of Matrix isn't created
+        // The 4x4 transformation matrix can share memory
+        static Matrix transformation;
+    public:
 
         // Returns an identity matrix of size nxn
         static Matrix identity(unsigned n);
@@ -36,10 +39,10 @@ class Matrix {
         static Matrix zero(unsigned n, unsigned m);
 
         // Returns a translation matrix by (tx,ty,tz)
-        static Matrix translation(float tx, float ty, float tz);
+        static const Matrix& translation(float tx, float ty, float tz);
 
         // Returns a scaling matrix by sx:sy:sz about (x,y,z)
-        static Matrix scaling(float sx, float sy, float sz, float x, float y, float z);
+        static const Matrix& scaling(float sx, float sy, float sz, float x=0, float y=0, float z=0);
 
         ~Matrix();
 
