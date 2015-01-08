@@ -1,51 +1,49 @@
 #include "Matrix.h"
 
+Matrix Matrix::transformation = Matrix(Pair<unsigned>({4,4}));
 
-Matrix Matrix::transformation = Matrix(4,4);
-
-const Matrix& Matrix::translation(float tx, float ty, float tz){
+const Matrix& Matrix::translation(const Triplet<float>& t){
     transformation.initialize(
-            1,0,0,tx,
-            0,1,0,ty,
-            0,0,1,tz,
+            1,0,0,t.x,
+            0,1,0,t.y,
+            0,0,1,t.z,
             0,0,0,1
             );
     return transformation;
 }
 
-const Matrix& Matrix::scaling(float sx, float sy, float sz, float x, float y, float z){
+const Matrix& Matrix::scaling(const Triplet<float>& s, const Triplet<float>& o){
     // NOTE: Matrix is  static because it has fixed space
     // and scaling matrix can be required many times
     transformation.initialize(
-            sx,0,0,(1-sx)*x,
-            0,sy,0,(1-sy)*y,
-            0,0,sz,(1-sz)*z,
+            s.x,0,0,(1-s.x)*o.x,
+            0,s.y,0,(1-s.y)*o.y,
+            0,0,s.z,(1-s.z)*o.z,
             1,1,1,1
             );
     return transformation;
 }
 
 Matrix Matrix::identity(unsigned n) {
-    Matrix inst(n,n);
+    Matrix inst({n,n});
     for(int i=0;i<inst.space();i++)
         inst(i) = (i%(n+1) == 0);
     return inst;
 }
 
-Matrix Matrix::zero(unsigned n,unsigned m){
-    Matrix inst(n,m);
+Matrix Matrix::zero(const Pair<unsigned>& size){
+    Matrix inst({size.x,size.y});
     for(int i=0;i<inst.space();i++)
         inst(i) = 0;
     return inst;
 }
 
 Matrix::~Matrix(){
-    std::cout << "Matrix destroyed"<< std::endl;
     delete []m_matrix;
 }
 
-Matrix::Matrix(unsigned row, unsigned col) :
-    m_row(row), m_col(col), m_space(col*row)
+Matrix::Matrix(const Pair<unsigned>& size) :
+    m_row(size.x), m_col(size.y), m_space(size.x*size.y)
 {
     m_matrix  = new float[space()];
 }
@@ -111,7 +109,7 @@ Matrix Matrix::operator*(const Matrix& m) const {
     if( col() != m.row() )
         throw ex::DimensionMismatch();
 
-    Matrix n(row(),m.col());
+    Matrix n({row(),m.col()});
     for(unsigned i=0;i<row();i++){
         for(unsigned j=0;j<m.col();j++){
             float sum = 0;

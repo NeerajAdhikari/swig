@@ -4,11 +4,9 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
-#include <cstdarg>
 #include <cstring>
 #include "ex.h"
 #include "helper.h"
-
 
 // LEFT
 // Transpose
@@ -36,17 +34,16 @@ class Matrix {
         static Matrix identity(unsigned n);
 
         // Returns a zero matrix of size n,m
-        static Matrix zero(unsigned n, unsigned m);
+        static Matrix zero(const Pair<unsigned>& size);
 
         // Returns a translation matrix by (tx,ty,tz)
-        static const Matrix& translation(float tx, float ty, float tz);
-
+        static const Matrix& translation(const Triplet<float>& t);
         // Returns a scaling matrix by sx:sy:sz about (x,y,z)
-        static const Matrix& scaling(float sx, float sy, float sz, float x=0, float y=0, float z=0);
+        static const Matrix& scaling(const Triplet<float>& s,const Triplet<float>& o={0,0,0});
 
         ~Matrix();
 
-        Matrix(unsigned row, unsigned col);
+        Matrix(const Pair<unsigned>& size);
 
         Matrix(const Matrix& m);
 

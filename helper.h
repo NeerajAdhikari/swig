@@ -14,4 +14,16 @@ namespace Math {
 
 };
 
+template <typename T=unsigned>
+struct Pair{
+    T x,y;
+};
+
+template <typename T=float>
+struct Triplet{
+    T x,y,z;
+};
+
+#define Vertex Triplet<float>
+
 #endif
