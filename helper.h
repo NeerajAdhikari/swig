@@ -17,6 +17,14 @@ namespace Math {
         return  std::fabs(a-b) <= PRECISION;
     }
 
+    inline float toRadian(float degree){
+        return degree/180*pi;
+    }
+
+    inline float toDegree(float radian){
+        return radian/pi*180;
+    }
+
 };
 
 template <typename T=unsigned>

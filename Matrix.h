@@ -15,9 +15,7 @@
 
 // TODO
 // projection
-// rotation
 // skew
-// composite
 
 // Matrix Class
 class Matrix {
@@ -28,19 +26,26 @@ class Matrix {
 
     public:
 
+        // Returns a shearing matrix
+        static Matrix shearing(float a, float b, float c, float d, float e, float f);
+
+        // Returns a translation matrix by "translate"
+        static Matrix translation(const Triplet<float>& translate);
+
+        // Returns a scaling matrix by "scale" about point "point"
+        static Matrix scaling(const Triplet<float>& scale,const Triplet<float>& point={0,0,0});
+
+        // Returns a rotation matrix by and angle "degree" along direction vector "axis" passing through point "point"
+        static Matrix rotation(float degree, const Triplet<float>& axis, const Triplet<float>& point);
+
+
+
         // Returns an identity matrix of size nxn
         static Matrix identity(unsigned n);
 
         // Returns a zero matrix of size n,m
         static Matrix zero(const Pair<unsigned>& size);
 
-        // Returns a translation matrix by (tx,ty,tz)
-        static Matrix translation(const Triplet<float>& translate);
-
-        // Returns a scaling matrix by sx:sy:sz about (x,y,z)
-        static Matrix scaling(const Triplet<float>& scale,const Triplet<float>& point={0,0,0});
-
-        static Matrix rotation(float degree, const Triplet<float>& axis, const Triplet<float>& point);
 
         ~Matrix();
 

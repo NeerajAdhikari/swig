@@ -4,6 +4,7 @@
 
 // TODO in Matrix class, check if we are performing action
 // on same matrix
+// TODO vectors have 4th component zero and point have 4th component 1
 
 int main() {
     Matrix r = Matrix::rotation(45,{1,0,0},{0,0,0});

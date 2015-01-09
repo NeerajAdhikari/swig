@@ -1,5 +1,16 @@
 #include "Matrix.h"
 
+Matrix Matrix::shearing(float a, float b, float c, float d, float e, float f){
+    Matrix transformation({4,4});
+    transformation.initialize(
+            1,  a,  b,  0,
+            c,  1,  d,  0,
+            e,  f,  1,  0,
+            0,  0,  0,  1
+            );
+    return transformation;
+}
+
 Matrix Matrix::translation(const Triplet<float>& t){
     Matrix transformation({4,4});
     transformation.initialize(
@@ -23,8 +34,8 @@ Matrix Matrix::scaling(const Triplet<float>& s, const Triplet<float>& p){
 }
 
 Matrix Matrix::rotation(float degree, const Triplet<float>& r, const Triplet<float>& point){
-    degree = std::fmod(degree,360);
-    float radian = Math::pi*degree/180;
+    //degree = std::fmod(degree,360);
+    float radian = Math::toRadian(degree);
     float sine = std::sin(radian);
     float cosine = std::cos(radian);
 
