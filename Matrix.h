@@ -26,8 +26,6 @@ class Matrix {
         unsigned m_row, m_col;
         unsigned m_space;
 
-        // The 4x4 transformation matrix can share memory
-        static Matrix transformation;
     public:
 
         // Returns an identity matrix of size nxn
@@ -37,9 +35,12 @@ class Matrix {
         static Matrix zero(const Pair<unsigned>& size);
 
         // Returns a translation matrix by (tx,ty,tz)
-        static const Matrix& translation(const Triplet<float>& t);
+        static Matrix translation(const Triplet<float>& translate);
+
         // Returns a scaling matrix by sx:sy:sz about (x,y,z)
-        static const Matrix& scaling(const Triplet<float>& s,const Triplet<float>& o={0,0,0});
+        static Matrix scaling(const Triplet<float>& scale,const Triplet<float>& point={0,0,0});
+
+        static Matrix rotation(float degree, const Triplet<float>& axis, const Triplet<float>& point);
 
         ~Matrix();
 
@@ -94,14 +95,14 @@ class Matrix {
         // Couldn't use variadic args because it
         // didn't support int and float at the same time
         template<typename... Types>
-        void initialize(Types... args) {
-            const int size = sizeof...(args);
-            if(size!=space())
-                throw ex::DimensionMismatch();
-            float dummy[] = { static_cast<float>(args)... };
-            // memcpy performed for efficiency
-            std::memcpy ( m_matrix, dummy , size*sizeof(float) );
-        }
+            void initialize(Types... args) {
+                const int size = sizeof...(args);
+                if(size!=space())
+                    throw ex::DimensionMismatch();
+                float dummy[] = { static_cast<float>(args)... };
+                // memcpy performed for efficiency
+                std::memcpy ( m_matrix, dummy , size*sizeof(float) );
+            }
 
         Matrix operator+(const Matrix& m) const;
 
@@ -127,7 +128,7 @@ class Matrix {
 
         void operator/=(float f);
 
-        void print();
+        void print() const ;
 };
 
 #endif

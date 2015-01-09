@@ -17,6 +17,20 @@ namespace ex {
                 return "Dimension Mismatch!";
             }
     };
+    class DivideByZero: public std::exception{
+        public:
+            const char* what() const throw() {
+                return "Divide by Zero!";
+            }
+    };
+    // Meant for debugging only
+    class Wtf: public std::exception{
+        public:
+            const char* what() const throw() {
+                return "What the fcuk!";
+            }
+    };
+
 };
 
 #endif
