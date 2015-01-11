@@ -11,7 +11,7 @@ Matrix Matrix::shearing(float a, float b, float c, float d, float e, float f){
     return transformation;
 }
 
-Matrix Matrix::translation(const Triplet<float>& t){
+Matrix Matrix::translation(const VectorTriplet& t){
     Matrix transformation({4,4});
     transformation.initialize(
             1,  0,  0,  t.x,
@@ -22,7 +22,7 @@ Matrix Matrix::translation(const Triplet<float>& t){
     return transformation;
 }
 
-Matrix Matrix::scaling(const Triplet<float>& s, const Triplet<float>& p){
+Matrix Matrix::scaling(const VectorTriplet& s, const Vertex& p){
     Matrix transformation({4,4});
     transformation.initialize(
             s.x,    0,      0,      (1-s.x)*p.x,
@@ -33,13 +33,13 @@ Matrix Matrix::scaling(const Triplet<float>& s, const Triplet<float>& p){
     return transformation;
 }
 
-Matrix Matrix::rotation(float degree, const Triplet<float>& r, const Triplet<float>& point){
+Matrix Matrix::rotation(float degree, const VectorTriplet& r, const Vertex& point){
     //degree = std::fmod(degree,360);
     float radian = Math::toRadian(degree);
     float sine = std::sin(radian);
     float cosine = std::cos(radian);
 
-    Triplet<float> axis = r.normalized();
+    VectorTriplet axis = r.normalized();
     float u = axis.x;
     float v = axis.y;
     float w = axis.z;
@@ -101,8 +101,7 @@ void Matrix::operator=(const Matrix& m){
     if( this == &m )
         return;
 
-    // If the space is equivalent
-    // then things can be easily overwritten
+    // If the space is equivalent // then things can be easily overwritten
     if(space() != m.space()){
         delete []m_matrix;
         m_matrix = new float[m.space()];
@@ -200,4 +199,3 @@ void Matrix::print() const {
     }
     std::cout << std::setw(8*col()+1) << std::right << row() << "x" << col() << "\n";
 }
-

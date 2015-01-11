@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <cmath>
 #include <cstring>
+#include "structures.h"
 #include "ex.h"
 #include "helper.h"
 
@@ -16,6 +17,19 @@
 // TODO
 // projection
 // skew
+// TODO triangularization of a surface
+// TODO load objects from file;
+//      so total no. of edges and surfaces are always known
+//      hence use arrays as well
+// NOTE
+// Random Access on lists is slower and
+// the insertion is almost always at the start of the program
+// so we could use vector to facilitate random access
+// TODO
+// a vertex may contain color information
+
+// vertex normal may change in rotation
+// and shearing`
 
 // Matrix Class
 class Matrix {
@@ -30,14 +44,13 @@ class Matrix {
         static Matrix shearing(float a, float b, float c, float d, float e, float f);
 
         // Returns a translation matrix by "translate"
-        static Matrix translation(const Triplet<float>& translate);
+        static Matrix translation(const VectorTriplet& translate);
 
         // Returns a scaling matrix by "scale" about point "point"
-        static Matrix scaling(const Triplet<float>& scale,const Triplet<float>& point={0,0,0});
+        static Matrix scaling(const VectorTriplet& scale,const Vertex& point);
 
         // Returns a rotation matrix by and angle "degree" along direction vector "axis" passing through point "point"
-        static Matrix rotation(float degree, const Triplet<float>& axis, const Triplet<float>& point);
-
+        static Matrix rotation(float degree, const VectorTriplet& axis, const Vertex& point);
 
 
         // Returns an identity matrix of size nxn

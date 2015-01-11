@@ -8,11 +8,8 @@
 
 int main() {
     Matrix r = Matrix::rotation(45,{1,0,0},{0,0,0});
-    r.print();
-    r = Matrix::rotation(45,{0,1,0},{0,0,0});
-    r.print();
-    r = Matrix::rotation(45,{0,0,1},{0,0,0});
-    r.print();
+    //r = Matrix::rotation(45,{0,1,0},{0,0,0});
+    //r = Matrix::rotation(45,{0,0,1},{0,0,0});
     Object e(1);
     e.setVertex(0,{10,20,30});
     e.vertex() %= r;
@@ -20,7 +17,7 @@ int main() {
     return 0;
 
     // Testing composite transformation
-    Matrix n = Matrix::translation({10,20,30}) * Matrix::scaling({10,2,11});
+    Matrix n = Matrix::translation({10,20,30}) * Matrix::scaling({10,2,11},{0,0,0});
     n.print();
     return 0;
 
@@ -31,13 +28,13 @@ int main() {
     o.setVertex(2,{50,100,120});
     o.setVertex(3,{80,90,10});
     o.vertex() %= Matrix::translation({10.0,20.0,30.0});
-    o.vertex() %= Matrix::scaling({1,2,3});
+    o.vertex() %= Matrix::scaling({1,2,3},{0,0,0});
     o.vertex().print();
     return 0;
 
     // Testing normalized() vector
-    Triplet<float> f = {1,1,1};
-    Triplet<float> g = f.normalized();
+    VectorTriplet f = {1,1,1};
+    VectorTriplet g = f.normalized();
     std::cout << g.x << " " << g.y << " " << g.z << std::endl;
     return 0;
 

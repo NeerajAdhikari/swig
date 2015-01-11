@@ -1,31 +1,8 @@
 #ifndef __SURFACE__
 #define __SURFACE__
 
-#include <list>
+#include <vector>
 #include "Matrix.h"
-
-// TODO triangularization of a surface
-
-struct Edge {
-    // 2 index points
-    Pair<unsigned> point;
-    // Some other attributes;
-};
-
-// A surface represents a triangle
-struct Surface {
-    // 3 index points
-    Triplet<unsigned> point;
-    // Normal vector
-    Triplet<float>  normal;
-    // Some other attributes;
-};
-
-
-// NOTE
-// Random Access on lists is slower and
-// the insertion is almost always at the start of the program
-// so we could use vector to facilitate random access
 
 // An Object is collection of vertex, Edge and Surface
 class Object{
@@ -34,9 +11,9 @@ class Object{
         // A homogeneous vertex matrix
         Matrix m_vertex;
         // A vector of pair of indexes to represent edges
-        std::list<Edge> m_edge;
+        std::vector<Edge> m_edge;
         // A vector of triplet of indexes to represent surfaces (triangles)
-        std::list<Surface> m_surface;
+        std::vector<Surface> m_surface;
         // The total no. of points
         unsigned m_vertex_count;
     public:
@@ -91,7 +68,7 @@ class Object{
         inline Vertex getVertex(unsigned point) const {
             if(point >= vertexCount())
                 throw ex::OutOfBounds();
-            return Vertex({m_vertex(0,point),m_vertex(1,point),m_vertex(2,point)});
+            return {m_vertex(0,point),m_vertex(1,point),m_vertex(2,point)};
         }
 
         /*
