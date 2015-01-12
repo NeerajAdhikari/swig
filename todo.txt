@@ -12,3 +12,5 @@
 TODO
     Triangularization of surface
     Load from .obj file
+    Vectors have 4th component
+        0 represents vector, 1 represents point

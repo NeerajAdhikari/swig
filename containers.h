@@ -1,6 +1,9 @@
 #ifndef __CONTAINERS__
 #define __CONTAINERS__
 
+#include "ex.h"
+#include "helper.h"
+
 template <typename T>
 struct Pair{
 
@@ -21,16 +24,55 @@ struct Triplet{
         : x(xx), y(yy), z(zz)
     {}
 
-};
+    void operator+=(Triplet<T>& m){
+        x += m.x;
+        y += m.y;
+        z += m.z;
+    }
 
-template<typename T>
-struct Quadruple{
-    T x,y,z,w;
+    void operator-=(Triplet<T>& m){
+        x -= m.x;
+        y -= m.y;
+        z -= m.z;
+    }
 
-    // Constructor
-    Quadruple(T xx,T yy,T zz, T ww)
-        :x(xx), y(yy), z(zz), w(ww)
-    {}
+    void operator*=(float m){
+        x *= m;
+        y *= m;
+        z *= m;
+    }
+
+    void operator/=(float m){
+        if(Math::equal(m,0))
+            throw ex::DivideByZero();
+        (*this) *= 1/m;
+    }
+
+
+    Triplet<T> operator+(float m) const {
+        Triplet<T> temp = (*this);
+            temp += m;
+        return temp;
+    }
+
+    Triplet<T> operator-(float m) const {
+        Triplet<T> temp = (*this);
+            temp -= m;
+        return temp;
+    }
+
+
+    Triplet<T> operator*(float m) const {
+        Triplet<T> temp = (*this);
+            temp *= m;
+        return temp;
+    }
+
+    Triplet<T> operator/(float m) const {
+        Triplet<T> temp = (*this);
+            temp /= m;
+        return temp;
+    }
 
 };
 

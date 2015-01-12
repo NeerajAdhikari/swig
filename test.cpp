@@ -3,10 +3,6 @@
 #include "TransformationMatrix.h"
 #include "Object.h"
 
-// TODO in Matrix class, check if we are performing action
-// on same matrix
-// TODO vectors have 4th component zero and point have 4th component 1
-
 int main() {
     Matrix r = TransformationMatrix::rotation(45,{1,0,0},{0,0,0});
     //r = TransformationMatrix::rotation(45,{0,1,0},{0,0,0});
