@@ -1,6 +1,7 @@
 #ifndef __CONTAINERS__
 #define __CONTAINERS__
 
+#include "iostream"
 #include "ex.h"
 #include "helper.h"
 
@@ -24,13 +25,13 @@ struct Triplet{
         : x(xx), y(yy), z(zz)
     {}
 
-    void operator+=(Triplet<T>& m){
+    void operator+=(const Triplet<T>& m){
         x += m.x;
         y += m.y;
         z += m.z;
     }
 
-    void operator-=(Triplet<T>& m){
+    void operator-=(const Triplet<T>& m){
         x -= m.x;
         y -= m.y;
         z -= m.z;
@@ -49,13 +50,13 @@ struct Triplet{
     }
 
 
-    Triplet<T> operator+(float m) const {
+    Triplet<T> operator+(const Triplet<T>& m) const {
         Triplet<T> temp = (*this);
             temp += m;
         return temp;
     }
 
-    Triplet<T> operator-(float m) const {
+    Triplet<T> operator-(const Triplet<T>& m) const {
         Triplet<T> temp = (*this);
             temp -= m;
         return temp;
@@ -74,6 +75,10 @@ struct Triplet{
         return temp;
     }
 
+    // Display for debugging
+    void display() const {
+        std::cout << "(" << x << ", " << y << ", " << z << ")" << std::endl;
+    }
 };
 
 #endif

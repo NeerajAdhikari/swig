@@ -4,6 +4,11 @@
 #include "Object.h"
 
 int main() {
+
+    VectorTriplet tx2 = {1,2,3};
+    tx2 += {3,-5,10};
+    tx2.display();
+
     Matrix r = TransformationMatrix::rotation(45,{1,0,0},{0,0,0});
     //r = TransformationMatrix::rotation(45,{0,1,0},{0,0,0});
     //r = TransformationMatrix::rotation(45,{0,0,1},{0,0,0});
