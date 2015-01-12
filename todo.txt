@@ -1,0 +1,14 @@
+@Matrix
+    Transpose
+    Inverse
+    Determinant
+@TransformationMatrix
+    Perspective Projection
+    Parallel Projection
+    Skew
+@VectorTriplet
+    ??
+
+TODO
+    Triangularization of surface
+    Load from .obj file

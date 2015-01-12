@@ -1,8 +1,11 @@
 #ifndef __HELPER__
 #define __HELPER__
 
+#include <cmath>
 #include "ex.h"
+
 namespace Math {
+
     const float PRECISION = 0.00005;
 
     // Value of pi
