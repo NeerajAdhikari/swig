@@ -4,6 +4,7 @@
 #include <vector>
 #include "Matrix.h"
 
+// Work on progress
 // An Object is collection of vertex, Edge and Surface
 class Object{
     private:

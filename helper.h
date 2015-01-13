@@ -1,5 +1,7 @@
 #ifndef __HELPER__
 #define __HELPER__
+// helper.h contains all the helper functions
+// related to mathematics, strings
 
 #include <cmath>
 #include "ex.h"

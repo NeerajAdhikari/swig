@@ -1,5 +1,7 @@
 #ifndef __EX__
 #define __EX__
+// ex.h includes all the classes related
+// to exceptions
 
 #include <iostream>
 

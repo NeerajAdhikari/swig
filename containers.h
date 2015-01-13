@@ -1,9 +1,12 @@
 #ifndef __CONTAINERS__
 #define __CONTAINERS__
+// container.h contains data structures
+// for grouped data
 
 #include "iostream"
 #include "ex.h"
 #include "helper.h"
+
 
 template <typename T>
 struct Pair{
@@ -79,6 +82,7 @@ struct Triplet{
     void display() const {
         std::cout << "(" << x << ", " << y << ", " << z << ")" << std::endl;
     }
+
 };
 
 #endif

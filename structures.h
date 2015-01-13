@@ -1,5 +1,7 @@
 #ifndef __STRUCTURES__
 #define __STRUCTURES__
+// structures.h contains data structures
+// related to 3d coordinate objects
 
 #include "containers.h"
 
