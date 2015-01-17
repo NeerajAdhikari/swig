@@ -4,9 +4,9 @@
 #include "VectorTriplet.h"
 #include "Matrix.h"
 
-// TransformationMatrix class is derived from Matrix class
+// TfMatrix class is derived from Matrix class
 // and is meant for tasks related to 3d objects and transformation
-class TransformationMatrix: public Matrix {
+class TfMatrix: public Matrix {
     public:
 
         // Returns a shearing matrix

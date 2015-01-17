@@ -4,6 +4,9 @@
 #include "containers.h"
 #include "helper.h"
 #include "ex.h"
+#include <initializer_list>
+
+class Vertex;
 
 struct VectorTriplet: public Triplet<float> {
 
@@ -13,6 +16,12 @@ struct VectorTriplet: public Triplet<float> {
 
     // Constructor
     VectorTriplet(float xx, float yy, float zz);
+
+    VectorTriplet(std::initializer_list<float> il);
+
+    VectorTriplet(const Vertex& v);
+
+    VectorTriplet(const Triplet<float>& v);
 
     // Return a normalized vector
     VectorTriplet normalized() const;

@@ -1,6 +1,6 @@
-#include "TransformationMatrix.h"
+#include "TfMatrix.h"
 
-Matrix TransformationMatrix::shearing(float a, float b, float c, float d, float e, float f){
+Matrix TfMatrix::shearing(float a, float b, float c, float d, float e, float f){
     Matrix transformation({4,4});
     transformation.initialize(
             1,  a,  b,  0,
@@ -11,7 +11,7 @@ Matrix TransformationMatrix::shearing(float a, float b, float c, float d, float 
     return transformation;
 }
 
-Matrix TransformationMatrix::translation(const VectorTriplet& t){
+Matrix TfMatrix::translation(const VectorTriplet& t){
     Matrix transformation({4,4});
     transformation.initialize(
             1,  0,  0,  t.x,
@@ -22,7 +22,7 @@ Matrix TransformationMatrix::translation(const VectorTriplet& t){
     return transformation;
 }
 
-Matrix TransformationMatrix::scaling(const VectorTriplet& s, const Vertex& p){
+Matrix TfMatrix::scaling(const VectorTriplet& s, const Vertex& p){
     Matrix transformation({4,4});
     transformation.initialize(
             s.x,    0,      0,      (1-s.x)*p.x,
@@ -33,7 +33,7 @@ Matrix TransformationMatrix::scaling(const VectorTriplet& s, const Vertex& p){
     return transformation;
 }
 
-Matrix TransformationMatrix::rotation(float degree, const VectorTriplet& r, const Vertex& point){
+Matrix TfMatrix::rotation(float degree, const VectorTriplet& r, const Vertex& point){
 
     VectorTriplet axis = r.normalized();
 
