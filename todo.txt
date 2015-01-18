@@ -10,6 +10,11 @@
     ??
 
 TODO
+    Manage the plotting abstractions:
+        - Unform interface for the renderer - done
+        - Separation to two levels:
+            - A viewport manager: handles windowing, framebuffer, etc
+            - A primitives manager: handles primitives like lines, filling, etc
     Load from .obj file
     Triangularization of surface
     Other filling algorithms
