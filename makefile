@@ -1,3 +1,3 @@
 all:
-	g++ -o test test.cc Matrix.cpp TfMatrix.cpp VectorTriplet.cpp\
-	     -lSDL --std=c++11
+	g++ -o test src/test.cc src/Matrix.cpp src/TfMatrix.cpp\
+	 src/VectorTriplet.cpp -Iinclude/ -lSDL --std=c++11
