@@ -8,45 +8,62 @@
 
 #include "Point.h"
 
+// Class SDLPlotter is a plotting and windowing interface used
+// by the rest of the system. It implements a uniform interface
+// for plotting, using SDL.
 class SDLPlotter {
+
     private:
         SDL_Surface *screen;
-        int bpp;
+        int bpp;    // bytes per pixel
+        // The max and min x,y values we have plotted till now.
+        // TODO may be unnecessary
         unsigned xmax,xmin,ymax,ymin;
+        // Get the exact location to put a pixel
         Uint8* getLocation(unsigned x, unsigned y);
 
     public:
         SDLPlotter();
         ~SDLPlotter();
-        void plot(unsigned x, unsigned y, Color pt,bool update);
-        void plotlong(unsigned x, unsigned y, Color pt,
-                bool update=false);
+        // Plot at the given x,y position. Assume 4 bytes per pixel
+        void plot(unsigned x, unsigned y, Color pt);
+        // Plot at given x,y position considering the bpp
+        void plotlong(unsigned x, unsigned y, Color pt);
         void plot(ScreenPoint pt, bool update=true);
+
+        // Update screen.
         void update();
+        // Clear the screen with black
         void clear();
+        // Draw a line from start to end
         void line(const ScreenPoint& start,const ScreenPoint& end);
-        std::vector<unsigned> linepoints(
-                const ScreenPoint& start, const ScreenPoint& end);
+        // Fill the triangle bounded by pt1, pt2 and pt3
         void fill(ScreenPoint pt1, ScreenPoint pt2,
                 ScreenPoint pt3, Color fillcolor);
+        // Draw a horizontal line between (xs,y) and (xe,y)
         void hLine(unsigned y, unsigned xs, unsigned xe, Color cl);
 
         Color black;
         Color white;
 };
 
-SDLPlotter::SDLPlotter():white({255,255,255,255}),black({0,0,0,255}),
-    xmax(0), ymax(0) {
+// Construct.
+SDLPlotter::SDLPlotter()
+    : white({0xff,0xff,0xff,0xff}),black({0,0,0,0xff}),xmax(0),ymax(0)
+{
     SDL_Init(SDL_INIT_VIDEO);
     screen = SDL_SetVideoMode(800,600,8,SDL_SWSURFACE|SDL_ANYFORMAT);
     bpp = screen->format->BytesPerPixel;
 }
 
+// Deconstruct
 SDLPlotter::~SDLPlotter() {
     SDL_Quit();
 }
 
-inline void SDLPlotter::plot(unsigned x, unsigned y, Color pt, bool update=false) {
+// Plot at the given x,y position. Assume 4 bytes per pixel
+// TODO may be dangerous if not 4 bpp
+inline void SDLPlotter::plot(unsigned x, unsigned y, Color pt) {
     if (SDL_MUSTLOCK(screen))
         SDL_LockSurface(screen);
     if (x<screen->w && y<screen->h)
@@ -57,7 +74,8 @@ inline void SDLPlotter::plot(unsigned x, unsigned y, Color pt, bool update=false
 }
 
 
-void SDLPlotter::plotlong(unsigned x, unsigned y, Color pt, bool update) {
+// Plot at given x,y position considering the bpp
+void SDLPlotter::plotlong(unsigned x, unsigned y, Color pt) {
     if (x>screen->w || y>screen->h)
         return;
     if (x>xmax) xmax = x;
@@ -92,31 +110,31 @@ void SDLPlotter::plotlong(unsigned x, unsigned y, Color pt, bool update) {
     }
     if (SDL_MUSTLOCK(screen))
         SDL_UnlockSurface(screen);
-    if (update)
-        //SDL_UpdateRect(screen,(xmin+xmax)/2,(ymin+ymax)/2,xmax-xmin,
-        //        ymax-ymin);
-        SDL_UpdateRect(screen,0,0,0,0);
 }
 
+// Get memory location of a particular x,y position in framebuffer
 Uint8* SDLPlotter::getLocation(unsigned x, unsigned y) {
     return (Uint8*)screen->pixels + y*screen->pitch + x*bpp;
 }
 
-void SDLPlotter::plot(ScreenPoint pt, bool update) {
-    plotlong(pt.x,pt.y,pt.color,update);
+void SDLPlotter::plot(ScreenPoint pt) {
+    plotlong(pt.x,pt.y,pt.color);
 }
 
+// Clear scren with black
 void SDLPlotter::clear() {
     SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format,
                 0,0,0));
 }
 
+// Update the screen
 void SDLPlotter::update() {
     //SDL_UpdateRect(screen,(xmin+xmax)/2,(ymin+ymax)/2,xmax-xmin,
     //        ymax-ymin);
     SDL_UpdateRect(screen,0,0,0,0);
 }
 
+// Draw line between start and end
 void SDLPlotter::line(const ScreenPoint& start,
         const ScreenPoint& end) {
     int dx, dy, x, y, xc, yc;
@@ -168,61 +186,9 @@ void SDLPlotter::line(const ScreenPoint& start,
     }
 }
 
-std::vector<unsigned> SDLPlotter::linepoints(const ScreenPoint& start,
-        const ScreenPoint& end) {
-    int dx, dy, x, y, xc, yc;
-    int D,twodydx,twodxdy,twody,twodx;
-
-    dx = abs(end.x-start.x); dy = abs(end.y-start.y);
-    if (dx==0) xc=0;
-    else xc = (start.x>end.x)?-1:1;
-    if (dy==0) yc=0;
-    else yc = (start.y>end.y)?-1:1;
-    std::vector<unsigned> pts(dy+1);
-
-    x = start.x;
-    y = start.y;
-    pts[abs(y-start.y)] = x;
-
-    if (dx>dy) {
-        D = 2*dy-dx;
-        twodydx = 2*(dy-dx);
-        twody = 2*dy;
-
-        while (x!=end.x) {
-            x+=xc;
-            if (D>0) {
-                y+=yc;
-                pts[abs(y-start.y)] = x;
-                D += twodydx;
-            } else {
-                pts[abs(y-start.y)] = x;
-                D += twody;
-            }
-        }
-
-    } else {
-        D = 2*dx-dy;
-        twodxdy = 2*(dx-dy);
-        twodx = 2*dx;
-
-        while (y!=end.y) {
-            y+=yc;
-            if (D>0) {
-                x+=xc;
-                pts[abs(y-start.y)] = x;
-                D += twodxdy;
-            } else {
-                pts[abs(y-start.y)] = x;
-                D += twodx;
-            }
-        }
-    }
-    return pts;
-}
-
-
-void SDLPlotter::fill(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3, Color fillcolor) {
+// Fill the triangle bounded by pt1, pt2 and pt3
+void SDLPlotter::fill(ScreenPoint pt1, ScreenPoint pt2,
+        ScreenPoint pt3, Color fillcolor) {
     ScreenPoint start, mid, end;
     if (pt1.y<=pt2.y && pt1.y<=pt3.y) {
         start = pt1;
@@ -280,6 +246,7 @@ void SDLPlotter::fill(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3, Color f
     }
 }
 
+// Draw a horizontal line between (xs,y) and (xe,y)
 void SDLPlotter::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
     if (xs>xe) {
         auto t = xs;
