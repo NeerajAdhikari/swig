@@ -10,7 +10,10 @@
     ??
 
 TODO
-    Triangularization of surface
     Load from .obj file
+    Triangularization of surface
+    Other filling algorithms
+    Antialiased Filling
+    Z-buffering
     Vectors have 4th component
         0 represents vector, 1 represents point
