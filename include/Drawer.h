@@ -4,7 +4,7 @@
 #include "Point.h"
 #include "setPlotter.h"
 
-#include PlotterInc_
+#include ASSTR(Plotter_.h)
 
 // The drawer class is an abstraction that handles the drawing of
 // primitives. Drawing lines, filling polygons, etc are done
