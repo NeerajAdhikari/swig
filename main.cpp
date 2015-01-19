@@ -21,15 +21,15 @@ int main() {
 
     // Lets start building the projection matrix.
     // First we need to translate objects to the camera co-ordinates
-    Matrix proj = TfMatrix::translation({0,-2,1});
+    Matrix proj = TfMatrix::translation({0,-5,1});
     // Then rotate to match the camera's orientation
     proj = TfMatrix::rotation(300,{1,0,0},{0,0,0})*proj;
     // And then we need a perspective projection transform matrix
     Matrix cam = Matrix::identity(4);
     // Project on z=3
-    cam(0,0) = 0.5;
-    cam(1,1) = 0.5;
-    cam(2,2) = 0.5;
+    cam(0,0) = 2;
+    cam(1,1) = 2;
+    cam(2,2) = 2;
     cam(3,3) = 0;
     cam(3,2) = 1;
     proj = cam*proj;
@@ -105,7 +105,6 @@ int main() {
     }
     // Update framebuffer
     drawer.update();
-    std::cout<<"hyg"<<std::endl;
     // Small delay to control framerate
     SDL_Delay(20);
 
