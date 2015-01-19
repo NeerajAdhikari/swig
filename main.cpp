@@ -34,7 +34,7 @@ int main() {
     cam(3,2) = 1;
     proj = cam*proj;
 
-    // An object with 4 vertices (a tetrahedron)
+    /* An object with 4 vertices (a tetrahedron)
     Object tho(4);
     // Set the four points
     tho.setVertex(0,{0,0,0});
@@ -49,16 +49,20 @@ int main() {
     tho.setSurface({0,2,1});
     tho.setSurface({0,3,2});
     tho.setSurface({1,2,3});
+    */
+
+    Object tho("cube.obj");
+    unsigned nSurfs = tho.surfaceCount(), nVerts = tho.vertexCount();
 
     // For the colors we need to fill surfaces with
-    Color colors[4];
+    Color colors[nSurfs];
     // Detect backfaces - shoudl we display the surface?
-    bool show[4];
+    bool show[nSurfs];
 
     while (true) {
 
     // Flat-shading : calculate the colors to shade each surface with
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<nSurfs; i++) {
         VectorTriplet normal = tho.getSurfaceNormal(i);
         VectorTriplet light = {0,-1,0.57735};
         light = light.normalized();
@@ -82,10 +86,10 @@ int main() {
     th=proj*tho;
 
     // The screen-points that our world-points will be mapped to
-    ScreenPoint s[4];
+    ScreenPoint s[nVerts];
 
     // For each vertex,perform adjustments and calculate screen-points
-    for (auto i=0; i<4; i++) {
+    for (auto i=0; i<nVerts; i++) {
         VectorTriplet vert = th.getVertex(i);
         vert = vert.normalized();
         vert.x/=2; vert.y/=2; vert.z/=2;
@@ -97,7 +101,7 @@ int main() {
     // Clear framebuffer, we're about to plot
     drawer.clear();
     // Do the thing
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<nSurfs; i++) {
         //fb.line(s[th.getEdge(i).x],s[th.getEdge(i).y]);
         if (show[i])
         drawer.fill(s[th.getSurface(i).x],s[th.getSurface(i).y],

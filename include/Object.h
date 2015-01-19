@@ -2,6 +2,8 @@
 #define __SURFACE__
 
 #include <vector>
+#include <fstream>
+#include <sstream>
 #include "Matrix.h"
 #include "VectorTriplet.h"
 
@@ -30,6 +32,13 @@ class Object{
 
         // Initialize edges and surfaces
     }
+
+    // Load an object from an .obj file
+    Object(const std::string& filename);
+
+    // Tesselate a polygon to triangles
+    std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned>
+            face);
 
     // get total no. of vertices in the matrix
     inline unsigned vertexCount() const {
@@ -129,5 +138,59 @@ class Object{
         }
     }
 };
+
+// Load an object from an .obj file
+Object::Object(const std::string& filename) {
+    ifstream objfile(filename);
+    std::string line,keyword;
+    Triplet<float> vtxpoint(0,0,0);
+    unsigned facepoint;
+    m_vertex_count = 0;
+
+    while (!objfile.eof()) {
+        std::getline(objfile,line);
+        std::istringstream linestrm(line);
+        linestrm>>keyword;
+
+        if (keyword=="v") {
+            m_vertex_count++;
+            linestrm>>vtxpoint.x;
+            linestrm>>vtxpoint.y;
+            linestrm>>vtxpoint.z;
+            m_vertex.push_back(vtxpoint);
+        } else if (keyword=="f") {
+            std::vector<unsigned> face;
+            while (!linestrm.eof()) {
+                linestrm>>facepoint;
+                face.push_back(facepoint);
+            }
+            std::vector<Triplet<unsigned> > tlst = tesselate(face);
+            for (auto it=tlst.begin();it<tlst.end(); it++) {
+                setSurface(*it);
+            }
+        }
+    }
+}
+
+// Tesselate a polygon to triangles
+std::vector<Triplet<unsigned> > Object::tesselate(
+        std::vector<unsigned> face) {
+    if (face.size()<3) {
+        throw ex::InitFailure();
+    } else {
+        unsigned v1,v2,v3;
+        std::vector<Triplet<unsigned> > tessalated;
+        while (face.size()) {
+            v1 = face.back(); face.pop_back();
+            v2 = face.back(); face.pop_back();
+            v3 = face.back(); face.pop_back();
+            tesselated.push_back({v1,v2,v3});
+            if (face.size()) {
+                face.push_back(v1); face.push_back(v3);
+            }
+        }
+        return tesselated;
+    }
+}
 
 #endif
