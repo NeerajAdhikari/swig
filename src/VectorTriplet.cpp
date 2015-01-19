@@ -25,6 +25,9 @@ VectorTriplet::VectorTriplet(const Triplet<float>& v)
 
 VectorTriplet VectorTriplet::normalized() const {
     float M = magnitude();
+    if(Math::equal(x,0.0)&&Math::equal(y,0.0)&&Math::equal(z,0.0)) {
+        return {0,0,0};
+    }
     if (Math::equal(M,0.0))
         throw ex::DivideByZero();
     return {x/M,y/M,z/M};

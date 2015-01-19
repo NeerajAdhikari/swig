@@ -8,7 +8,11 @@
 #include <iostream>
 #include <cmath>
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc<2) {
+        std::cout<<"Usage: "<<argv[0]<<" filename"<<std::endl;
+        return 1;
+    }
 
     // Initialize the plotter interface
     Plotter_ fb(800,600);
@@ -21,9 +25,9 @@ int main() {
 
     // Lets start building the projection matrix.
     // First we need to translate objects to the camera co-ordinates
-    Matrix proj = TfMatrix::translation({0,-5,1});
+    Matrix proj = TfMatrix::translation({0,-5,0});
     // Then rotate to match the camera's orientation
-    proj = TfMatrix::rotation(300,{1,0,0},{0,0,0})*proj;
+    proj = TfMatrix::rotation(270,{1,0,0},{0,0,0})*proj;
     // And then we need a perspective projection transform matrix
     Matrix cam = Matrix::identity(4);
     // Project on z=3
@@ -49,9 +53,8 @@ int main() {
     tho.setSurface({0,2,1});
     tho.setSurface({0,3,2});
     tho.setSurface({1,2,3});
-    */
-
-    Object tho("cube.obj");
+*/
+    Object tho(argv[1]);
     unsigned nSurfs = tho.surfaceCount(), nVerts = tho.vertexCount();
 
     // For the colors we need to fill surfaces with
@@ -64,12 +67,12 @@ int main() {
     // Flat-shading : calculate the colors to shade each surface with
     for (int i=0; i<nSurfs; i++) {
         VectorTriplet normal = tho.getSurfaceNormal(i);
-        VectorTriplet light = {0,-1,0.57735};
-        light = light.normalized();
+        VectorTriplet light = {0,-1,0};
         float dp = (light%normal);
-        show[i]=(dp<0);
-        if (!show[i])
+        show[i]=(dp<-0.20);
+        if (!show[i]) {
             continue;
+        }
         Uint8 clr;
         if (fabs(dp)>=1.0)
             clr=255;
@@ -77,7 +80,6 @@ int main() {
             clr=(Uint8)(fabs(dp)*255.0);
         colors[i] =  {clr,clr,clr,255};
     }
-
     // Apply the rotation
     tho = rotator*tho;
 

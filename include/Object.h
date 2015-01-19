@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include "Matrix.h"
 #include "VectorTriplet.h"
 
@@ -100,8 +101,9 @@ class Object{
     }
 
     inline void setSurface(const Triplet<unsigned>& p) {
-        if(p.x>=vertexCount()||p.y>=vertexCount()||p.z>=vertexCount())
+        if(p.x>=vertexCount()||p.y>=vertexCount()||p.z>=vertexCount()) {
             throw ex::OutOfBounds();
+        }
         Surface surf = {p.x,p.y,p.z};
 
         Vertex v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
@@ -123,13 +125,13 @@ class Object{
     }
 
     inline VectorTriplet getSurfaceNormal(unsigned point) {
-        if(point>=edgeCount())
+        if(point>=surfaceCount())
             throw ex::OutOfBounds();
         Surface p = getSurface(point);
         Vertex v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
         VectorTriplet sidea=v2-v1, sideb=v3-v2;
-       m_surface[m_surface.size()-1].normal=(sidea*sideb).normalized();
-        return m_surface[m_surface.size()-1].normal;
+       m_surface[point].normal=(sidea*sideb).normalized();
+        return m_surface[point].normal;
     }
 
     void showVx() const {
@@ -140,29 +142,40 @@ class Object{
 };
 
 // Load an object from an .obj file
-Object::Object(const std::string& filename) {
-    ifstream objfile(filename);
+Object::Object(const std::string& filename) : m_vertex({4,1}) {
+    std::ifstream objfile(filename,std::ios::in);
     std::string line,keyword;
     Triplet<float> vtxpoint(0,0,0);
     unsigned facepoint;
     m_vertex_count = 0;
 
+    if (objfile.fail()) {
+        throw ex::InitFailure();
+    }
+
     while (!objfile.eof()) {
         std::getline(objfile,line);
+        if (line.size()<3)
+            continue;
         std::istringstream linestrm(line);
         linestrm>>keyword;
 
         if (keyword=="v") {
-            m_vertex_count++;
+            if (m_vertex_count!=0)
+                m_vertex.addColumn();
             linestrm>>vtxpoint.x;
             linestrm>>vtxpoint.y;
             linestrm>>vtxpoint.z;
-            m_vertex.push_back(vtxpoint);
+            m_vertex(0,m_vertex_count)=vtxpoint.x;
+            m_vertex(1,m_vertex_count)=vtxpoint.y;
+            m_vertex(2,m_vertex_count)=vtxpoint.z;
+            m_vertex(3,m_vertex_count)=1;
+            m_vertex_count++;
         } else if (keyword=="f") {
             std::vector<unsigned> face;
             while (!linestrm.eof()) {
                 linestrm>>facepoint;
-                face.push_back(facepoint);
+                face.push_back(facepoint-1);
             }
             std::vector<Triplet<unsigned> > tlst = tesselate(face);
             for (auto it=tlst.begin();it<tlst.end(); it++) {
@@ -179,14 +192,14 @@ std::vector<Triplet<unsigned> > Object::tesselate(
         throw ex::InitFailure();
     } else {
         unsigned v1,v2,v3;
-        std::vector<Triplet<unsigned> > tessalated;
+        std::vector<Triplet<unsigned> > tesselated;
         while (face.size()) {
             v1 = face.back(); face.pop_back();
             v2 = face.back(); face.pop_back();
             v3 = face.back(); face.pop_back();
-            tesselated.push_back({v1,v2,v3});
+            tesselated.push_back({v3,v2,v1});
             if (face.size()) {
-                face.push_back(v1); face.push_back(v3);
+                face.push_back(v3); face.push_back(v1);
             }
         }
         return tesselated;
