@@ -15,15 +15,15 @@ int main() {
     Drawer drawer(&fb);
 
     // A matrix to perform a 5degree rotation about z-axis
-    Matrix rotator = TfMatrix::rotation(2,{0,0,1},{0,0,0});
-    rotator = rotator*TfMatrix::rotation(2,{0,1,1},{0,0,0});
-    rotator = rotator*TfMatrix::rotation(2,{1,0,1},{0,0,0});
+    Matrix rotator = TfMatrix::rotation(.1,{0,0,1},{0,0,0});
+    rotator *= TfMatrix::rotation(.1,{0,1,1},{0,0,0});
+    rotator *= TfMatrix::rotation(.1,{1,0,1},{0,0,0});
 
     // Lets start building the projection matrix.
     // First we need to translate objects to the camera co-ordinates
     Matrix proj = TfMatrix::translation({0,-5,1});
     // Then rotate to match the camera's orientation
-    proj = TfMatrix::rotation(300,{1,0,0},{0,0,0})*proj;
+    proj /= TfMatrix::rotation(300,{1,0,0},{0,0,0});
     // And then we need a perspective projection transform matrix
     Matrix cam = Matrix::identity(4);
     // Project on z=3
@@ -52,16 +52,17 @@ int main() {
 
     // For the colors we need to fill surfaces with
     Color colors[4];
-    // Detect backfaces - shoudl we display the surface?
+    // Detect backfaces - should we display the surface?
     bool show[4];
 
     while (true) {
 
     // Flat-shading : calculate the colors to shade each surface with
+    VectorTriplet light = {0,1,0.57735};
+    light = light.normalized();
+
     for (int i=0; i<4; i++) {
         VectorTriplet normal = tho.getSurfaceNormal(i);
-        VectorTriplet light = {0,-1,0.57735};
-        light = light.normalized();
         float dp = (light%normal);
         show[i]=(dp<0);
         if (!show[i])
@@ -79,7 +80,7 @@ int main() {
 
     // Create a copy and apply the projection transform
     Object th = tho;
-    th=proj*tho;
+    th.vertex() /=proj;
 
     // The screen-points that our world-points will be mapped to
     ScreenPoint s[4];

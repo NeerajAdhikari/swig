@@ -1,5 +1,84 @@
 #include "Matrix.h"
 
+bool Matrix::isSquare() const {
+    return row() == col();
+}
+
+Matrix Matrix::transpose() const {
+    Matrix t({col(),row()});
+    for(int i=0;i<row();i++)
+        for(int j=0;j<col();j++)
+            t(j,i) = (*this)(i,j);
+    return t;
+}
+
+void Matrix::readjust(const Pair<unsigned>& size) {
+
+    unsigned tspace = size.x * size.y;
+    float* tmatrix = new float[tspace];
+
+    if (size.y == m_col && size.x == m_row){
+        return;
+    } else if(size.y == m_col) {
+        // If column number is equal then a block copy can be done
+        unsigned smallers = tspace < space() ? tspace : space();
+        std::memcpy( tmatrix, m_matrix, smallers * sizeof(float));
+    } else {
+        // If column number varies then a linear copy must be done
+        unsigned smallerx = size.x < row() ? size.x : row();
+        unsigned smallery = size.y < col() ? size.y : col();
+        for(int i = 0;i<smallerx;i++)
+            std::memcpy( tmatrix+i*size.y , m_matrix+i*col(), smallery* sizeof(float));
+    }
+
+    delete []m_matrix;
+
+    m_matrix = tmatrix;
+    m_row = size.x;
+    m_col = size.y;
+    m_space = tspace;
+}
+
+float Matrix::determinant() const {
+    if(row()!=col())
+        throw ex::DimensionMismatch();
+
+    Matrix arr = *this;
+    unsigned size = row();
+    float det = 1;
+
+    for(int i=0;i<size;i++){  // Columns
+
+        // If any zero in diagonal, push it downward
+        if( Math::equal(arr(i,i),0) ) {
+            for(int j=i+1;j<size;j++) {
+                if( Math::equal(arr(j,i),0) )
+                    continue;
+                for(int k=0;k<size;k++)
+                    swap(arr(i,k),arr(j,k));
+                det *= std::pow(-1, (j-i) + (j-i-1));
+                break;
+            }
+            if( Math::equal(arr(i,i),0) )
+                throw ex::DivideByZero();
+            // If not breaked till now
+        }
+
+        // Calculate upper Triangular Matrix
+        for(int j=i+1;j<size;j++){          // Row
+            float c = arr(j,i)/arr(i,i);
+            for(int k=0;k<size;k++)       // Columns+1
+                arr(j,k) -= c*arr(i,k);
+        }
+
+
+        det *= arr(i,i);
+    }
+
+    return det;
+}
+
+
 Matrix Matrix::identity(unsigned n) {
     Matrix inst({n,n});
     for(int i=0;i<inst.space();i++)
@@ -32,8 +111,8 @@ Matrix::Matrix(const Matrix& m){
     m_col=m.col();
     m_space=m.space();
 
-    for(int i=0;i<space();i++)
-        (*this)(i) = m(i);
+    std::memcpy ( m_matrix, m.m_matrix , m_space*sizeof(float) );
+
 }
 
 void Matrix::operator=(const Matrix& m){
@@ -50,8 +129,8 @@ void Matrix::operator=(const Matrix& m){
     m_row=m.row();
     m_col=m.col();
     m_space=m.space();
-    for(int i=0;i<space();i++)
-        (*this)(i) = m(i);
+
+    std::memcpy ( m_matrix, m.m_matrix , m_space*sizeof(float) );
 }
 
 Matrix Matrix::operator+(const Matrix& m) const {

@@ -29,20 +29,38 @@ class Matrix {
 
         ~Matrix();
 
+        // Constructor with size parameter
         Matrix(const Pair<unsigned>& size);
 
+        // Copy constructor
         Matrix(const Matrix& m);
 
+        // Assignment constructor
         void operator=(const Matrix& m);
 
+        // Initialize the whole matrix using initializer list
+        // Couldn't use variadic args because it
+        // didn't support int and float at the same time
+        template<typename... Types>
+            void initialize(Types... args) {
+                const int size = sizeof...(args);
+                if(size!=space())
+                    throw ex::DimensionMismatch();
+                float dummy[] = { static_cast<float>(args)... };
+                std::memcpy ( m_matrix, dummy , size*sizeof(float) );
+            }
+
+        // Returns the number of columns
         inline unsigned col() const {
             return m_col;
         }
 
+        // Returns the number of rows of matrix
         inline unsigned row() const {
             return m_row;
         }
 
+        // Returns the total space of matrix
         inline unsigned space() const {
             return m_space;
         }
@@ -75,44 +93,54 @@ class Matrix {
             return *(m_matrix+place);
         }
 
-        // Initialize the whole matrix
-        // Some deep shit initializer this is
-        // Couldn't use variadic args because it
-        // didn't support int and float at the same time
-        template<typename... Types>
-            void initialize(Types... args) {
-                const int size = sizeof...(args);
-                if(size!=space())
-                    throw ex::DimensionMismatch();
-                float dummy[] = { static_cast<float>(args)... };
-                // memcpy performed for efficiency
-                std::memcpy ( m_matrix, dummy , size*sizeof(float) );
-            }
+        // Adds matrix m to itself
+        // this = this + m
+        void operator+=(const Matrix& m);
+
+        // Subtracts matrix m to itself
+        // this = this - m
+        void operator-=(const Matrix& m);
+
+        // Multiplies matrix m to itself
+        // this = this * m
+        void operator*=(const Matrix& m);
+
+        // Multiplies itself to matrix m
+        // this = m * this
+        void operator/=(const Matrix& m);
+
 
         Matrix operator+(const Matrix& m) const;
 
-        void operator+=(const Matrix& m);
-
         Matrix operator-(const Matrix& m) const;
-
-        void operator-=(const Matrix& m);
 
         Matrix operator*(const Matrix& m) const;
 
-        // this x m
-        void operator*=(const Matrix& m);
-
-        // m x this
-        void operator/=(const Matrix& m);
-
-        Matrix operator*(float f) const;
-
+        // Multiplies itself with a constant f
+        // this = this * f
         void operator*=(float f);
+
+        // Divides itself with a constant f
+        // this = this / f
+        void operator/=(float f);
 
         Matrix operator/(float f) const;
 
-        void operator/=(float f);
+        Matrix operator*(float f) const;
 
+        // Returns the transpose of a matrix
+        // TODO inplace transpose
+        Matrix transpose() const;
+
+        // readjust itself to given size
+        void readjust(const Pair<unsigned>& size);
+
+        // Returns true if it is a Square matrix
+        bool isSquare() const;
+
+        float determinant() const;
+
+        // Prints the matrix
         void print() const ;
 };
 
