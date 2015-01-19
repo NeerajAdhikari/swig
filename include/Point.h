@@ -1,11 +1,13 @@
 #ifndef __POINT__
 #define __POINT__
 
+#include <stdint.h>
+
 struct Color {
-    char blue;
-    char green;
-    char red;
-    char alpha;
+    uint8_t blue;
+    uint8_t green;
+    uint8_t red;
+    uint8_t alpha;
 };
 
 struct ScreenPoint {

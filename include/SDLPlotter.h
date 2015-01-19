@@ -49,7 +49,7 @@ class SDLPlotter {
 
 // Construct.
 SDLPlotter::SDLPlotter(unsigned w, unsigned h)
-    : white({0xff,0xff,0xff,0xff}),black({0,0,0,0xff}),
+    : white({255,255,255,255}),black({0,0,0,255}),
     m_width(w), m_height(h)
 {
     if (SDL_Init(SDL_INIT_VIDEO)<0)
@@ -76,9 +76,17 @@ SDLPlotter::~SDLPlotter() {
 
 // Plot at the given x,y position.
 inline void SDLPlotter::plot(unsigned x, unsigned y, Color pt) {
-    if (x<screen->w && y<screen->h)
-    *(Uint32*)(screen->pixels + y*screen->pitch + x*4)=
-        SDL_MapRGB(screen->format,pt.red,pt.green,pt.blue);
+    if (x<screen->w && y<screen->h){
+        // TODO Changed this code because it was throwing error/warning
+        // I don't know why but the mathematics has also changed
+        //
+        // *(Uint32*)(screen->pixels + y*screen->pitch + x*4)=
+        // SDL_MapRGB(screen->format,pt.red,pt.green,pt.blue);
+
+        *((Uint32 *)screen->pixels + y*screen->pitch/4 + x) =
+            SDL_MapRGB(screen->format,pt.red,pt.green,pt.blue);
+    }
+
 }
 
 void SDLPlotter::plot(ScreenPoint pt) {

@@ -4,7 +4,7 @@
 #include "Point.h"
 #include "setPlotter.h"
 
-#include ASSTR(Plotter_.h)
+#include SSTR(Plotter_.h)
 
 // The drawer class is an abstraction that handles the drawing of
 // primitives. Drawing lines, filling polygons, etc are done
@@ -48,7 +48,10 @@ void Drawer::line(const ScreenPoint& start,
     int dx, dy, x, y, xc, yc;
     int D,twodydx,twodxdy,twody,twodx;
 
-    dx = abs(end.x-start.x); dy = abs(end.y-start.y);
+    // If they aren't cast to int then the result will
+    // be an uint which will never have a negative value
+    dx = abs((int)end.x-(int)start.x);
+    dy = abs((int)end.y-(int)start.y);
     if (dx==0) xc=0;
     else xc = (start.x>end.x)?-1:1;
     if (dy==0) yc=0;
