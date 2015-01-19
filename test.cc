@@ -105,6 +105,7 @@ int main() {
     }
     // Update framebuffer
     drawer.update();
+    std::cout<<"hyg"<<std::endl;
     // Small delay to control framerate
     SDL_Delay(20);
 
