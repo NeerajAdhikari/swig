@@ -135,7 +135,7 @@ void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
         xe = t;
     }
     for (auto i=0; i<=(xe-xs); i++) {
-        plotter->plot(xs+i,y,cl);
+        plotter->plot(xs+i,y,cl,true);
     }
 }
 

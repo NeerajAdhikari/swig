@@ -19,9 +19,9 @@ int main(int argc, char* argv[]) {
     Drawer drawer(&fb);
 
     // A matrix to perform a 5degree rotation about z-axis
-    Matrix rotator = TfMatrix::rotation(2,{0,0,1},{0,0,0});
-    rotator = rotator*TfMatrix::rotation(2,{0,1,1},{0,0,0});
-    rotator = rotator*TfMatrix::rotation(2,{1,0,1},{0,0,0});
+    Matrix rotator = TfMatrix::rotation(0,{0,0,1},{0,0,0});
+    //rotator = rotator*TfMatrix::rotation(2,{0,1,0},{0,0,0});
+    rotator = rotator*TfMatrix::rotation(2,{1,0,0},{0,0,0});
 
     // Lets start building the projection matrix.
     // First we need to translate objects to the camera co-ordinates
@@ -69,7 +69,8 @@ int main(int argc, char* argv[]) {
         VectorTriplet normal = tho.getSurfaceNormal(i);
         VectorTriplet light = {0,-1,0};
         float dp = (light%normal);
-        show[i]=(dp<-0.20);
+        //show[i]=(dp<-0.20);
+        show[i]=(dp<-0.01);
         if (!show[i]) {
             continue;
         }
@@ -109,6 +110,7 @@ int main(int argc, char* argv[]) {
         drawer.fill(s[th.getSurface(i).x],s[th.getSurface(i).y],
                 s[th.getSurface(i).z],colors[i]);
     }
+
     // Update framebuffer
     drawer.update();
     // Small delay to control framerate

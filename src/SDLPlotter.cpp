@@ -28,18 +28,23 @@ SDLPlotter::~SDLPlotter() {
 }
 
 // Plot at the given x,y position.
-inline void SDLPlotter::plot(unsigned x, unsigned y, Color pt) {
-    if (x<screen->w && y<screen->h){
-        // TODO Changed this code because it was throwing error/warning
-        // I don't know why but the mathematics has also changed
-        //
-        // *(Uint32*)(screen->pixels + y*screen->pitch + x*4)=
-        // SDL_MapRGB(screen->format,pt.red,pt.green,pt.blue);
-
-        *((Uint32 *)screen->pixels + y*screen->pitch/4 + x) =
-            SDL_MapRGB(screen->format,pt.red,pt.green,pt.blue);
+inline void SDLPlotter::plot(unsigned x, unsigned y, Color pt, bool
+        composite) {
+    if (!(x<screen->w && y<screen->h))
+        return;
+    if (composite) {
+        Color prev = getPixel(x,y); prev.alpha = 0xff-pt.alpha;
+        pt.red = (prev.red*prev.alpha+pt.red*pt.alpha)/0xff;
+        pt.green = (prev.green*prev.alpha+pt.green*pt.alpha)/0xff;
+        pt.blue = (prev.blue*prev.alpha+pt.blue*pt.alpha)/0xff;
+        pt.alpha = 0xff;
     }
+    *((Uint32 *)screen->pixels + y*screen->pitch/4 + x) =
+        RGBA(pt);
+}
 
+Uint32 SDLPlotter::RGBA(Color pt) {
+    return (pt.alpha<<24)|(pt.blue<<16)|(pt.green<<8)|(pt.red);
 }
 
 void SDLPlotter::plot(ScreenPoint pt) {
@@ -55,17 +60,17 @@ Uint8* SDLPlotter::getLocation(unsigned x, unsigned y) {
 // TODO what's the format of the stored color?
 Color SDLPlotter::getPixel(unsigned x, unsigned y) {
     Color c;
-    Uint32 val = *(Uint32*)(screen->pixels+y*screen->pitch+x*4);
-    c.alpha = (char)(val&0xff);
-    c.red = (char)((val>>8)&0xff);
-    c.green = (char)((val>>16)&0xff);
-    c.blue = (char)((val>>24)&0xff);
+    Uint32 val = *((Uint32*)screen->pixels+y*screen->pitch/4+x);
+    c.red = (Uint8)(val&0xff);
+    c.green = (Uint8)((val>>8)&0xff);
+    c.blue = (Uint8)((val>>16)&0xff);
+    c.alpha = (Uint8)((val>>24)&0xff);
     return c;
 }
 
 // Clear scren with black
 void SDLPlotter::clear() {
-    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format,0,0,0));
+    SDL_FillRect(screen, NULL, RGBA({0,0,0,0}));
 }
 
 // Update the screen

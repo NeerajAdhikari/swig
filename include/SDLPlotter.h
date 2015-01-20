@@ -24,9 +24,10 @@ class SDLPlotter {
     SDLPlotter(unsigned w, unsigned h);
     ~SDLPlotter();
     // Plot at the given x,y position.
-    void plot(unsigned x, unsigned y, Color pt);
+    void plot(unsigned x, unsigned y, Color pt, bool composite=false);
     void plot(ScreenPoint pt);
     Color getPixel(unsigned x, unsigned y);
+    Uint32 RGBA(Color pt);
 
     bool checkTerm();
     // Update screen.
@@ -35,13 +36,6 @@ class SDLPlotter {
     void blur();
     // Clear the screen with black
     void clear();
-    // Draw a line from start to end
-    void line(const ScreenPoint& start,const ScreenPoint& end);
-    // Fill the triangle bounded by pt1, pt2 and pt3
-    void fill(ScreenPoint pt1, ScreenPoint pt2,
-            ScreenPoint pt3, Color fillcolor);
-    // Draw a horizontal line between (xs,y) and (xe,y)
-    void hLine(unsigned y, unsigned xs, unsigned xe, Color cl);
 
     unsigned width() const;
     unsigned height() const;
