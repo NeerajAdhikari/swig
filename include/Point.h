@@ -12,8 +12,9 @@ struct Color {
 
 struct ScreenPoint {
     Color color;
-    unsigned x;
-    unsigned y;
+    uint16_t x;
+    uint16_t y;
+    uint32_t d;
 };
 
 #endif

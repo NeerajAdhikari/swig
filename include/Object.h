@@ -8,6 +8,11 @@
 #include "Matrix.h"
 #include "VectorTriplet.h"
 
+#include <algorithm>
+#include <functional>
+#include <cctype>
+#include <locale>
+
 // Work on progress
 // An Object is collection of Vertices, Edges and Surfaces
 class Object{
@@ -140,13 +145,18 @@ class Object{
         }
     }
 };
+// trim from end
+inline std::string &rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        return s;
+}
 
 // Load an object from an .obj file
 Object::Object(const std::string& filename) : m_vertex({4,1}) {
     std::ifstream objfile(filename,std::ios::in);
     std::string line,keyword;
     Triplet<float> vtxpoint(0,0,0);
-    unsigned facepoint;
+    std::string facepoint;
     m_vertex_count = 0;
 
     if (objfile.fail()) {
@@ -155,6 +165,7 @@ Object::Object(const std::string& filename) : m_vertex({4,1}) {
 
     while (!objfile.eof()) {
         std::getline(objfile,line);
+        rtrim(line);
         if (line.size()<3)
             continue;
         std::istringstream linestrm(line);
@@ -173,9 +184,21 @@ Object::Object(const std::string& filename) : m_vertex({4,1}) {
             m_vertex_count++;
         } else if (keyword=="f") {
             std::vector<unsigned> face;
-            while (!linestrm.eof()) {
-                linestrm>>facepoint;
-                face.push_back(facepoint-1);
+            size_t space=line.find(' ');
+            line=line.substr(space+1,line.size()-space-1);
+            while (space!=std::string::npos) {
+                space=line.find(' ');
+                if (space!=std::string::npos) {
+                    facepoint=line.substr(0,space);
+                    line=line.substr(space+1,line.size()-space-1);
+                } else {
+                    facepoint=line; line="";
+                }
+                size_t slash=facepoint.find('/');
+                if (slash!=std::string::npos) {
+                    facepoint=facepoint.substr(0,slash);
+                }
+                face.push_back(std::stoi(facepoint)-1);
             }
             std::vector<Triplet<unsigned> > tlst = tesselate(face);
             for (auto it=tlst.begin();it<tlst.end(); it++) {
