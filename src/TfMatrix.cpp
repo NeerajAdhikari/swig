@@ -1,7 +1,7 @@
 #include "TfMatrix.h"
 
-Matrix TfMatrix::shearing(float a, float b, float c, float d, float e, float f){
-    Matrix transformation({4,4});
+Matrix<float> TfMatrix::shearing(float a, float b, float c, float d, float e, float f){
+    Matrix<float> transformation({4,4});
     transformation.initialize(
             1,  a,  b,  0,
             c,  1,  d,  0,
@@ -11,8 +11,8 @@ Matrix TfMatrix::shearing(float a, float b, float c, float d, float e, float f){
     return transformation;
 }
 
-Matrix TfMatrix::translation(const Vector& t){
-    Matrix transformation({4,4});
+Matrix<float> TfMatrix::translation(const Vector& t){
+    Matrix<float> transformation({4,4});
     transformation.initialize(
             1,  0,  0,  t.x,
             0,  1,  0,  t.y,
@@ -22,8 +22,8 @@ Matrix TfMatrix::translation(const Vector& t){
     return transformation;
 }
 
-Matrix TfMatrix::scaling(const Vector& s, const Vector& p){
-    Matrix transformation({4,4});
+Matrix<float> TfMatrix::scaling(const Vector& s, const Vector& p){
+    Matrix<float> transformation({4,4});
     transformation.initialize(
             s.x,    0,      0,      (1-s.x)*p.x,
             0,      s.y,    0,      (1-s.y)*p.y,
@@ -33,7 +33,7 @@ Matrix TfMatrix::scaling(const Vector& s, const Vector& p){
     return transformation;
 }
 
-Matrix TfMatrix::rotation(float degree, const Vector& r, const Vector& point){
+Matrix<float> TfMatrix::rotation(float degree, const Vector& r, const Vector& point){
 
     Vector axis = r.normalized();
 
@@ -45,7 +45,7 @@ Matrix TfMatrix::rotation(float degree, const Vector& r, const Vector& point){
     float u = axis.x, v = axis.y, w = axis.z;
     float a = point.x, b = point.y, c = point.z;
 
-    Matrix transformation({4,4});
+    Matrix<float> transformation({4,4});
     transformation.initialize(
         u*u+(v*v+w*w)*cosine,      u*v*(1-cosine)-w*sine,  u*w*(1-cosine)+v*sine,  (a*(v*v+w*w)-u*(b*v+c*w))*(1-cosine)+(b*w-c*v)*sine,
         u*v*(1-cosine)+w*sine,  v*v+(u*u+w*w)*cosine,      v*w*(1-cosine)-u*sine,  (b*(u*u+w*w)-v*(a*u+c*w))*(1-cosine)+(c*u-a*w)*sine,

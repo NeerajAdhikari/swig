@@ -2,7 +2,6 @@
 #include "Object.h"
 #include "Matrix.h"
 #include "Point.h"
-#include "structures.h"
 #include "Vector.h"
 #include "TfMatrix.h"
 #include <iostream>
@@ -19,7 +18,7 @@ int main(int argc, char* argv[]) {
     Drawer drawer(&fb);
 
     // Initialize cam
-    Matrix cam({4,4});
+    Matrix<float> cam({4,4});
     cam.initialize(
             10, 0, 0, 0,
             0, 10, 0, 0,
@@ -29,7 +28,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize projection matrix
     // translate objects to the camera co-ordinates
-    Matrix proj = TfMatrix::translation({0,-8,0});
+    Matrix<float> proj = TfMatrix::translation({0,-8,0});
     // rotate objects to match the camera's orientation
     proj /= TfMatrix::rotation(270,{1,0,0},{0,0,0});
     // And then we need a perspective projection transform matrix
@@ -45,7 +44,7 @@ int main(int argc, char* argv[]) {
     unsigned nVerts = tho.vertexCount();
 
     // Intialize a transformation matrix to transform object
-    Matrix rotator = TfMatrix::rotation(2,{1,1,1},{0,0,0});
+    Matrix<float> rotator = TfMatrix::rotation(2,{1,1,1},{0,0,0});
 
     // For flat shading, the colors we need to fill surfaces with
     // TODO: Suface is inherited so that

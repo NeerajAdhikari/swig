@@ -3,7 +3,7 @@
 
 #include "Point.h"
 #include "setPlotter.h"
-#include "MatrixInt.h"
+#include "Matrix.h"
 
 #include SSTR(Plotter_.h)
 
@@ -14,7 +14,7 @@ class Drawer {
 
     private:
     Plotter_ *plotter;
-    MatrixInt depth;
+    Matrix<uint32_t> depth;
 
     public:
     Drawer(Plotter_ *pltr);

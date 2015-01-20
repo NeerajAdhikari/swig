@@ -50,7 +50,7 @@ class Object{
     private:
     // A matrix is (4 x count) matrix is used to represent m_vertex
     // A homogeneous vertex matrix
-    Matrix m_vertex;
+    Matrix<float> m_vertex;
     // A vector of pair of indexes to represent edges
     std::vector<Edge> m_edge;
     // A vector of triplet of indexes to represent surfaces (triangles)
@@ -82,7 +82,7 @@ class Object{
         return m_surface.size();
     }
 
-    inline Matrix& vertex() {
+    inline Matrix<float>& vertex() {
         return m_vertex;
     }
 
