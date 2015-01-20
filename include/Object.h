@@ -110,7 +110,7 @@ class Object{
         return m_surface[point].normal;
     }
 
-    void Object::showVx() const;
+    void showVx() const;
 };
 
 #endif

@@ -18,37 +18,49 @@ int main(int argc, char* argv[]) {
     Plotter_ fb(800,600);
     Drawer drawer(&fb);
 
-    // A matrix to perform a 5degree rotation about z-axis
-    Matrix rotator = TfMatrix::rotation(5,{0,0,1},{0,0,0});
-    //rotator = rotator*TfMatrix::rotation(2,{0,1,0},{0,0,0});
-    rotator = rotator*TfMatrix::rotation(2,{1,0,0},{0,0,0});
+    // Initialize cam
+    Matrix cam({4,4});
+    cam.initialize(
+            10, 0, 0, 0,
+            0, 10, 0, 0,
+            0, 0,  0, 1,
+            0, 0,  1, 0
+            );
 
-    // Lets start building the projection matrix.
-    // First we need to translate objects to the camera co-ordinates
-    Matrix proj = TfMatrix::translation({0,-400,0});
-    // Then rotate to match the camera's orientation
+    // Initialize projection matrix
+    // translate objects to the camera co-ordinates
+    Matrix proj = TfMatrix::translation({0,-8,0});
+    // rotate objects to match the camera's orientation
     proj /= TfMatrix::rotation(270,{1,0,0},{0,0,0});
-
     // And then we need a perspective projection transform matrix
-    // Project on z=3
-    cam(0,0) = 10; cam(1,1) = 10; cam(2,2) = 0; cam(3,3) = 0;
-    cam(3,2) = 1; cam(2,3) = 1;
-    proj = cam*proj;
+    proj /= cam;
 
+    // Initialize the light source
+    VectorTriplet light = {0,-1,0};
+    light = light.normalized();
+
+    // Initialize the object
     Object tho(argv[1]);
     unsigned nSurfs = tho.surfaceCount();
     unsigned nVerts = tho.vertexCount();
 
-    // For the colors we need to fill surfaces with
-    Color colors[nSurfs];
-    // Detect backfaces - should we display the surface?
-    bool show[nSurfs];
+    // Intialize a transformation matrix to transform object
+    Matrix rotator = TfMatrix::rotation(2,{1,1,1},{0,0,0});
 
-    // Flat-shading : calculate the colors to shade each surface with
-    VectorTriplet light = {0,-1,0};
-    light = light.normalized();
+    // For flat shading, the colors we need to fill surfaces with
+    // TODO: Suface is inherited so that
+    // color info and show can be kept inside it
+    // even though it's only useful for flat shading and backface resp.
+    Color colors[nSurfs];
+
+    // Detect backfaces - should we display the surface?
+    //bool show[nSurfs];
 
     while (true) {
+
+    // Change the world co-ordinates
+    // Apply the rotation
+    tho.vertex() /= rotator;
 
     // Flat-shading : calculate the colors to shade each surface with
     for (int i=0; i<nSurfs; i++) {
@@ -59,23 +71,17 @@ int main(int argc, char* argv[]) {
         //show[i]=(dp<-0.01);
         //if (!show[i])
         //    continue;
-        Uint8 clr;
-        if (fabs(dp)>=1.0)
-            clr=255;
-        else
-            clr=(Uint8)(fabs(dp)*255.0);
+        dp = fabs(dp);
+        Uint8 clr = dp >= 1.0 ? 255 : dp*255;
         colors[i] =  {clr,clr,clr,255};
     }
-    // Apply the rotation
-    tho = rotator*tho;
 
-    // Create a copy and apply the projection transform
+    // Create a copy of object and apply the projection transform
     Object th = tho;
-    th=proj*tho;
+    th.vertex() /= proj;
 
     // The screen-points that our world-points will be mapped to
     ScreenPoint s[nVerts];
-
     // For each vertex,perform adjustments and calculate screen-points
     for (auto i=0; i<nVerts; i++) {
         VectorTriplet vert = th.getVertex(i);
@@ -102,7 +108,7 @@ int main(int argc, char* argv[]) {
     // Update framebuffer
     drawer.update();
     // Small delay to control framerate
-    SDL_Delay(20);
+    SDL_Delay(10);
     if (fb.checkTerm())
         break;
     }
