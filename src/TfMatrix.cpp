@@ -11,7 +11,7 @@ Matrix TfMatrix::shearing(float a, float b, float c, float d, float e, float f){
     return transformation;
 }
 
-Matrix TfMatrix::translation(const VectorTriplet& t){
+Matrix TfMatrix::translation(const Vector& t){
     Matrix transformation({4,4});
     transformation.initialize(
             1,  0,  0,  t.x,
@@ -22,7 +22,7 @@ Matrix TfMatrix::translation(const VectorTriplet& t){
     return transformation;
 }
 
-Matrix TfMatrix::scaling(const VectorTriplet& s, const Vertex& p){
+Matrix TfMatrix::scaling(const Vector& s, const Vector& p){
     Matrix transformation({4,4});
     transformation.initialize(
             s.x,    0,      0,      (1-s.x)*p.x,
@@ -33,9 +33,9 @@ Matrix TfMatrix::scaling(const VectorTriplet& s, const Vertex& p){
     return transformation;
 }
 
-Matrix TfMatrix::rotation(float degree, const VectorTriplet& r, const Vertex& point){
+Matrix TfMatrix::rotation(float degree, const Vector& r, const Vector& point){
 
-    VectorTriplet axis = r.normalized();
+    Vector axis = r.normalized();
 
     //degree = std::fmod(degree,360);
     float radian = Math::toRadian(degree);

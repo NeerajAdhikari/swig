@@ -3,7 +3,7 @@
 #include "Matrix.h"
 #include "Point.h"
 #include "structures.h"
-#include "VectorTriplet.h"
+#include "Vector.h"
 #include "TfMatrix.h"
 #include <iostream>
 #include <cmath>
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     proj /= cam;
 
     // Initialize the light source
-    VectorTriplet light = {0,-1,0};
+    Vector light = {0,-1,0};
     light = light.normalized();
 
     // Initialize the object
@@ -64,8 +64,8 @@ int main(int argc, char* argv[]) {
 
     // Flat-shading : calculate the colors to shade each surface with
     for (int i=0; i<nSurfs; i++) {
-        VectorTriplet normal = tho.getSurfaceNormal(i);
-        VectorTriplet light = {0,-1,0};
+        Vector normal = tho.getSurfaceNormal(i);
+        Vector light = {0,-1,0};
         float dp = (light%normal);
         //show[i]=(dp<-0.20);
         //show[i]=(dp<-0.01);
@@ -84,11 +84,12 @@ int main(int argc, char* argv[]) {
     ScreenPoint s[nVerts];
     // For each vertex,perform adjustments and calculate screen-points
     for (auto i=0; i<nVerts; i++) {
-        VectorTriplet vert = th.getVertex(i);
+        Vector vert = th.getVertex(i);
         // Calculate depth
-        s[i].d = 0xffffff*vert.z;
+        s[i].d = 0xffffff/vert.w;
         // Normalize, to display on a 4by4 viewport
-        vert.x/=30; vert.y/=30;
+        vert.x/=vert.w*30;
+        vert.y/=vert.w*30;
         if (vert.x<1.0)
             s[i].x = vert.x*800+400;
         if (vert.y<1.0)
