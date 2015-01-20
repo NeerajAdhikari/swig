@@ -8,34 +8,51 @@
 #include <iostream>
 #include <cmath>
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc<2) {
+        std::cout<<"Usage: "<<argv[0]<<" filename"<<std::endl;
+        return 1;
+    }
 
     // Initialize the plotter interface
     Plotter_ fb(800,600);
     Drawer drawer(&fb);
 
     // A matrix to perform a 5degree rotation about z-axis
-    Matrix rotator = TfMatrix::rotation(.1,{0,0,1},{0,0,0});
-    rotator *= TfMatrix::rotation(.1,{0,1,1},{0,0,0});
-    rotator *= TfMatrix::rotation(.1,{1,0,1},{0,0,0});
+    Matrix rotator = TfMatrix::rotation(1,{0,0,1},{0,0,0});
+    rotator *= TfMatrix::rotation(1,{0,1,1},{0,0,0});
+    rotator *= TfMatrix::rotation(1,{1,0,1},{0,0,0});
 
     // Lets start building the projection matrix.
     // First we need to translate objects to the camera co-ordinates
-    Matrix proj = TfMatrix::translation({0,-5,1});
+    Matrix proj = TfMatrix::translation({0,-5,0});
     // Then rotate to match the camera's orientation
-    proj /= TfMatrix::rotation(300,{1,0,0},{0,0,0});
+    proj /= TfMatrix::rotation(270,{1,0,0},{0,0,0});
+
     // And then we need a perspective projection transform matrix
-    Matrix cam = Matrix::identity(4);
     // Project on z=3
+    // Note: I can write a projection matrix
+    // I don't know how it should be though
+    Matrix cam = Matrix::identity(4);
+    /*
+    cam.initialize(
+            2, 0, 0, 0,
+            0, 2, 0, 0,
+            0, 0, 2, 0,
+            0, 0, 1, 0
+            );
+    proj /= cam;
+    */
+
     cam(0,0) = 2;
     cam(1,1) = 2;
     cam(2,2) = 2;
     cam(3,3) = 0;
     cam(3,2) = 1;
-    proj = cam*proj;
+    proj /= cam;
 
-    // An object with 4 vertices (a tetrahedron)
-    Object tho(4);
+    /* An object with 4 vertices (a tetrahedron)
+       Object tho(4);
     // Set the four points
     tho.setVertex(0,{0,0,0});
     tho.setVertex(1,{1,0,0});
@@ -49,67 +66,78 @@ int main() {
     tho.setSurface({0,2,1});
     tho.setSurface({0,3,2});
     tho.setSurface({1,2,3});
+    */
+
+    Object tho(argv[1]);
+    unsigned nSurfs = tho.surfaceCount();
+    unsigned nVerts = tho.vertexCount();
 
     // For the colors we need to fill surfaces with
-    Color colors[4];
+    Color colors[nSurfs];
     // Detect backfaces - should we display the surface?
-    bool show[4];
+    bool show[nSurfs];
+
+    // Flat-shading : calculate the colors to shade each surface with
+    VectorTriplet light = {0,-1,0};
+    light = light.normalized();
 
     while (true) {
 
-    // Flat-shading : calculate the colors to shade each surface with
-    VectorTriplet light = {0,1,0.57735};
-    light = light.normalized();
+        for (int i=0; i<nSurfs; i++) {
+            VectorTriplet normal = tho.getSurfaceNormal(i);
+            float dp = (light%normal);
 
-    for (int i=0; i<4; i++) {
-        VectorTriplet normal = tho.getSurfaceNormal(i);
-        float dp = (light%normal);
-        show[i]=(dp<0);
-        if (!show[i])
-            continue;
-        Uint8 clr;
-        if (fabs(dp)>=1.0)
-            clr=255;
-        else
-            clr=(Uint8)(fabs(dp)*255.0);
-        colors[i] =  {clr,clr,clr,255};
-    }
+            show[i]=(dp<-0.20);
+            if (!show[i])
+                continue;
 
-    // Apply the rotation
-    tho = rotator*tho;
+            Uint8 clr;
+            if (fabs(dp)>=1.0)
+                clr = 255;
+            else
+                clr = (Uint8)(fabs(dp)*255.0);
 
-    // Create a copy and apply the projection transform
-    Object th = tho;
-    th.vertex() /=proj;
+            colors[i] =  {clr,clr,clr,255};
+        }
 
-    // The screen-points that our world-points will be mapped to
-    ScreenPoint s[4];
+        // Apply the rotation
+        tho.vertex() /= rotator;
 
-    // For each vertex,perform adjustments and calculate screen-points
-    for (auto i=0; i<4; i++) {
-        VectorTriplet vert = th.getVertex(i);
-        vert = vert.normalized();
-        vert.x/=2; vert.y/=2; vert.z/=2;
-        s[i].x = vert.x*800+400;
-        s[i].y = (-vert.y*600)+300;
-        s[i].color = colors[i];
-    }
+        // Create a copy and apply the projection transform
+        Object th = tho;
+        th.vertex() /= proj;
 
-    // Clear framebuffer, we're about to plot
-    drawer.clear();
-    // Do the thing
-    for (int i=0; i<4; i++) {
-        //fb.line(s[th.getEdge(i).x],s[th.getEdge(i).y]);
-        if (show[i])
-        drawer.fill(s[th.getSurface(i).x],s[th.getSurface(i).y],
-                s[th.getSurface(i).z],colors[i]);
-    }
-    // Update framebuffer
-    drawer.update();
-    // Small delay to control framerate
-    SDL_Delay(20);
+        // The screen-points that our world-points will be mapped to
+        ScreenPoint s[nVerts];
 
-    if (fb.checkTerm())
-        break;
+        // For each vertex,perform adjustments and calculate screen-points
+        for (auto i=0; i<nVerts; i++) {
+            VectorTriplet vert = th.getVertex(i);
+            vert = vert.normalized();
+            vert.x/=2; vert.y/=2; vert.z/=2;
+            s[i].x = vert.x*800+400;
+            s[i].y = (-vert.y*600)+300;
+            s[i].color = colors[i];
+        }
+
+        // Clear framebuffer, we're about to plot
+        drawer.clear();
+
+        // Do the thing
+        for (int i=0; i<nSurfs; i++) {
+            //fb.line(s[th.getEdge(i).x],s[th.getEdge(i).y]);
+            if (show[i])
+                drawer.fill(s[th.getSurface(i).x],s[th.getSurface(i).y],
+                        s[th.getSurface(i).z],colors[i]);
+        }
+
+        // Update framebuffer
+        drawer.update();
+
+        // Small delay to control framerate
+        SDL_Delay(20);
+
+        if (fb.checkTerm())
+            break;
     }
 }

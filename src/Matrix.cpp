@@ -115,6 +115,28 @@ Matrix::Matrix(const Matrix& m){
 
 }
 
+void Matrix::addRow() {
+    m_row++;
+    float* newmat = new float[m_row*m_col];
+    memcpy(newmat,m_matrix,sizeof(float)*space());
+    m_space = m_row*m_col;
+    memset(newmat+(m_row-1)*m_col,0,m_col);
+    delete[] m_matrix;
+    m_matrix = newmat;
+}
+
+void Matrix::addColumn() {
+    float* newmat = new float[m_row*(m_col+1)];
+    for (auto i=0; i<m_row; i++) {
+        memcpy(newmat+i*(m_col+1),m_matrix+i*m_col,
+                m_col*sizeof(float));
+        newmat[(i+1)*(m_col+1)-1] = 0;
+    }
+    m_col++; m_space=m_col*m_row;
+    delete[] m_matrix;
+    m_matrix = newmat;
+}
+
 void Matrix::operator=(const Matrix& m){
     // Assigning itself to itself
     if( this == &m )

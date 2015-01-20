@@ -65,6 +65,9 @@ class Matrix {
             return m_space;
         }
 
+        void addRow();
+        void addColumn();
+
         // Getter in form matrix(x,y)
         inline float& operator()(unsigned row, unsigned col){
             if(row >= m_row || col >= m_col)

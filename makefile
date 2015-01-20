@@ -1,6 +1,6 @@
 CC=g++
 #Flags for the compiler
-CFLAGS=-w --std=c++11 -c -I$(INCDIR)/
+CFLAGS=-w -g --std=c++11 -c -I$(INCDIR)/
 #Flags for the linker
 LDFLAGS=-lSDL2
 
