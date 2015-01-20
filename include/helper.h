@@ -3,6 +3,12 @@
 // helper.h contains all the helper functions
 // related to mathematics, strings
 
+//
+#include <algorithm>
+#include <functional>
+#include <cctype>
+#include <locale>
+
 #include <cmath>
 #include "ex.h"
 
@@ -38,4 +44,9 @@ inline void swap(float& a,float& b) {
     b = t;
 }
 
+// trim from end
+inline std::string &rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        return s;
+}
 #endif

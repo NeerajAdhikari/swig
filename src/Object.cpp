@@ -1,17 +1,5 @@
 #include "Object.h"
 
-#include <algorithm>
-#include <functional>
-#include <cctype>
-#include <locale>
-
-
-// trim from end
-inline std::string &rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-        return s;
-}
-
 Object::Object (unsigned vertex_count):
     m_vertex_count(vertex_count), m_vertex({4,vertex_count})
 {
