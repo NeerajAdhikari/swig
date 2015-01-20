@@ -7,6 +7,10 @@
 #include <iostream>
 #include <cmath>
 
+
+// TODO
+// UPDATE:    Vertex isn't divided by "w" through getVertex method
+
 int main(int argc, char* argv[]) {
     if (argc<2) {
         std::cout<<"Usage: "<<argv[0]<<" filename"<<std::endl;
@@ -80,9 +84,11 @@ int main(int argc, char* argv[]) {
     th.vertex() /= proj;
 
     // The screen-points that our world-points will be mapped to
-    ScreenPoint s[nVerts];
+    //ScreenPoint s[nVerts];
     // For each vertex,perform adjustments and calculate screen-points
+
     for (auto i=0; i<nVerts; i++) {
+        /*
         Vector vert = th.getVertex(i);
         // Calculate depth
         s[i].d = 0xffffff/vert.w;
@@ -93,7 +99,17 @@ int main(int argc, char* argv[]) {
             s[i].x = vert.x*800+400;
         if (vert.y<1.0)
             s[i].y = (-vert.y*600)+300;
+            */
+        th.vertex()(0,i) /= th.vertex()(3,i)*30;
+        th.vertex()(1,i) /= th.vertex()(3,i)*30;
+        th.vertex()(2,i) = 0xffffff / th.vertex()(3,i);
+
+        if(th.vertex()(0,i) < 1.0)
+            th.vertex()(0,i) = th.vertex()(0,i)*800 + 400;
+        if(th.vertex()(1,i) < 1.0)
+            th.vertex()(1,i) = - th.vertex()(1,i)*600 + 300;
     }
+
 
     // Clear framebuffer, we're about to plot
     drawer.clear();
@@ -101,8 +117,15 @@ int main(int argc, char* argv[]) {
     for (int i=0; i<nSurfs; i++) {
         //fb.line(s[th.getEdge(i).x],s[th.getEdge(i).y]);
         //if (show[i])
+        drawer.fill(
+                th.getVertex(th.getSurface(i).x),
+                th.getVertex(th.getSurface(i).y),
+                th.getVertex(th.getSurface(i).z),
+                colors[i]);
+        /*
         drawer.fill(s[th.getSurface(i).x],s[th.getSurface(i).y],
                 s[th.getSurface(i).z],colors[i]);
+        */
     }
 
     // Update framebuffer
