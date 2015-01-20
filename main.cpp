@@ -27,21 +27,26 @@ int main(int argc, char* argv[]) {
     // First we need to translate objects to the camera co-ordinates
     Matrix proj = TfMatrix::translation({0,-400,0});
     // Then rotate to match the camera's orientation
-    proj = TfMatrix::rotation(270,{1,0,0},{0,0,0})*proj;
+    proj /= TfMatrix::rotation(270,{1,0,0},{0,0,0});
+
     // And then we need a perspective projection transform matrix
-    Matrix cam = Matrix::identity(4);
     // Project on z=3
     cam(0,0) = 10; cam(1,1) = 10; cam(2,2) = 0; cam(3,3) = 0;
     cam(3,2) = 1; cam(2,3) = 1;
     proj = cam*proj;
 
     Object tho(argv[1]);
-    unsigned nSurfs = tho.surfaceCount(), nVerts = tho.vertexCount();
+    unsigned nSurfs = tho.surfaceCount();
+    unsigned nVerts = tho.vertexCount();
 
     // For the colors we need to fill surfaces with
     Color colors[nSurfs];
-    // Detect backfaces - shoudl we display the surface?
+    // Detect backfaces - should we display the surface?
     bool show[nSurfs];
+
+    // Flat-shading : calculate the colors to shade each surface with
+    VectorTriplet light = {0,-1,0};
+    light = light.normalized();
 
     while (true) {
 
@@ -98,7 +103,6 @@ int main(int argc, char* argv[]) {
     drawer.update();
     // Small delay to control framerate
     SDL_Delay(20);
-
     if (fb.checkTerm())
         break;
     }
