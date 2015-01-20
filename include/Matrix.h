@@ -65,9 +65,6 @@ class Matrix {
             return m_space;
         }
 
-        void addRow();
-        void addColumn();
-
         // Getter in form matrix(x,y)
         inline float& operator()(unsigned row, unsigned col){
             if(row >= m_row || col >= m_col)
@@ -137,6 +134,12 @@ class Matrix {
 
         // readjust itself to given size
         void readjust(const Pair<unsigned>& size);
+
+        // adds a row to the matrix
+        void addRow();
+
+        // adds a col to the matrix
+        void addColumn();
 
         // Returns true if it is a Square matrix
         bool isSquare() const;

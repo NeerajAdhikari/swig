@@ -19,13 +19,13 @@ int main(int argc, char* argv[]) {
     Drawer drawer(&fb);
 
     // A matrix to perform a 5degree rotation about z-axis
-    Matrix rotator = TfMatrix::rotation(1,{0,0,1},{0,0,0});
-    rotator *= TfMatrix::rotation(1,{0,1,1},{0,0,0});
-    rotator *= TfMatrix::rotation(1,{1,0,1},{0,0,0});
+    Matrix rotator = TfMatrix::rotation(1.3,{0,0,1},{0,0,0}) 
+        * TfMatrix::rotation(1.2,{0,1,0},{0,0,0});
+      //  * TfMatrix::rotation(1,{1,0,0},{0,0,0});
 
     // Lets start building the projection matrix.
     // First we need to translate objects to the camera co-ordinates
-    Matrix proj = TfMatrix::translation({0,-5,0});
+    Matrix proj = TfMatrix::translation({-1,-5,-0.2});
     // Then rotate to match the camera's orientation
     proj /= TfMatrix::rotation(270,{1,0,0},{0,0,0});
 
@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
             );
     proj /= cam;
     */
-
     cam(0,0) = 2;
     cam(1,1) = 2;
     cam(2,2) = 2;
@@ -135,7 +134,7 @@ int main(int argc, char* argv[]) {
         drawer.update();
 
         // Small delay to control framerate
-        SDL_Delay(20);
+        //SDL_Delay(20);
 
         if (fb.checkTerm())
             break;
