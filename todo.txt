@@ -1,7 +1,5 @@
 @Matrix
-    Transpose
     Inverse
-    Determinant
 @TransformationMatrix
     Perspective Projection
     Parallel Projection
@@ -15,10 +13,7 @@ TODO
         - Separation to two levels:
             - A viewport manager: handles windowing, framebuffer, etc
             - A primitives manager: handles primitives like lines, filling, etc
-    Load from .obj file
-    Triangularization of surface
     Other filling algorithms
     Antialiased Filling
-    Z-buffering
     Vectors have 4th component
         0 represents vector, 1 represents point

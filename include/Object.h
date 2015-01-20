@@ -65,9 +65,7 @@ class Object{
     inline Vertex getVertex(unsigned point) const {
         if(point >= vertexCount())
             throw ex::OutOfBounds();
-        float hm = m_vertex(3,point);
-        hm=(hm==0)?1:hm;
-        return {m_vertex(0,point)/hm,m_vertex(1,point)/hm,m_vertex(2,point)/hm};
+        return {m_vertex(0,point),m_vertex(1,point),m_vertex(2,point)};
     }
 
     inline void setEdge(const Pair<unsigned>& p) {
