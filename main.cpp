@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     Matrix<float> cam({4,4});
     cam.initialize(
             10, 0, 0, 0,
-            0, 10, 0, 0,
+            0,10, 0, 0,
             0, 0,  0, 1,
             0, 0,  1, 0
             );

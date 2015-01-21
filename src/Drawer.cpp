@@ -262,7 +262,7 @@ void Drawer::hLineD(unsigned y, unsigned xStart,
             depth(xStart+i,y)=d;
         }
         ctr += Dd;
-        if (abs(ctr)>=Dx) {
+        if (Dx && abs(ctr)>=Dx) {
             d += ctr/Dx;
             ctr %= Dx;
         }
