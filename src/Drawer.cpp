@@ -1,4 +1,5 @@
 #include "Drawer.h"
+#include "Linspace.h"
 
 // Construct.
 Drawer::Drawer(Plotter_ *pltr) : plotter(pltr),
@@ -72,6 +73,7 @@ void Drawer::line(const ScreenPoint& start,
     }
 }
 
+
 // Fill the triangle bounded by pt1, pt2 and pt3
 // What is implemented here is a special case of
 // scan-line filling which works only for triangles.
@@ -115,6 +117,8 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
     // If start and have the same y-value, then the triangle
     // degenerates into a line. Plot it.
     if (start.y==end.y) {
+        // UPDATE: we shouldn't draw lines for perpendicular surfaces
+        return;
          //hLine(start.y,start.x,mid.x,fillcolor);
          hLineD(start.y,start.x,start.d,mid.x,mid.d,fillcolor);
          //hLine(start.y,mid.x,end.x,fillcolor);
@@ -233,8 +237,9 @@ void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
     if (xs>xe) {
         swap(xs,xe);
     }
-    for (auto i=0; i<=(xe-xs); i++) {
-        plotter->plot(xs+i,y,cl,true);
+    while(xs <= xe){
+        plotter->plot(xs,y,cl,true);
+        xs++;
     }
 }
 
@@ -250,18 +255,14 @@ void Drawer::hLineD(unsigned y, unsigned xStart,
         swap(xStart,xEnd);
         swap(dStart,dEnd);
     }
-    // Here too, we use integer calculations to evaluate the
-    // division Dh = (dh/dx)*Dx
-    int Dx=xEnd-xStart, Dd=dEnd-dStart,d=dStart,ctr=0;
-    for (auto i=0; i<=(xEnd-xStart); i++) {
-        if (d>=depth(xStart+i,y)) {
-            plotter->plot(xStart+i,y,cl,true);
-            depth(xStart+i,y)=d;
+    int space = xEnd-xStart+1;
+    Linspace d(dStart,dEnd,space);
+    while(xStart <= xEnd){
+        if (d>=depth(xStart,y)) {
+            plotter->plot(xStart,y,cl,true);
+            depth(xStart,y)=d;
         }
-        ctr += Dd;
-        if (Dx && abs(ctr)>=Dx) {
-            d += ctr/Dx;
-            ctr %= Dx;
-        }
+        ++xStart;
+        ++d;
     }
 }

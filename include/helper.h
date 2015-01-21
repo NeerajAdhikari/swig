@@ -45,6 +45,10 @@ inline void swap(T& a,T& b) {
     b = t;
 }
 
+inline int abs(int a){
+    return ((a<0)?-a:a);
+}
+
 // trim from end
 inline std::string &rtrim(std::string &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());

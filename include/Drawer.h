@@ -24,14 +24,16 @@ class Drawer {
 
     // Update screen.
     void update();
+
     // Clear the screen
     void clear();
+
     // Draw a line from start to end
     void line(const ScreenPoint& start,const ScreenPoint& end);
+
     // Fill the triangle bounded by pt1, pt2 and pt3
     void fill(ScreenPoint pt1, ScreenPoint pt2,
             ScreenPoint pt3, Color fillcolor);
-
 
     // Draw a horizontal line between (xs,y) and (xe,y)
     void hLine(unsigned y, unsigned xs, unsigned xe, Color cl);
