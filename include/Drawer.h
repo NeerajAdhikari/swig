@@ -17,7 +17,6 @@ class Drawer {
     Plotter_ *plotter;
 
     // A depth buffer, a matrix of uint32_t
-    MatrixInt depth;
     Matrix<uint32_t> depth;
 
     public:

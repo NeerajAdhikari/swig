@@ -249,7 +249,7 @@ void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
 void Drawer::hLineD(unsigned y, unsigned xStart,
         unsigned dStart, unsigned xEnd, unsigned dEnd, Color cl) {
     // Sort the start end end values if they are not in order
-    if (xs>xe) {
+    if (xStart>xEnd) {
         auto t = xStart; xStart = xEnd; xEnd = t;
         t = dStart; dStart = dEnd; dEnd = t;
     }
