@@ -2,11 +2,14 @@
 #include "Object.h"
 #include "Matrix.h"
 #include "Point.h"
-#include "structures.h"
-#include "VectorTriplet.h"
+#include "Vector.h"
 #include "TfMatrix.h"
 #include <iostream>
 #include <cmath>
+
+
+// TODO
+// UPDATE:    Vertex isn't divided by "w" through getVertex method
 
 int main(int argc, char* argv[]) {
     if (argc<2) {
@@ -19,7 +22,7 @@ int main(int argc, char* argv[]) {
     Drawer drawer(&fb);
 
     // Initialize cam
-    Matrix cam({4,4});
+    Matrix<float> cam({4,4});
     cam.initialize(
             10, 0, 0, 0,
             0, 10, 0, 0,
@@ -29,14 +32,14 @@ int main(int argc, char* argv[]) {
 
     // Initialize projection matrix
     // translate objects to the camera co-ordinates
-    Matrix proj = TfMatrix::translation({0,-8,0});
+    Matrix<float> proj = TfMatrix::translation({0,-8,0});
     // rotate objects to match the camera's orientation
     proj /= TfMatrix::rotation(270,{1,0,0},{0,0,0});
     // And then we need a perspective projection transform matrix
     proj /= cam;
 
     // Initialize the light source
-    VectorTriplet light = {0,-1,0};
+    Vector light = {0,-1,0};
     light = light.normalized();
 
     // Initialize the object
@@ -45,7 +48,7 @@ int main(int argc, char* argv[]) {
     unsigned nVerts = tho.vertexCount();
 
     // Intialize a transformation matrix to transform object
-    Matrix rotator = TfMatrix::rotation(2,{1,1,1},{0,0,0});
+    Matrix<float> rotator = TfMatrix::rotation(2,{1,1,1},{0,0,0});
 
     // For flat shading, the colors we need to fill surfaces with
     // TODO: Suface is inherited so that
@@ -64,8 +67,8 @@ int main(int argc, char* argv[]) {
 
     // Flat-shading : calculate the colors to shade each surface with
     for (int i=0; i<nSurfs; i++) {
-        VectorTriplet normal = tho.getSurfaceNormal(i);
-        VectorTriplet light = {0,-1,0};
+        Vector normal = tho.getSurfaceNormal(i);
+        Vector light = {0,-1,0};
         float dp = (light%normal);
         //show[i]=(dp<-0.20);
         //show[i]=(dp<-0.01);
@@ -81,19 +84,32 @@ int main(int argc, char* argv[]) {
     th.vertex() /= proj;
 
     // The screen-points that our world-points will be mapped to
-    ScreenPoint s[nVerts];
+    //ScreenPoint s[nVerts];
     // For each vertex,perform adjustments and calculate screen-points
+
     for (auto i=0; i<nVerts; i++) {
-        VectorTriplet vert = th.getVertex(i);
+        /*
+        Vector vert = th.getVertex(i);
         // Calculate depth
-        s[i].d = 0xffffff*vert.z;
+        s[i].d = 0xffffff/vert.w;
         // Normalize, to display on a 4by4 viewport
-        vert.x/=30; vert.y/=30;
+        vert.x/=vert.w*30;
+        vert.y/=vert.w*30;
         if (vert.x<1.0)
             s[i].x = vert.x*800+400;
         if (vert.y<1.0)
             s[i].y = (-vert.y*600)+300;
+            */
+        th.vertex()(0,i) /= th.vertex()(3,i)*30;
+        th.vertex()(1,i) /= th.vertex()(3,i)*30;
+        th.vertex()(2,i) = 0xffffff / th.vertex()(3,i);
+
+        if(th.vertex()(0,i) < 1.0)
+            th.vertex()(0,i) = th.vertex()(0,i)*800 + 400;
+        if(th.vertex()(1,i) < 1.0)
+            th.vertex()(1,i) = - th.vertex()(1,i)*600 + 300;
     }
+
 
     // Clear framebuffer, we're about to plot
     drawer.clear();
@@ -101,8 +117,15 @@ int main(int argc, char* argv[]) {
     for (int i=0; i<nSurfs; i++) {
         //fb.line(s[th.getEdge(i).x],s[th.getEdge(i).y]);
         //if (show[i])
+        drawer.fill(
+                th.getVertex(th.getSurface(i).x),
+                th.getVertex(th.getSurface(i).y),
+                th.getVertex(th.getSurface(i).z),
+                colors[i]);
+        /*
         drawer.fill(s[th.getSurface(i).x],s[th.getSurface(i).y],
                 s[th.getSurface(i).z],colors[i]);
+        */
     }
 
     // Update framebuffer

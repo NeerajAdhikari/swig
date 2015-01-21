@@ -3,7 +3,7 @@
 
 #include "Point.h"
 #include "setPlotter.h"
-#include "MatrixInt.h"
+#include "Matrix.h"
 
 #include SSTR(Plotter_.h)
 
@@ -15,8 +15,10 @@ class Drawer {
     private:
     // Pointer to a plotter object
     Plotter_ *plotter;
+
     // A depth buffer, a matrix of uint32_t
     MatrixInt depth;
+    Matrix<uint32_t> depth;
 
     public:
     Drawer(Plotter_ *pltr);
@@ -30,6 +32,8 @@ class Drawer {
     // Fill the triangle bounded by pt1, pt2 and pt3
     void fill(ScreenPoint pt1, ScreenPoint pt2,
             ScreenPoint pt3, Color fillcolor);
+
+
     // Draw a horizontal line between (xs,y) and (xe,y)
     void hLine(unsigned y, unsigned xs, unsigned xe, Color cl);
     // Draw a horizontal line considering the depth buffer
