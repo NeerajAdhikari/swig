@@ -73,6 +73,42 @@ void Drawer::line(const ScreenPoint& start,
     }
 }
 
+// Draw a horizontal line between (xs,y) and (xe,y)
+// This one doesn't consider the point depths.
+void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
+    if (xs>xe) {
+        swap(xs,xe);
+    }
+    while(xs <= xe){
+        plotter->plot(xs,y,cl,true);
+        xs++;
+    }
+}
+
+// This one considers the pixel depths while plotting. It only
+// plots points closer than already there.
+// The parameters are : y-coordinate, starting x-coordinate,
+// starting depth value, ending x-coordinate and ending depth
+// value
+void Drawer::hLineD(unsigned y, unsigned xStart,
+        unsigned dStart, unsigned xEnd, unsigned dEnd, Color cl) {
+    // Sort the start end end values if they are not in order
+    if (xStart>xEnd) {
+        swap(xStart,xEnd);
+        swap(dStart,dEnd);
+    }
+    int space = xEnd-xStart+1;
+    Linspace d(dStart,dEnd,space);
+    while(xStart <= xEnd){
+        if (d>=depth(xStart,y)) {
+            plotter->plot(xStart,y,cl,true);
+            depth(xStart,y)=d;
+        }
+        ++xStart;
+        ++d;
+    }
+}
+
 
 // Fill the triangle bounded by pt1, pt2 and pt3
 // What is implemented here is a special case of
@@ -114,155 +150,31 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
         }
     }
 
-    // If start and have the same y-value, then the triangle
-    // degenerates into a line. Plot it.
-    if (start.y==end.y) {
-        // UPDATE: we shouldn't draw lines for perpendicular surfaces
+    if(start.y == end.y)
         return;
-         //hLine(start.y,start.x,mid.x,fillcolor);
-         hLineD(start.y,start.x,start.d,mid.x,mid.d,fillcolor);
-         //hLine(start.y,mid.x,end.x,fillcolor);
-         hLineD(start.y,mid.x,mid.d,end.x,end.d,fillcolor);
-         return;
+
+    Linspace x1(start.x,mid.x, mid.y-start.y+1);
+    Linspace d1(start.d,mid.d, mid.y-start.y+1);
+
+    Linspace x2(start.x,end.x, end.y-start.y+1);
+    Linspace d2(start.d,end.d, end.y-start.y+1);
+
+    for(int i=start.y;i<mid.y;i++){
+        hLineD(i,x1,d1,x2,d2,fillcolor);
+        ++x1;
+        ++x2;
+        ++d1;
+        ++d2;
     }
 
-    // The algorithm begins.
-    // The reason the algorithm looks a bit complex is that
-    // floating-point calculations have been dispensed with
-    // and have been implemented using integers only.
+    Linspace x3(mid.x,end.x, end.y-mid.y+1);
+    Linspace d3(mid.d,end.d, end.y-mid.y+1);
+    for(int i=mid.y;i<=end.y;i++){
+        hLineD(i, x2, d2, x3, d3, fillcolor);
+        ++x2;
+        ++x3;
+        ++d2;
+        ++d3;
+    }
 
-    // The three counters are for determining when to change
-    // x as y changes. The three x-values are for the three
-    // sides of the triangle.
-    int ctr1,ctr2,ctr3,x1,x2,x3;
-    // The three depth-counters are for determining when to change
-    // d (depth) as y changes. The three d-values are for the three
-    // sides of the triangle. Depth need to be taken into account
-    // because we're doing depth-buffering.
-    int dctr1,dctr2,dctr3,d1,d2,d3;
-    // What we are doing here is evaluating the following
-    // equation : delta_x = (dx/dy)*delta_y
-    // delta_x will be 1, as we're traversing over horizontal
-    // scan-lines. We initialize a counter to 0, and then add dy
-    // until counter>=dy. At that point, we add counter/dy to x
-    // and decrease counter (counter = counter%dy). Then we
-    // repeat the process. So basically we're doing division in
-    // integer terms.
-
-    // Initialize all values. In the first part, we will fill till
-    // y reaches mid.y. x1 and d1 are for the start-mid side and
-    // x2 and d2 are for the start-end side.
-    ctr1=0;ctr2=0;x1=start.x;x2=start.x;
-    dctr1=0;dctr2=0;d1=start.d;d2=start.d;
-
-    if (start.y!=mid.y) {
-        for (auto i=start.y; i<=mid.y; i++) {
-            // Plot a horizontal line
-            hLineD(i, x1, d1, x2, d2, fillcolor);
-            // Add to counter
-            ctr1+=(mid.x-start.x);
-            // If it exceeds dy, increment x and readjust
-            if (abs(ctr1)>=(mid.y-start.y)) {
-                x1+=ctr1/(mid.y-start.y);
-                ctr1%=mid.y-start.y;
-            }
-            // Add to counter
-            ctr2+=(end.x-start.x);
-            // If it exceeds dy, increment x and readjust
-            if (abs(ctr2)>=(end.y-start.y)) {
-                x2+=ctr2/(end.y-start.y);
-                ctr2%=end.y-start.y;
-            }
-            // Add to counter
-            dctr1+=(mid.d-start.d);
-            // If it exceeds dy, increment d and readjust
-            if (abs(dctr1)>=(mid.y-start.y)) {
-                d1+=dctr1/(mid.y-start.y);
-                dctr1%=mid.y-start.y;
-            }
-            // Add to counter
-            dctr2+=(end.d-start.d);
-            // If it exceeds dy, increment d and readjust
-            if (abs(dctr2)>=(end.y-start.y)) {
-                d2+=dctr2/(end.y-start.y);
-                dctr2%=end.y-start.y;
-            }
-        }
-    }
-    // Initialize counters, x and d for the mid-end side
-    // We retain values of ctr2, dctr2, x2 and d2 as the
-    // start-end side of the triangle hasn't finished.
-    ctr3=0;x3=mid.x;
-    dctr3=0;d3=mid.d;
-    // Now we'll plot from mid.y to end.y
-    if (mid.y!=end.y) {
-        for (auto i=mid.y; i<=end.y; i++) {
-            // Draw a horizontal line
-            hLineD(i, x2, d2, x3, d3, fillcolor);
-            // Add to counter
-            ctr3+=(end.x-mid.x);
-            // If it exceeds dy, increment x and readjust
-            if (abs(ctr3)>=(end.y-mid.y)) {
-                x3+=ctr3/(end.y-mid.y);
-                ctr3%=end.y-mid.y;
-            }
-            // Add to counter
-            ctr2+=(end.x-start.x);
-            // If it exceeds dy, increment x and readjust
-            if (abs(ctr2)>=(end.y-start.y)) {
-                x2+=ctr2/(end.y-start.y);
-                ctr2%=end.y-start.y;
-            }
-            // Add to counter
-            dctr3+=(end.d-mid.d);
-            // If it exceeds dy, increment d and readjust
-            if (abs(dctr3)>=(end.y-mid.y)) {
-                d3+=dctr3/(end.y-mid.y);
-                dctr3%=end.y-mid.y;
-            }
-            // Add to counter
-            dctr2+=(end.d-start.d);
-            // If it exceeds dy, increment d and readjust
-            if (abs(dctr2)>=(end.y-start.y)) {
-                d2+=dctr2/(end.y-start.y);
-                dctr2%=end.y-start.y;
-            }
-        }
-    }
-}
-
-// Draw a horizontal line between (xs,y) and (xe,y)
-// This one doesn't consider the point depths.
-void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
-    if (xs>xe) {
-        swap(xs,xe);
-    }
-    while(xs <= xe){
-        plotter->plot(xs,y,cl,true);
-        xs++;
-    }
-}
-
-// This one considers the pixel depths while plotting. It only
-// plots points closer than already there.
-// The parameters are : y-coordinate, starting x-coordinate,
-// starting depth value, ending x-coordinate and ending depth
-// value
-void Drawer::hLineD(unsigned y, unsigned xStart,
-        unsigned dStart, unsigned xEnd, unsigned dEnd, Color cl) {
-    // Sort the start end end values if they are not in order
-    if (xStart>xEnd) {
-        swap(xStart,xEnd);
-        swap(dStart,dEnd);
-    }
-    int space = xEnd-xStart+1;
-    Linspace d(dStart,dEnd,space);
-    while(xStart <= xEnd){
-        if (d>=depth(xStart,y)) {
-            plotter->plot(xStart,y,cl,true);
-            depth(xStart,y)=d;
-        }
-        ++xStart;
-        ++d;
-    }
 }

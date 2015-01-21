@@ -10,7 +10,7 @@
 
 const unsigned width = 800;
 const unsigned height = 600;
-const float ambient_light = 0.05;
+const float ambient_light = 0.2;
 
 int main(int argc, char* argv[]) {
 
@@ -68,8 +68,11 @@ int main(int argc, char* argv[]) {
             // UPDATE
             // To be done if a surface is to be displayed
             // from both sides like a thin paper
-            if( normal.z < 0 )
+            // TODO doesn't work very nice
+            /*
+            if( normal.z < 0)
                 normal *= -1;
+            */
 
             float cosine = (light%normal);
             //show[i]=(cosine<-0.20);
