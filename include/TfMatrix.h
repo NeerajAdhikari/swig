@@ -21,6 +21,17 @@ class TfMatrix: public Matrix<float> {
         // Returns a rotation matrix by and angle "degree" along direction vector "axis" passing through point "point"
         static Matrix<float> rotation(float degree, const Vector& axis, const Vector& point);
 
+        // Returns a perspective projection
+        // For a symmetric frustum where l = -r and b = -t
+        // right top far near
+        static Matrix<float> perspective(float r, float t, float f, float n);
+
+        // Returns a perspective projection
+        // POV, ratio of widht to height of view port
+        static Matrix<float> perspective2(float r, float t, float f, float n);
+
+        // UPDATE: normalization is also done with perspective divide
+
 };
 
 #endif

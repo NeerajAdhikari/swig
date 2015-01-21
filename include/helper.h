@@ -38,8 +38,9 @@ namespace Math {
 
 };
 
-inline void swap(float& a,float& b) {
-    float t = a;
+template <class T>
+inline void swap(T& a,T& b) {
+    T t = a;
     a = b;
     b = t;
 }

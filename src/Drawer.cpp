@@ -173,9 +173,7 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
 // Draw a horizontal line between (xs,y) and (xe,y)
 void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
     if (xs>xe) {
-        auto t = xs;
-        xs = xe;
-        xe = t;
+        swap(xs,xe);
     }
     for (auto i=0; i<=(xe-xs); i++) {
         plotter->plot(xs+i,y,cl,true);
@@ -186,8 +184,8 @@ void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
 void Drawer::hLineD(unsigned y, unsigned xs,
         unsigned hs, unsigned xe, unsigned he, Color cl) {
     if (xs>xe) {
-        auto t = xs; xs = xe; xe = t;
-        t = hs; hs = he; he = t;
+        swap(xs,xe);
+        swap(hs,he);
     }
     int dx=xe-xs, dh=he-hs,h=hs,ctr=0;
     for (auto i=1; i<=(xe-xs); i++) {
