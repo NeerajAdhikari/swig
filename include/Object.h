@@ -143,6 +143,14 @@ class Object{
         return m_surface[point].normal;
     }
 
+    inline Vector getSurfaceCentroid(unsigned point) {
+        if(point>=surfaceCount())
+            throw ex::OutOfBounds();
+        Surface p = getSurface(point);
+        Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
+        return {(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,1};
+    }
+
     void showVx() const;
 };
 

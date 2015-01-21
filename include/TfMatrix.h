@@ -27,7 +27,7 @@ class TfMatrix: public Matrix<float> {
         static Matrix<float> perspective(float r, float t, float f, float n);
 
         // Returns a perspective projection
-        // POV, ratio of widht to height of view port
+        // POV, width to height ratio of view port
         static Matrix<float> perspective2(float r, float t, float f, float n);
 
         // UPDATE: normalization is also done with perspective divide

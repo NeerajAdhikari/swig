@@ -13,13 +13,13 @@ Matrix<float> TfMatrix::perspective(float r, float t, float f, float n){
 }
 
 Matrix<float> TfMatrix::perspective2(float ang, float ratio, float f, float n){
-    float e = 1 / std::tan( Math::toRadian(ang)/2);
+    float tangent = std::tan( Math::toRadian(ang/2) );
     Matrix<float> transformation({4,4});
     transformation.initialize(
-            e,    0,      0,              0,
-            0,      e/ratio,    0,              0,
-            0,      0,      -(n+f)/(f-n),   -(2*f*n)/(f-n),
-            0,      0,      -1.0,           0.0
+            1/tangent,  0,              0,              0,
+            0,          ratio/tangent,  0,              0,
+            0,          0,              -(n+f)/(f-n),   -(2*f*n)/(f-n),
+            0,          0,              -1,              0
             );
     return transformation;
 }
