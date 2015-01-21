@@ -22,7 +22,6 @@ int main(int argc, char* argv[]) {
     Plotter_ fb(width,height);
     Drawer drawer(&fb);
 
-    // Initialize cam
     /*
        Matrix<float> cam({4,4});
        cam.initialize(
