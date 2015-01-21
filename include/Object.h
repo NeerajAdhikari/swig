@@ -82,8 +82,30 @@ class Object{
         return m_surface.size();
     }
 
-    inline Matrix<float>& vertex() {
+    inline Matrix<float>& vmatrix() {
         return m_vertex;
+    }
+
+
+
+    // Getter in form matrix(x,y)
+    inline float& operator()(unsigned row, unsigned col){
+        return m_vertex(row,col);
+    }
+
+    // Setter in form matrix(x,y)
+    inline const float& operator()(unsigned row, unsigned col) const {
+        return m_vertex(row,col);
+    }
+
+    // Getter in the form matrix(p)
+    inline const float& operator()(unsigned place) const {
+        return m_vertex(place);
+    }
+
+    // Setter in the form matrix(p)
+    inline float& operator()(unsigned place){
+        return m_vertex(place);
     }
 
     // setVertex overwrites, others append
@@ -139,7 +161,7 @@ class Object{
         Surface p = getSurface(point);
         Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
         Vector sidea=v2-v1, sideb=v3-v2;
-       m_surface[point].normal=(sidea*sideb).normalized();
+        m_surface[point].normal=(sidea*sideb).normalized();
         return m_surface[point].normal;
     }
 

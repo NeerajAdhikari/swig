@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     unsigned nVerts = tho.vertexCount();
 
     // Translate the object to some place visible on screen
-    tho.vertex() /= TfMatrix::translation({0,0,ztranslate});
+    tho.vmatrix() /= TfMatrix::translation({0,0,ztranslate});
 
     // Intialize a transformation matrix to transform object
     Matrix<float> rotator = TfMatrix::translation({0,0,ztranslate})
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     while (true) {
 
         // Apply transformation to object
-        tho.vertex() /= rotator;
+        tho.vmatrix() /= rotator;
 
         // Flat-shading : calculate the colors to shade each surface with
         for (int i=0; i<nSurfs; i++) {
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 
         // Create a copy of object and apply the projection transform
         Object th = tho;
-        th.vertex() /= proj;
+        th.vmatrix() /= proj;
 
         // The screen-points that our world-points will be mapped to
         //ScreenPoint s[nVerts];
@@ -102,15 +102,15 @@ int main(int argc, char* argv[]) {
         for (auto i=0; i<nVerts; i++) {
 
             // Perspective divide
-            th.vertex()(0,i) /= th.vertex()(3,i);
-            th.vertex()(1,i) /= th.vertex()(3,i);
-            th.vertex()(2,i) /= th.vertex()(3,i);
+            th(0,i) /= th(3,i);
+            th(1,i) /= th(3,i);
+            th(2,i) /= th(3,i);
 
             // Change the co-ordinates to device co-ordinate
-            th.vertex()(0,i) = th.vertex()(0,i)*width + width/2;
-            th.vertex()(1,i) = height - (th.vertex()(1,i)*height + height/2);
+            th(0,i) = th(0,i)*width + width/2;
+            th(1,i) = height - (th(1,i)*height + height/2);
             // Converting Normalized Z co-ordinate [-1,1] to viewport depth [1,0]*maxdepth
-            th.vertex()(2,i) = (-th.vertex()(2,i)*0.5 + 0.5)*0xffffff;
+            th(2,i) = (-th(2,i)*0.5 + 0.5)*0xffffff;
         }
 
         // Clear framebuffer, we're about to plot
