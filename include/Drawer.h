@@ -19,6 +19,9 @@ class Drawer {
     // A depth buffer, a matrix of uint32_t
     Matrix<uint32_t> depth;
 
+    void initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& end,
+            const ScreenPoint& pt1, const ScreenPoint& pt2, const ScreenPoint& pt3);
+
     public:
     Drawer(Plotter_ *pltr);
 
@@ -31,15 +34,20 @@ class Drawer {
     // Draw a line from start to end
     void line(const ScreenPoint& start,const ScreenPoint& end);
 
-    // Fill the triangle bounded by pt1, pt2 and pt3
-    void fill(ScreenPoint pt1, ScreenPoint pt2,
-            ScreenPoint pt3, Color fillcolor);
-
     // Draw a horizontal line between (xs,y) and (xe,y)
     void hLine(unsigned y, unsigned xs, unsigned xe, Color cl);
     // Draw a horizontal line considering the depth buffer
     void hLineD(unsigned y, unsigned xs, unsigned hs,
             unsigned xe, unsigned he, Color cl);
+
+    // Fill the triangle bounded by pt1, pt2 and pt3
+    void fill(ScreenPoint pt1, ScreenPoint pt2,
+            ScreenPoint pt3, Color fillcolor);
+    // Fill the triangle bounded by pt1, pt2 and pt3
+    // considering depth buffer
+    void fillD(ScreenPoint pt1, ScreenPoint pt2,
+            ScreenPoint pt3, Color fillcolor);
+
 };
 
 #endif

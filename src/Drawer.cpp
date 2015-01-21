@@ -110,15 +110,11 @@ void Drawer::hLineD(unsigned y, unsigned xStart,
 }
 
 
-// Fill the triangle bounded by pt1, pt2 and pt3
-// What is implemented here is a special case of
-// scan-line filling which works only for triangles.
-void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
-        ScreenPoint pt3, Color fillcolor) {
+// We need to sort the points according to their
+// y-coordinates
+void Drawer::initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& end,
+        const ScreenPoint& pt1, const ScreenPoint& pt2, const ScreenPoint& pt3){
 
-    ScreenPoint start, mid, end;
-    // First we need to sort the points according to their
-    // y-coordinates
     if (pt1.y<=pt2.y && pt1.y<=pt3.y) {
         start = pt1;
         if (pt2.y<=pt3.y) {
@@ -150,6 +146,51 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
         }
     }
 
+}
+
+
+
+// Fill the triangle bounded by pt1, pt2 and pt3
+// What is implemented here is a special case of
+// scan-line filling which works only for triangles.
+void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
+        ScreenPoint pt3, Color fillcolor) {
+
+    ScreenPoint start, mid, end;
+    initAscending(start,mid,end,pt1,pt2,pt3);
+
+    if(start.y == end.y)
+        return;
+
+    Linspace x1(start.x,mid.x, mid.y-start.y+1);
+    Linspace x2(start.x,end.x, end.y-start.y+1);
+
+    for(int i=start.y;i<mid.y;i++){
+        hLine(i,x1,x2,fillcolor);
+        ++x1;
+        ++x2;
+    }
+
+    Linspace x3(mid.x,end.x, end.y-mid.y+1);
+    Linspace d3(mid.d,end.d, end.y-mid.y+1);
+    for(int i=mid.y;i<=end.y;i++){
+        hLine(i, x2, x3, fillcolor);
+        ++x2;
+        ++x3;
+    }
+}
+
+
+// Fill the triangle bounded by pt1, pt2 and pt3
+// What is implemented here is a special case of
+// scan-line filling which works only for triangles.
+// considering depth buffer
+void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
+        ScreenPoint pt3, Color fillcolor) {
+
+    ScreenPoint start, mid, end;
+    initAscending(start,mid,end,pt1,pt2,pt3);
+
     if(start.y == end.y)
         return;
 
@@ -176,5 +217,4 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
         ++d2;
         ++d3;
     }
-
 }

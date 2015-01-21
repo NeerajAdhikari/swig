@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
         for (int i=0; i<nSurfs; i++) {
             //fb.line(s[th.getEdge(i).x],s[th.getEdge(i).y]);
             //if (show[i])
-            drawer.fill(
+            drawer.fillD(
                     th.getVertex(th.getSurface(i).x),
                     th.getVertex(th.getSurface(i).y),
                     th.getVertex(th.getSurface(i).z),
