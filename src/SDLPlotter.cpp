@@ -1,13 +1,15 @@
 #include "SDLPlotter.h"
 
-// Construct.
+// Construct
 SDLPlotter::SDLPlotter(unsigned w, unsigned h)
     : white({255,255,255,255}),black({0,0,0,255}),
     m_width(w), m_height(h)
 {
+    // Initialize the video subsystem
     if (SDL_Init(SDL_INIT_VIDEO)<0)
         throw ex::InitFailure();
 
+    // Create a window
     window = SDL_CreateWindow("SWIG Test", SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED, m_width, m_height,
             SDL_WINDOW_SHOWN);
@@ -28,10 +30,15 @@ SDLPlotter::~SDLPlotter() {
 }
 
 // Plot at the given x,y position.
+// This is the most speed-critical part of the code, as it is called
+// so many times for each frame
 inline void SDLPlotter::plot(unsigned x, unsigned y, Color pt, bool
         composite) {
+    // Return if values out of range
     if (!(x<screen->w && y<screen->h))
         return;
+    // If alpha compositing is to be done, calculate
+    // new color value.
     if (composite) {
         Color prev = getPixel(x,y); prev.alpha = 0xff-pt.alpha;
         pt.red = (prev.red*prev.alpha+pt.red*pt.alpha)/0xff;
@@ -39,16 +46,20 @@ inline void SDLPlotter::plot(unsigned x, unsigned y, Color pt, bool
         pt.blue = (prev.blue*prev.alpha+pt.blue*pt.alpha)/0xff;
         pt.alpha = 0xff;
     }
+    // Write pixel to memory
     *((Uint32 *)screen->pixels + y*screen->pitch/4 + x) =
         RGBA(pt);
 }
 
-Uint32 SDLPlotter::RGBA(Color pt) {
-    return (pt.alpha<<24)|(pt.blue<<16)|(pt.green<<8)|(pt.red);
+// Plot a ScreenPoint
+void SDLPlotter::plot(ScreenPoint pt, bool composite) {
+    plot(pt.x,pt.y,pt.color,composite);
 }
 
-void SDLPlotter::plot(ScreenPoint pt) {
-    plot(pt.x,pt.y,pt.color);
+// Return a 32-bit memory representation of the Color struct.
+// TODO storage format may be machine-dependent
+Uint32 SDLPlotter::RGBA(Color pt) {
+    return (pt.alpha<<24)|(pt.blue<<16)|(pt.green<<8)|(pt.red);
 }
 
 // Get memory location of a particular x,y position in framebuffer
@@ -57,7 +68,7 @@ Uint8* SDLPlotter::getLocation(unsigned x, unsigned y) {
 }
 
 // get the Pixel value at the specified x,y position
-// TODO what's the format of the stored color?
+// TODO storage format may be machine-dependent
 Color SDLPlotter::getPixel(unsigned x, unsigned y) {
     Color c;
     Uint32 val = *((Uint32*)screen->pixels+y*screen->pitch/4+x);

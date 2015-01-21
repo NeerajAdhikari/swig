@@ -9,7 +9,8 @@
 
 // Class SDLPlotter is a plotting and windowing interface used
 // by the rest of the system. It implements a uniform interface
-// for plotting, using SDL.
+// for plotting, using SDL. Any other class written for the same
+// purpose must have exactly the same public interface.
 class SDLPlotter {
 
     private:
@@ -25,7 +26,7 @@ class SDLPlotter {
     ~SDLPlotter();
     // Plot at the given x,y position.
     void plot(unsigned x, unsigned y, Color pt, bool composite=false);
-    void plot(ScreenPoint pt);
+    void plot(ScreenPoint pt, bool composite=false);
     Color getPixel(unsigned x, unsigned y);
     Uint32 RGBA(Color pt);
 
