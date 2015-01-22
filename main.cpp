@@ -5,16 +5,18 @@
 #include "Object.h"
 #include "Drawer.h"
 #include "Benchmark.h"
+#include "PointLight.h"
 #include <iostream>
 #include <cmath>
 
 
 const unsigned width = 800;
 const unsigned height = 600;
-const float ambient_light = 0.2;
 
 const uintmax_t FPS = 60;
 const uintmax_t DELAY = 1e6/DELAY;
+
+const float Iambient = 10;
 
 int main(int argc, char* argv[]) {
 
@@ -32,11 +34,25 @@ int main(int argc, char* argv[]) {
     Matrix<float> proj = TfMatrix::perspective2(95,(float)width/height,10000,5);
 
     // Initialize the direction of light source
-    Vector light = {-1,-1,-1, 0};
-    light = light.normalized();
+
+    std::vector<PointLight> light;
+
+    {
+        PointLight t;
+
+        t.direction = {-1,-1,-1,0};
+        t.intensity = 10;
+        light.push_back(t);
+
+        /*
+        t.direction = {1,0,0,0};
+        t.intensity = 10;
+        light.push_back(t);
+        */
+    }
 
     // Just a temporary variable for debugging
-    const float ztranslate = -7;
+    const float ztranslate = -15;
 
     // Initialize the object
     Object tho(argv[1]);
@@ -68,50 +84,57 @@ int main(int argc, char* argv[]) {
         // Flat-shading : calculate the colors to shade each surface with
         for (int i=0; i<nSurfs; i++) {
 
-    // TODO: Suface is inherited so that
-    // color info and show can be kept inside it
-    // even though it's only useful for flat shading and backface resp.
-    // And all these light information and surface information should
-    // be modeled
-            const float ka = 1.19;
-            const float kd = 1.19;
-            const float ks = 2.20;
+            // TODO: Suface is inherited so that
+            // color info and show can be kept inside it
+            // even though it's only useful for flat shading and backface resp.
+            // And all these light information and surface information should
+            // be modeled
+            const float ka = .007;
+            const float kd = .060;
+            const float ks = .090;
+            const float ns = 10;
 
-            const float ns = 100;
-
-            const float Ia = .1;
-            const float Il = .7;
+            float Il = 10;
 
             Vector normal = tho.getSurfaceNormal(i);
+            Vector centroid = tho.getSurfaceCentroid(i);
             // UPDATE
             // To be done if a surface is to be displayed
             // from both sides like a thin paper
             // TODO doesn't work very nice
             /*
-            if( normal.z < 0)
-                normal *= -1;
-            */
-            Vector centroid = tho.getSurfaceCentroid(i);
-            Vector half = (light + centroid)*(-1);
-            half = half.normalized();
+               if( normal.z < 0)
+               normal *= -1;
+               */
 
-            float cosine = ( (light*-1) % normal);
-            float cosineNs = pow( half % normal , ns );
-            //show[i]=(cosine>0.20);
-            //if (!show[i])
-            //    continue;
 
-            float intensity = Ia*ka;
-            // UPDATE
-            // This is to be done so that there won't be symmetric lighting
-            if(cosine > 0){
-                // make cosine positive
-                intensity += Il*(kd*cosine + ks*cosineNs);
+            float intensity = Iambient*ka;
+
+            for(int i=0;i<light.size();i++){
+
+                float cosine = ( (light[i].direction*-1) % normal);
+
+                Vector half = (light[i].direction + centroid)*(-1);
+                half = half.normalized();
+                float cosineNs = std::pow( half % normal , ns );
+                //show[i]=(cosine>0.20);
+                //if (!show[i])
+                //    continue;
+
+                // UPDATE
+                // This is to be done so that there won't be symmetric lighting
+                if(cosine > 0){
+                    // make cosine positive
+                    intensity += light[i].intensity*(kd*cosine + ks*cosineNs);
+                }
+
             }
+
+
             if( intensity > 1)
                 intensity = 1;
-
             Uint8 clr = intensity * 255;
+
             colors[i] =  {clr,clr,clr,255};
         }
 

@@ -15,6 +15,5 @@ TODO
     Antialiased Filling
     Object clipping
     Gourad / Fast Phong Shading
-    Color Consideration
+    Color & Distance Consideration in lighting
     Shadow and Lighting
-    Multiple light source
