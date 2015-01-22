@@ -12,11 +12,13 @@ class Linspace {
     int d;
     // the counter
     int ctr;
+    // get you the current position
+    int pos;
     public:
 
         // Start depth, End depth, no. of elements
         Linspace(int dss,int dee,int dxx)
-            :dx(dxx-1),d(dss),dd(dee-dss),ctr(0)
+            :dx(dxx-1),d(dss),dd(dee-dss),ctr(0),pos(0)
         {
             if(dx<-1)
                 throw "dxx must be atleast 0";
@@ -26,6 +28,16 @@ class Linspace {
             return d;
         }
 
+        /*
+           Forward to certain position
+        void forwardTo(unsigned position){
+            if(dx==0)
+                return;
+            while(pos<position)
+                ++(*this);
+        }
+        */
+
         inline void operator++(){
             if (dx==0)
                 return;
@@ -34,6 +46,7 @@ class Linspace {
                 d += ctr/dx;
                 ctr %= dx;
             }
+            pos++;
         }
 };
 #endif

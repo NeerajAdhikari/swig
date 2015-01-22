@@ -15,6 +15,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
     // Initialize constant parameters
     const unsigned width = 800;
     const unsigned height = 600;
@@ -23,6 +24,7 @@ int main(int argc, char* argv[]) {
     const uintmax_t DELAY = 1e6/FPS;
 
     const float Iambient = 2;
+
 
     // TODO: Suface is inherited so that
     // color info and show can be kept inside it
@@ -65,15 +67,15 @@ int main(int argc, char* argv[]) {
     bool show[nSurfs];
 
     // Intialize a transformation matrix to transform object
-    const float ztranslate = -10;
+    const float ztranslate = -15;
     Matrix<float> rotator =
-        TfMatrix::translation({0,0,ztranslate})
+        TfMatrix::translation({ztranslate/2,0,ztranslate})
         * TfMatrix::rotation(2,{1,1,0},{0,0,0})
-        * TfMatrix::translation({0,0,-ztranslate});
+        * TfMatrix::translation({-ztranslate/2,0,-ztranslate});
 
     // Initially translate object to viewable part of
     // world coordinate
-    tho.vmatrix() /= TfMatrix::translation({0,0,ztranslate});
+    tho.vmatrix() /= TfMatrix::translation({ztranslate/2,0,ztranslate});
 
     std::cout << "Ambient light intensity\t" << Iambient << std::endl;
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
@@ -91,17 +93,20 @@ int main(int argc, char* argv[]) {
             const Vector& centroid = tho.getSurfaceCentroid(i);
 
             // Backface detection
-            // TODO some problem in backface detection as well
-            // seen in toroid
-            if(  normal.z < 0){
-                show[i] = false;
-                continue;
-                // NOTE: for surfaces like paper
-                // show[i] = true
-                // normal.z += -1;
+            // TODO some problem in backface detection
+            // backface detection for perspective view required
+            /*
+               if( normal.z < 0){
+               show[i] = false;
+               continue;
+            // NOTE: for surfaces like paper
+            // show[i] = true
+            // normal.z += -1;
             } else {
-                show[i] = true;
+            show[i] = true;
             }
+            */
+            show[i] = true;
 
             // Calculate ambient, diffused and specular lighting
             float intensity = Iambient*ka;
@@ -142,7 +147,11 @@ int main(int argc, char* argv[]) {
             th(0,i) = th(0,i)*width + width/2;
             th(1,i) = height - (th(1,i)*height + height/2);
             // Converting normalized Z co-ordinate [-1,1] to viewport [1,0]*maxdepth
-            th(2,i) = (-th(2,i)*0.5 + 0.5)*0xffffff;
+            th(2,i) = (-th(2,i)*0.5 + 0.5)*0xffff;
+            // The Z map is like this
+            //        0       n       f
+            // -ve   inf      1       0   -ve
+            //                 visible
         }
 
         // Clear framebuffer, we're about to plot

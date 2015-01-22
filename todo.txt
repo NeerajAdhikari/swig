@@ -7,9 +7,10 @@ Manage the plotting abstractions:
 Other filling algorithms
 Antialiased Filling
 Object clipping
+
 Gourad / Fast Phong Shading
-Color & Distance Consideration in lighting
-Shadow and Lighting
 Manage object information
     : Point normals, Surface normals, Point color,
     surface color, Surface parameter coefficients
+Color & Distance Consideration in lighting
+Shadow and Lighting

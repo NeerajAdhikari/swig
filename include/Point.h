@@ -12,10 +12,10 @@ struct Color {
 };
 
 struct ScreenPoint {
-    Color color;
     int32_t x;
     int32_t y;
     int64_t d;
+    Color color;
 
     ScreenPoint() {
     }

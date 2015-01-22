@@ -1,17 +1,20 @@
 #include "Drawer.h"
 #include "Linspace.h"
+#include <iostream>
 
 // Construct.
-Drawer::Drawer(Plotter_ *pltr)
-    : plotter(pltr),
-    depth({pltr->width(),pltr->height()}) {}
+Drawer::Drawer(Plotter_ *pltr):
+    plotter(pltr),
+    depth({pltr->width(),pltr->height()})
+{
+}
 
-    // Clear scren with black
-    void Drawer::clear() {
-        plotter->clear();
-        // Also clear the depth-buffer
-        depth.clear();
-    }
+// Clear scren with black
+void Drawer::clear() {
+    plotter->clear();
+    // Also clear the depth-buffer
+    depth.clear();
+}
 
 // Update the screen
 void Drawer::update() {
@@ -77,14 +80,18 @@ void Drawer::line(const ScreenPoint& start,
 // Draw a horizontal line between (xs,y) and (xe,y)
 // This one doesn't consider the point depths.
 void Drawer::hLine(int y, int xStart, int xEnd, Color cl) {
+    // xStart must be smaller than xEnd
     if (xStart>xEnd) {
         swap(xStart,xEnd);
     }
-
+    // If y lies outside then return
     if( y >= (int)plotter->height() || y < 0)
         return;
+    // If x lies outside then return
     if( xStart >= (int)plotter->width() || xEnd < 0)
         return;
+
+    // Clip the x axis
     xStart = Math::max(0,xStart);
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
 
@@ -106,20 +113,29 @@ void Drawer::hLineD(int y, int xStart,
         swap(xStart,xEnd);
         swap(dStart,dEnd);
     }
-
+    // If y lies outside then return
     if( y >= (int)plotter->height() || y < 0)
         return;
+    // If x lies outside then return
     if( xStart >= (int)plotter->width() || xEnd < 0)
         return;
-    xStart = Math::max(0,xStart);
+
+    // Clip the x axis
+    // TODO
+    // Clipping from the front, we have to calculate
+    // the depth at 0 so commenting out xStart clipping
+    // The same has been done with y axes in other functions
+    //xStart = Math::max(0,xStart);
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
 
     int space = xEnd-xStart+1;
     Linspace d(dStart,dEnd,space);
     while(xStart <= xEnd){
-        // TODO: have some limit to depth ie
-        // viewable from (0 to 1) * someconstant
-        if (d>=depth(xStart,y)) {
+        // Depth clipping, checking with zero isn't necessary
+        // as depth(xStart,y) is always greater than or equal to 0
+        // checking with far value must be done however
+        // 0xffffff value because it is the maximum value it should attain
+        if (xStart >= 0 && d <= 0xffff && d>=depth(xStart,y)) {
             plotter->plot(xStart,y,cl,true);
             depth(xStart,y)=d;
         }
@@ -129,12 +145,10 @@ void Drawer::hLineD(int y, int xStart,
 
 }
 
-
 // We need to sort the points according to their
 // y-coordinates
 void Drawer::initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& end,
         const ScreenPoint& pt1, const ScreenPoint& pt2, const ScreenPoint& pt3){
-
     if (pt1.y<=pt2.y && pt1.y<=pt3.y) {
         start = pt1;
         if (pt2.y<=pt3.y) {
@@ -165,7 +179,6 @@ void Drawer::initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& en
             end = pt1;
         }
     }
-
 }
 
 
@@ -178,17 +191,15 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
 
     ScreenPoint start, mid, end;
     initAscending(start,mid,end,pt1,pt2,pt3);
-
-    if(start.y == end.y)
-        return;
     if( start.y >= (int)plotter->height() || end.y < 0)
         return;
-
+    if(start.y == end.y)
+        return;
     Linspace x1(start.x,mid.x, mid.y-start.y+1);
     Linspace x2(start.x,end.x, end.y-start.y+1);
 
-    for(int i=start.y;i<mid.y;i++){
-        if( i < (int)plotter->height() && i >= 0)
+    for(int i=start.y;i<Math::min((int)plotter->height()-1,mid.y);i++){
+        if(i>=0)
             hLine(i,x1,x2,fillcolor);
         ++x1;
         ++x2;
@@ -196,8 +207,9 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
 
     Linspace x3(mid.x,end.x, end.y-mid.y+1);
     Linspace d3(mid.d,end.d, end.y-mid.y+1);
-    for(int i=mid.y;i<=end.y;i++){
-        if( i < (int)plotter->height() && i >= 0)
+
+    for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
+        if(i>=0)
             hLine(i, x2, x3, fillcolor);
         ++x2;
         ++x3;
@@ -214,21 +226,25 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
 
     ScreenPoint start, mid, end;
     initAscending(start,mid,end,pt1,pt2,pt3);
-
-    if(start.y == end.y)
-        return;
     if( start.y >= (int)plotter->height() || end.y < 0)
         return;
+    if(start.y == end.y)
+        return;
+
+    // THe negative region is backside of the camera
+    // or away from the far point
+    if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
+        return ;
+    if(start.d > 0xffffff && end.d > 0xffffff && mid.d > 0xffffff)
+        return ;
 
     Linspace x1(start.x,mid.x, mid.y-start.y+1);
     Linspace d1(start.d,mid.d, mid.y-start.y+1);
-
     Linspace x2(start.x,end.x, end.y-start.y+1);
     Linspace d2(start.d,end.d, end.y-start.y+1);
 
-
-    for(int i=start.y;i<mid.y;i++){
-        if( i < (int)plotter->height() && i >= 0)
+    for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++){
+        if(i >= 0)
             hLineD(i,x1,d1,x2,d2,fillcolor);
         ++x1;
         ++x2;
@@ -238,8 +254,8 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
 
     Linspace x3(mid.x,end.x, end.y-mid.y+1);
     Linspace d3(mid.d,end.d, end.y-mid.y+1);
-    for(int i=mid.y;i<=end.y;i++){
-        if( i < (int)plotter->height() && i >= 0)
+    for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
+        if(i >= 0)
             hLineD(i, x2, d2, x3, d3, fillcolor);
         ++x2;
         ++x3;
