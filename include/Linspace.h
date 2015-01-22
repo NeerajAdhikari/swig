@@ -28,21 +28,23 @@ class Linspace {
             return d;
         }
 
-        /*
-           Forward to certain position
-        void forwardTo(unsigned position){
-            if(dx==0)
+        // Forward to certain position
+        void leap(unsigned fwd){
+            if (dx==0)
                 return;
-            while(pos<position)
-                ++(*this);
+            ctr += dd*fwd;
+            if (Math::abs(ctr)>=dx){
+                d += ctr/dx;
+                ctr %= dx;
+            }
+            pos += fwd;
         }
-        */
 
         inline void operator++(){
             if (dx==0)
                 return;
             ctr += dd;
-            if (abs(ctr)>=dx){
+            if (Math::abs(ctr)>=dx){
                 d += ctr/dx;
                 ctr %= dx;
             }

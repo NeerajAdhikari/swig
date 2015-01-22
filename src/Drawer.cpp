@@ -120,22 +120,23 @@ void Drawer::hLineD(int y, int xStart,
     if( xStart >= (int)plotter->width() || xEnd < 0)
         return;
 
-    // Clip the x axis
-    // TODO
-    // Clipping from the front, we have to calculate
-    // the depth at 0 so commenting out xStart clipping
-    // The same has been done with y axes in other functions
-    //xStart = Math::max(0,xStart);
-    xEnd = Math::min(xEnd,(int)plotter->width()-1);
 
-    int space = xEnd-xStart+1;
-    Linspace d(dStart,dEnd,space);
+    Linspace d(dStart,dEnd,xEnd-xStart+1);
+
+    // Clipping
+    xEnd = Math::min(xEnd,(int)plotter->width()-1);
+    // Clipping
+    int low = Math::max(0,xStart);
+    if(low-xStart > 0)
+        d.leap(low-xStart);
+    xStart = low;
+
     while(xStart <= xEnd){
         // Depth clipping, checking with zero isn't necessary
         // as depth(xStart,y) is always greater than or equal to 0
         // checking with far value must be done however
         // 0xffffff value because it is the maximum value it should attain
-        if (xStart >= 0 && d <= 0xffff && d>=depth(xStart,y)) {
+        if (d <= 0xffff && d>=depth(xStart,y)) {
             plotter->plot(xStart,y,cl,true);
             depth(xStart,y)=d;
         }
@@ -191,26 +192,41 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
 
     ScreenPoint start, mid, end;
     initAscending(start,mid,end,pt1,pt2,pt3);
+
     if( start.y >= (int)plotter->height() || end.y < 0)
         return;
     if(start.y == end.y)
         return;
+
     Linspace x1(start.x,mid.x, mid.y-start.y+1);
     Linspace x2(start.x,end.x, end.y-start.y+1);
 
-    for(int i=start.y;i<Math::min((int)plotter->height()-1,mid.y);i++){
-        if(i>=0)
-            hLine(i,x1,x2,fillcolor);
+    // Clipping
+    int low = Math::min(mid.y,Math::max(start.y,0));
+    if(low-start.y>0){
+        x1.leap(low-start.y);
+        x2.leap(low-start.y);
+    }
+    start.y = low;
+
+    for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++){
+        hLine(i,x1,x2,fillcolor);
         ++x1;
         ++x2;
     }
 
     Linspace x3(mid.x,end.x, end.y-mid.y+1);
-    Linspace d3(mid.d,end.d, end.y-mid.y+1);
+
+    // Clipping
+    int lows = Math::max(mid.y,0);
+    if(lows-mid.y>0){
+        x2.leap(lows-mid.y);
+        x3.leap(lows-mid.y);
+    }
+    mid.y = lows;
 
     for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
-        if(i>=0)
-            hLine(i, x2, x3, fillcolor);
+        hLine(i, x2, x3, fillcolor);
         ++x2;
         ++x3;
     }
@@ -226,6 +242,7 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
 
     ScreenPoint start, mid, end;
     initAscending(start,mid,end,pt1,pt2,pt3);
+
     if( start.y >= (int)plotter->height() || end.y < 0)
         return;
     if(start.y == end.y)
@@ -243,9 +260,18 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     Linspace x2(start.x,end.x, end.y-start.y+1);
     Linspace d2(start.d,end.d, end.y-start.y+1);
 
+    // Clipping
+    int low = Math::min(mid.y,Math::max(start.y,0));
+    if(low-start.y>0){
+        x1.leap(low-start.y);
+        x2.leap(low-start.y);
+        d1.leap(low-start.y);
+        d2.leap(low-start.y);
+    }
+    start.y = low;
+
     for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++){
-        if(i >= 0)
-            hLineD(i,x1,d1,x2,d2,fillcolor);
+        hLineD(i,x1,d1,x2,d2,fillcolor);
         ++x1;
         ++x2;
         ++d1;
@@ -254,9 +280,19 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
 
     Linspace x3(mid.x,end.x, end.y-mid.y+1);
     Linspace d3(mid.d,end.d, end.y-mid.y+1);
+
+    // Clipping
+    int lows = Math::max(mid.y,0);
+    if(lows-mid.y>0){
+        x2.leap(lows-mid.y);
+        x3.leap(lows-mid.y);
+        d2.leap(lows-mid.y);
+        d3.leap(lows-mid.y);
+    }
+    mid.y = lows;
+
     for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
-        if(i >= 0)
-            hLineD(i, x2, d2, x3, d3, fillcolor);
+        hLineD(i, x2, d2, x3, d3, fillcolor);
         ++x2;
         ++x3;
         ++d2;

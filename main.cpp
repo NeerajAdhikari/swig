@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     bool show[nSurfs];
 
     // Intialize a transformation matrix to transform object
-    const float ztranslate = -15;
+    const float ztranslate = -10;
     Matrix<float> rotator =
         TfMatrix::translation({ztranslate/2,0,ztranslate})
         * TfMatrix::rotation(2,{1,1,0},{0,0,0})
