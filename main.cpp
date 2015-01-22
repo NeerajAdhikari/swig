@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     light = light.normalized();
 
     // Just a temporary variable for debugging
-    const float ztranslate = -20;
+    const float ztranslate = -7;
 
     // Initialize the object
     Object tho(argv[1]);
@@ -51,9 +51,6 @@ int main(int argc, char* argv[]) {
         * TfMatrix::rotation(2,{1,1,0},{0,0,0})
         * TfMatrix::translation({0,0,-ztranslate});
 
-    // TODO: Suface is inherited so that
-    // color info and show can be kept inside it
-    // even though it's only useful for flat shading and backface resp.
 
     // For flat shading, the colors we need to fill surfaces with
     Color colors[nSurfs];
@@ -71,6 +68,20 @@ int main(int argc, char* argv[]) {
         // Flat-shading : calculate the colors to shade each surface with
         for (int i=0; i<nSurfs; i++) {
 
+    // TODO: Suface is inherited so that
+    // color info and show can be kept inside it
+    // even though it's only useful for flat shading and backface resp.
+    // And all these light information and surface information should
+    // be modeled
+            const float ka = 1.19;
+            const float kd = 1.19;
+            const float ks = 2.20;
+
+            const float ns = 100;
+
+            const float Ia = .1;
+            const float Il = .7;
+
             Vector normal = tho.getSurfaceNormal(i);
             // UPDATE
             // To be done if a surface is to be displayed
@@ -80,21 +91,28 @@ int main(int argc, char* argv[]) {
             if( normal.z < 0)
                 normal *= -1;
             */
+            Vector centroid = tho.getSurfaceCentroid(i);
+            Vector half = (light + centroid)*(-1);
+            half = half.normalized();
 
-            float cosine = (light%normal);
-            //show[i]=(cosine<-0.20);
+            float cosine = ( (light*-1) % normal);
+            float cosineNs = pow( half % normal , ns );
+            //show[i]=(cosine>0.20);
             //if (!show[i])
             //    continue;
 
-            Uint8 intensity = 255*ambient_light;
+            float intensity = Ia*ka;
             // UPDATE
             // This is to be done so that there won't be symmetric lighting
-            if(cosine < 0){
+            if(cosine > 0){
                 // make cosine positive
-                cosine *= -1;
-                intensity += (1-ambient_light)*(cosine>1?1:cosine)*255;
+                intensity += Il*(kd*cosine + ks*cosineNs);
             }
-            colors[i] =  {intensity,intensity,intensity,255};
+            if( intensity > 1)
+                intensity = 1;
+
+            Uint8 clr = intensity * 255;
+            colors[i] =  {clr,clr,clr,255};
         }
 
         // Create a copy of object and apply the projection transform

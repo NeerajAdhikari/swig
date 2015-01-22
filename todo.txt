@@ -17,3 +17,4 @@ TODO
     Gourad / Fast Phong Shading
     Color Consideration
     Shadow and Lighting
+    Multiple light source
