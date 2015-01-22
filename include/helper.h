@@ -2,15 +2,17 @@
 #define __HELPER__
 // helper.h contains all the helper functions
 // related to mathematics, strings
-
-//
 #include <algorithm>
 #include <functional>
 #include <cctype>
 #include <locale>
-
+#include <iostream>
 #include <cmath>
 #include "ex.h"
+
+#define STR(X) #X
+#define SSTR(X) STR(X)
+#define DELETE "\033[A\033[2K"
 
 namespace Math {
 
@@ -36,6 +38,20 @@ namespace Math {
         return radian/pi*180;
     }
 
+    template <class T>
+        inline T abs(T a){
+            return ((a<0)?-a:a);
+        }
+
+    template <class T>
+        inline T max(T a, T b){
+            return (a>b)?a:b;
+        }
+
+    template <class T>
+        inline T min(T a, T b){
+            return (a<b)?a:b;
+        }
 };
 
 template <class T>
@@ -45,13 +61,9 @@ inline void swap(T& a,T& b) {
     b = t;
 }
 
-inline int abs(int a){
-    return ((a<0)?-a:a);
-}
-
 // trim from end
 inline std::string &rtrim(std::string &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-        return s;
+    return s;
 }
 #endif

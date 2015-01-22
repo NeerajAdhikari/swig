@@ -1,6 +1,7 @@
 #ifndef __DRAWER__
 #define __DRAWER__
 
+#include "helper.h"
 #include "Point.h"
 #include "setPlotter.h"
 #include "Matrix.h"

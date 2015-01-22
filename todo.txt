@@ -13,7 +13,10 @@ TODO
             - A primitives manager: handles primitives like lines, filling, etc
     Other filling algorithms
     Antialiased Filling
-    Object clipping
+    Object and Triangle clipping
     Gourad / Fast Phong Shading
     Color & Distance Consideration in lighting
     Shadow and Lighting
+    Manage object information
+        : Point normals, Surface normals, Point color, surface color
+        Surface parameter coefficients

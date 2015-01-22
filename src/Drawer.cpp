@@ -26,8 +26,8 @@ void Drawer::line(const ScreenPoint& start,
 
     // If they aren't cast to int then the result will
     // be a uint which will never have a negative value
-    dx = abs((int)end.x-(int)start.x);
-    dy = abs((int)end.y-(int)start.y);
+    dx = Math::abs((int)end.x-(int)start.x);
+    dy = Math::abs((int)end.y-(int)start.y);
     if (dx==0) xc=0;
     else xc = (start.x>end.x)?-1:1;
     if (dy==0) yc=0;

@@ -1,8 +1,7 @@
 #ifndef __PLOTTER_SET__
 #define __PLOTTER_SET__
 
-#define STR(X) #X
-#define SSTR(X) STR(X)
+#include "helper.h"
 
 #define Plotter_ SDLPlotter
 
