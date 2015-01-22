@@ -4,6 +4,7 @@
 #include "Point.h"
 #include "Object.h"
 #include "Drawer.h"
+#include "Benchmark.h"
 #include <iostream>
 #include <cmath>
 
@@ -12,7 +13,11 @@ const unsigned width = 800;
 const unsigned height = 600;
 const float ambient_light = 0.2;
 
+const uintmax_t FPS = 60;
+const uintmax_t DELAY = 1e6/DELAY;
+
 int main(int argc, char* argv[]) {
+
 
     if (argc<2) {
         std::cout<<"Usage: "<<argv[0]<<" filename"<<std::endl;
@@ -56,7 +61,9 @@ int main(int argc, char* argv[]) {
     // Detect backfaces - should we display the surface?
     //bool show[nSurfs];
 
+    Benchmark timekeeper;
     while (true) {
+        timekeeper.start();
 
         // Apply transformation to object
         tho.vmatrix() /= rotator;
@@ -134,10 +141,16 @@ int main(int argc, char* argv[]) {
         // Update framebuffer
         drawer.update();
 
+
         // Small delay to control framerate
         if (fb.checkTerm())
-            break;
-        else
-            SDL_Delay(10);
+            return 0;
+
+        timekeeper.stop();
+        uintmax_t ti = timekeeper.time();
+        // float real_fps = 1e6 / ti;
+        if( ti < DELAY)
+            SDL_Delay((DELAY-ti)/1000);
     }
+    return 0;
 }

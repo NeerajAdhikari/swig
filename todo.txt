@@ -1,8 +1,6 @@
 @Matrix
     Inverse
 @TransformationMatrix
-    Perspective Projection
-    Parallel Projection
     Skew
 @VectorTriplet
     ??
@@ -15,5 +13,7 @@ TODO
             - A primitives manager: handles primitives like lines, filling, etc
     Other filling algorithms
     Antialiased Filling
-    Vectors have 4th component
-        0 represents vector, 1 represents point
+    Object clipping
+    Gourad / Fast Phong Shading
+    Color Consideration
+    Shadow and Lighting
