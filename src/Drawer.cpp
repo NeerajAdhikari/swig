@@ -2,15 +2,16 @@
 #include "Linspace.h"
 
 // Construct.
-Drawer::Drawer(Plotter_ *pltr) : plotter(pltr),
+Drawer::Drawer(Plotter_ *pltr)
+    : plotter(pltr),
     depth({pltr->width(),pltr->height()}) {}
 
-// Clear scren with black
-void Drawer::clear() {
-    plotter->clear();
-    // Also clear the depth-buffer
-    depth.clear();
-}
+    // Clear scren with black
+    void Drawer::clear() {
+        plotter->clear();
+        // Also clear the depth-buffer
+        depth.clear();
+    }
 
 // Update the screen
 void Drawer::update() {
@@ -75,13 +76,21 @@ void Drawer::line(const ScreenPoint& start,
 
 // Draw a horizontal line between (xs,y) and (xe,y)
 // This one doesn't consider the point depths.
-void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
-    if (xs>xe) {
-        swap(xs,xe);
+void Drawer::hLine(int y, int xStart, int xEnd, Color cl) {
+    if (xStart>xEnd) {
+        swap(xStart,xEnd);
     }
-    while(xs <= xe){
-        plotter->plot(xs,y,cl,true);
-        xs++;
+
+    if( y >= (int)plotter->height() || y < 0)
+        return;
+    if( xStart >= (int)plotter->width() || xEnd < 0)
+        return;
+    xStart = Math::max(0,xStart);
+    xEnd = Math::min(xEnd,(int)plotter->width()-1);
+
+    while(xStart <= xEnd){
+        plotter->plot(xStart,y,cl,true);
+        xStart++;
     }
 }
 
@@ -90,16 +99,26 @@ void Drawer::hLine(unsigned y, unsigned xs, unsigned xe, Color cl) {
 // The parameters are : y-coordinate, starting x-coordinate,
 // starting depth value, ending x-coordinate and ending depth
 // value
-void Drawer::hLineD(unsigned y, unsigned xStart,
-        unsigned dStart, unsigned xEnd, unsigned dEnd, Color cl) {
+void Drawer::hLineD(int y, int xStart,
+        int dStart, int xEnd, int dEnd, Color cl) {
     // Sort the start end end values if they are not in order
     if (xStart>xEnd) {
         swap(xStart,xEnd);
         swap(dStart,dEnd);
     }
+
+    if( y >= (int)plotter->height() || y < 0)
+        return;
+    if( xStart >= (int)plotter->width() || xEnd < 0)
+        return;
+    xStart = Math::max(0,xStart);
+    xEnd = Math::min(xEnd,(int)plotter->width()-1);
+
     int space = xEnd-xStart+1;
     Linspace d(dStart,dEnd,space);
     while(xStart <= xEnd){
+        // TODO: have some limit to depth ie
+        // viewable from (0 to 1) * someconstant
         if (d>=depth(xStart,y)) {
             plotter->plot(xStart,y,cl,true);
             depth(xStart,y)=d;
@@ -107,6 +126,7 @@ void Drawer::hLineD(unsigned y, unsigned xStart,
         ++xStart;
         ++d;
     }
+
 }
 
 
@@ -161,12 +181,15 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
 
     if(start.y == end.y)
         return;
+    if( start.y >= (int)plotter->height() || end.y < 0)
+        return;
 
     Linspace x1(start.x,mid.x, mid.y-start.y+1);
     Linspace x2(start.x,end.x, end.y-start.y+1);
 
     for(int i=start.y;i<mid.y;i++){
-        hLine(i,x1,x2,fillcolor);
+        if( i < (int)plotter->height() && i >= 0)
+            hLine(i,x1,x2,fillcolor);
         ++x1;
         ++x2;
     }
@@ -174,7 +197,8 @@ void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
     Linspace x3(mid.x,end.x, end.y-mid.y+1);
     Linspace d3(mid.d,end.d, end.y-mid.y+1);
     for(int i=mid.y;i<=end.y;i++){
-        hLine(i, x2, x3, fillcolor);
+        if( i < (int)plotter->height() && i >= 0)
+            hLine(i, x2, x3, fillcolor);
         ++x2;
         ++x3;
     }
@@ -193,6 +217,8 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
 
     if(start.y == end.y)
         return;
+    if( start.y >= (int)plotter->height() || end.y < 0)
+        return;
 
     Linspace x1(start.x,mid.x, mid.y-start.y+1);
     Linspace d1(start.d,mid.d, mid.y-start.y+1);
@@ -200,8 +226,10 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     Linspace x2(start.x,end.x, end.y-start.y+1);
     Linspace d2(start.d,end.d, end.y-start.y+1);
 
+
     for(int i=start.y;i<mid.y;i++){
-        hLineD(i,x1,d1,x2,d2,fillcolor);
+        if( i < (int)plotter->height() && i >= 0)
+            hLineD(i,x1,d1,x2,d2,fillcolor);
         ++x1;
         ++x2;
         ++d1;
@@ -211,7 +239,8 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     Linspace x3(mid.x,end.x, end.y-mid.y+1);
     Linspace d3(mid.d,end.d, end.y-mid.y+1);
     for(int i=mid.y;i<=end.y;i++){
-        hLineD(i, x2, d2, x3, d3, fillcolor);
+        if( i < (int)plotter->height() && i >= 0)
+            hLineD(i, x2, d2, x3, d3, fillcolor);
         ++x2;
         ++x3;
         ++d2;

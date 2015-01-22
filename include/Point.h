@@ -13,9 +13,9 @@ struct Color {
 
 struct ScreenPoint {
     Color color;
-    uint16_t x;
-    uint16_t y;
-    uint32_t d;
+    int32_t x;
+    int32_t y;
+    int64_t d;
 
     ScreenPoint() {
     }

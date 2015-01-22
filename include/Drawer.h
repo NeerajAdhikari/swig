@@ -36,10 +36,10 @@ class Drawer {
     void line(const ScreenPoint& start,const ScreenPoint& end);
 
     // Draw a horizontal line between (xs,y) and (xe,y)
-    void hLine(unsigned y, unsigned xs, unsigned xe, Color cl);
+    void hLine(int y, int xs, int xe, Color cl);
     // Draw a horizontal line considering the depth buffer
-    void hLineD(unsigned y, unsigned xs, unsigned hs,
-            unsigned xe, unsigned he, Color cl);
+    void hLineD(int y, int xs, int hs,
+            int xe, int he, Color cl);
 
     // Fill the triangle bounded by pt1, pt2 and pt3
     void fill(ScreenPoint pt1, ScreenPoint pt2,

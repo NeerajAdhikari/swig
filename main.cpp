@@ -65,19 +65,19 @@ int main(int argc, char* argv[]) {
     bool show[nSurfs];
 
     // Intialize a transformation matrix to transform object
-    const float ztranslate = -80;
+    const float ztranslate = -10;
     Matrix<float> rotator =
         TfMatrix::translation({0,0,ztranslate})
         * TfMatrix::rotation(2,{1,1,0},{0,0,0})
         * TfMatrix::translation({0,0,-ztranslate});
 
-
     // Initially translate object to viewable part of
     // world coordinate
     tho.vmatrix() /= TfMatrix::translation({0,0,ztranslate});
 
-
+    std::cout << "Ambient light intensity\t" << Iambient << std::endl;
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
+
     while (!fb.checkTerm()) {
         // Start benchmark time
         timekeeper.start();
@@ -91,7 +91,9 @@ int main(int argc, char* argv[]) {
             const Vector& centroid = tho.getSurfaceCentroid(i);
 
             // Backface detection
-            if( normal.z < 0){
+            // TODO some problem in backface detection as well
+            // seen in toroid
+            if(  normal.z < 0){
                 show[i] = false;
                 continue;
                 // NOTE: for surfaces like paper
@@ -140,7 +142,6 @@ int main(int argc, char* argv[]) {
             th(0,i) = th(0,i)*width + width/2;
             th(1,i) = height - (th(1,i)*height + height/2);
             // Converting normalized Z co-ordinate [-1,1] to viewport [1,0]*maxdepth
-            // TODO clipping
             th(2,i) = (-th(2,i)*0.5 + 0.5)*0xffffff;
         }
 
@@ -165,13 +166,13 @@ int main(int argc, char* argv[]) {
         timekeeper.stop();
         uintmax_t ti = timekeeper.time();
         float real_fps = 1e6 / ti;
+        // Convert us to ms and delay
+        if( ti < DELAY){
+            SDL_Delay((DELAY-ti)/1000);
+        }
 
         std::cout << DELETE;
         std::cout << "Nolimit FPS:\t" << real_fps << std::endl;
-
-        if( ti < DELAY)
-            // Convert us to ms
-            SDL_Delay((DELAY-ti)/1000);
     }
     return 0;
 }

@@ -1,22 +1,15 @@
-@Matrix
-    Inverse
-@TransformationMatrix
-    Skew
-@VectorTriplet
-    ??
-
 TODO
-    Manage the plotting abstractions:
-        - Unform interface for the renderer - done
-        - Separation to two levels:
-            - A viewport manager: handles windowing, framebuffer, etc
-            - A primitives manager: handles primitives like lines, filling, etc
-    Other filling algorithms
-    Antialiased Filling
-    Object and Triangle clipping
-    Gourad / Fast Phong Shading
-    Color & Distance Consideration in lighting
-    Shadow and Lighting
-    Manage object information
-        : Point normals, Surface normals, Point color, surface color
-        Surface parameter coefficients
+Manage the plotting abstractions:
+    - Unform interface for the renderer - done
+    - Separation to two levels:
+    - A viewport manager: handles windowing, framebuffer, etc
+    - A primitives manager: handles primitives like lines, filling, etc
+Other filling algorithms
+Antialiased Filling
+Object clipping
+Gourad / Fast Phong Shading
+Color & Distance Consideration in lighting
+Shadow and Lighting
+Manage object information
+    : Point normals, Surface normals, Point color,
+    surface color, Surface parameter coefficients
