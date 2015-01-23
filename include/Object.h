@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <initializer_list>
-#include "PointLight.h"
+#include "lightandcolor.h"
 #include "Matrix.h"
 #include "Vector.h"
 
@@ -44,27 +44,6 @@ struct Surface : public Triplet<unsigned> {
 
 };
 
-struct Material {
-    // ambient-reflection coefficient
-    Coeffecient ka;
-    // diffuse-reflection coefficient
-    Coeffecient kd;
-    // specular-reflection coefficient
-    Coeffecient ks;
-    // specular-reflection parameter
-    // smaller values for dull surfaces
-    float ns;
-
-    Material():
-        ka(0.01,0.01,0.01),
-        kd(0.05,0.05,0.05),
-        ks(0.05,0.05,0.05),
-        ns(270)
-    {
-    }
-    // TODO constructor
-};
-
 // Work on progress
 // An Object is collection of Vertices, Edges and Surfaces
 class Object{
@@ -80,6 +59,7 @@ class Object{
 
     public:
 
+        // Defines the color and surface properties
         Material material;
 
         Object (unsigned vertex_count);

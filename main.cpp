@@ -5,7 +5,7 @@
 #include "Object.h"
 #include "Drawer.h"
 #include "Benchmark.h"
-#include "PointLight.h"
+#include "lightandcolor.h"
 #include <iostream>
 #include <cmath>
 
@@ -48,12 +48,12 @@ int main(int argc, char* argv[]) {
     // Intialize the light sources
     std::vector<PointLight> light;
     {
-        PointLight t = {{-1,-1,-1,0},10,10,10};
-        PointLight m = {{1,0,0,0},10,10,10};
+        PointLight t = {{-1,-1,-1,0},{10,0,0}};
+        PointLight m = {{1,0,0,0},{0,10,0}};
         light.push_back(t);
         light.push_back(m);
     }
-    AmbientLight ambient = {2,2,2};
+    AmbientLight ambient = {{2,2,2}};
 
     // For flat shading, the colors we need to fill surfaces with
     Color colors[nSurfs];
@@ -104,17 +104,17 @@ int main(int argc, char* argv[]) {
             */
 
             // Calculate ambient, diffused and specular lighting
-            float intensityR = ambient.r*obj.material.ka.r;
-            float intensityG = ambient.g*obj.material.ka.g;
-            float intensityB = ambient.b*obj.material.ka.b;
+            float intensityR = ambient.intensity.r*obj.material.ka.r;
+            float intensityG = ambient.intensity.g*obj.material.ka.g;
+            float intensityB = ambient.intensity.b*obj.material.ka.b;
             for(int i=0; i<light.size(); i++){
                 // Diffused lighting
                 float cosine = Vector::cosine((light[i].direction*(-1)),normal);
                 // This is to be done so that there won't be symmetric lighting
                 if(cosine > 0){
-                    intensityR += light[i].r*obj.material.kd.r*cosine;
-                    intensityG += light[i].g*obj.material.kd.g*cosine;
-                    intensityB += light[i].b*obj.material.kd.b*cosine;
+                    intensityR += light[i].intensity.r*obj.material.kd.r*cosine;
+                    intensityG += light[i].intensity.g*obj.material.kd.g*cosine;
+                    intensityB += light[i].intensity.b*obj.material.kd.b*cosine;
                 } else
                     continue;
 
@@ -126,9 +126,9 @@ int main(int argc, char* argv[]) {
                 float cosineNs = std::pow( Vector::cosine(half,normal), obj.material.ns );
 
                 if(cosineNs >0){
-                    intensityR += light[i].r*obj.material.ks.r*cosineNs;
-                    intensityG += light[i].g*obj.material.ks.g*cosineNs;
-                    intensityB += light[i].b*obj.material.ks.b*cosineNs;
+                    intensityR += light[i].intensity.r*obj.material.ks.r*cosineNs;
+                    intensityG += light[i].intensity.g*obj.material.ks.g*cosineNs;
+                    intensityB += light[i].intensity.b*obj.material.ks.b*cosineNs;
                 }
             }
             Uint8 clrR = Math::min(intensityR,1.0f) * 255;
