@@ -13,4 +13,5 @@ Manage object information
     : Point normals, Surface normals, Point color,
     surface color, Surface parameter coefficients
 Color & Distance Consideration in lighting
+Add distance Falloff
 Shadow and Lighting

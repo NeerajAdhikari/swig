@@ -7,6 +7,7 @@ Object::Object (unsigned vertex_count):
     for(int i=0;i < vertexCount();i++)
         m_vertex(3,i) = 1;
     // Initialize edges and surfaces
+     ;
 }
 
 // Load an object from an .obj file

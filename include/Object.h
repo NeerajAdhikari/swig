@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <initializer_list>
+#include "PointLight.h"
 #include "Matrix.h"
 #include "Vector.h"
 
@@ -45,27 +46,23 @@ struct Surface : public Triplet<unsigned> {
 
 struct Material {
     // ambient-reflection coefficient
-    float ka;
+    Coeffecient ka;
     // diffuse-reflection coefficient
-    float kd;
+    Coeffecient kd;
     // specular-reflection coefficient
-    float ks;
+    Coeffecient ks;
     // specular-reflection parameter
     // smaller values for dull surfaces
     float ns;
 
     Material():
-        ka(0.001),kd(0.03),ks(0.001),ns(100)
+        ka(0.01,0.01,0.01),
+        kd(0.05,0.05,0.05),
+        ks(0.05,0.05,0.05),
+        ns(270)
     {
     }
-
-    Material(std::initializer_list<float> l)
-        : ka(*(l.begin()+0)),
-        kd(*(l.begin()+1)),
-        ks(*(l.begin()+2)),
-        ns(*(l.begin()+3))
-    {
-    }
+    // TODO constructor
 };
 
 // Work on progress
@@ -80,7 +77,6 @@ class Object{
         std::vector<Edge> m_edge;
         // A vector of triplet of indexes to represent surfaces (triangles)
         std::vector<Surface> m_surface;
-
 
     public:
 

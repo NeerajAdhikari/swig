@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     Object obj(argv[1]);
     unsigned nSurfs = obj.surfaceCount();
     unsigned nVerts = obj.vertexCount();
-    obj.material = {0.01,0.05,0.05,270};
+    //obj.material = {0.01,0.05,0.05,270};
 
     // Initialize projection matrix
     Matrix<float> proj = TfMatrix::perspective2(95,(float)width/height,10000,5);
@@ -48,12 +48,12 @@ int main(int argc, char* argv[]) {
     // Intialize the light sources
     std::vector<PointLight> light;
     {
-        PointLight t = {{-1,-1,-1,0},10};
-        PointLight m = {{1,0,0,0},10};
+        PointLight t = {{-1,-1,-1,0},10,10,10};
+        PointLight m = {{1,0,0,0},10,10,10};
         light.push_back(t);
         light.push_back(m);
     }
-    AmbientLight ambient = {2};
+    AmbientLight ambient = {2,2,2};
 
     // For flat shading, the colors we need to fill surfaces with
     Color colors[nSurfs];
@@ -71,8 +71,9 @@ int main(int argc, char* argv[]) {
     // world coordinate
     obj.vmatrix() /= TfMatrix::translation({0,0,ztranslate});
 
-    std::cout << "Ambient light intensity\t" << ambient.intensity << std::endl;
+    //std::cout << "Ambient light intensity\t" << ambient.intensity << std::endl;
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
+
 
     while (!fb.checkTerm()) {
         // Start benchmark time
@@ -86,6 +87,7 @@ int main(int argc, char* argv[]) {
             const Vector& normal = obj.getSurfaceNormal(i);
             const Vector& centroid = obj.getSurfaceCentroid(i);
 
+            show[i] = true;
             // Backface detection
             // TODO some problem in backface detection
             // backface detection for perspective view required
@@ -100,17 +102,20 @@ int main(int argc, char* argv[]) {
             show[i] = true;
             }
             */
-            show[i] = true;
 
             // Calculate ambient, diffused and specular lighting
-            float intensity = ambient.intensity*obj.material.ka;
+            float intensityR = ambient.r*obj.material.ka.r;
+            float intensityG = ambient.g*obj.material.ka.g;
+            float intensityB = ambient.b*obj.material.ka.b;
             for(int i=0; i<light.size(); i++){
                 // Diffused lighting
                 float cosine = Vector::cosine((light[i].direction*(-1)),normal);
                 // This is to be done so that there won't be symmetric lighting
-                if(cosine > 0)
-                    intensity += light[i].intensity*obj.material.kd*cosine;
-                else
+                if(cosine > 0){
+                    intensityR += light[i].r*obj.material.kd.r*cosine;
+                    intensityG += light[i].g*obj.material.kd.g*cosine;
+                    intensityB += light[i].b*obj.material.kd.b*cosine;
+                } else
                     continue;
 
                 // Specular ligting
@@ -120,11 +125,16 @@ int main(int argc, char* argv[]) {
                 Vector half = (light[i].direction + centroid)*(-1);
                 float cosineNs = std::pow( Vector::cosine(half,normal), obj.material.ns );
 
-                if(cosineNs >0)
-                    intensity += light[i].intensity*obj.material.ks*cosineNs;
+                if(cosineNs >0){
+                    intensityR += light[i].r*obj.material.ks.r*cosineNs;
+                    intensityG += light[i].g*obj.material.ks.g*cosineNs;
+                    intensityB += light[i].b*obj.material.ks.b*cosineNs;
+                }
             }
-            Uint8 clr = Math::min(intensity,1.0f) * 255;
-            colors[i] =  {clr,clr,clr,255};
+            Uint8 clrR = Math::min(intensityR,1.0f) * 255;
+            Uint8 clrG = Math::min(intensityG,1.0f) * 255;
+            Uint8 clrB = Math::min(intensityB,1.0f) * 255;
+            colors[i] =  {clrR,clrG,clrB,255};
         }
 
         // Create a copy of object and apply the projection transform

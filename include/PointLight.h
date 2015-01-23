@@ -3,19 +3,27 @@
 
 #include "ex.h"
 #include "helper.h"
+#include "Vector.h"
 
-// TODO add intensity of different color
 struct PointLight {
     public:
     Vector direction;
-    float intensity;
-
+    float r,g,b;
+    // TODO constructor
 };
 
-// TODO add intensity of different color
 struct AmbientLight {
     public:
-    float intensity;
+    float r,g,b;
+};
+
+struct Coeffecient {
+    public:
+    float r,g,b;
+    Coeffecient(float x, float y, float z):
+        r(x), g(y), b(z)
+    {
+    }
 };
 
 #endif
