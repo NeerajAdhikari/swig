@@ -17,25 +17,17 @@ int main(int argc, char* argv[]) {
 
 
     // Initialize constant parameters
-    const unsigned width = 800;
-    const unsigned height = 600;
+    const unsigned width = 400;
+    const unsigned height = 300;
 
     const uintmax_t FPS = 100;
     const uintmax_t DELAY = 1e6/FPS;
-
-    const float Iambient = 2;
-
 
     // TODO: Suface is inherited so that
     // color info and show can be kept inside it
     // even though it's only useful for flat shading and backface resp.
     // And all these light information and surface information should
     // be modeled
-    // Surface parameters
-    const float ka = .03;
-    const float kd = .03;
-    const float ks = .50;
-    const float ns = 100;
 
     // Initialize the plotter interface
     Plotter_ fb(width,height);
@@ -45,9 +37,10 @@ int main(int argc, char* argv[]) {
     Benchmark timekeeper;
 
     // Initialize the object
-    Object tho(argv[1]);
-    unsigned nSurfs = tho.surfaceCount();
-    unsigned nVerts = tho.vertexCount();
+    Object obj(argv[1]);
+    unsigned nSurfs = obj.surfaceCount();
+    unsigned nVerts = obj.vertexCount();
+    obj.material = {0.01,0.05,0.05,270};
 
     // Initialize projection matrix
     Matrix<float> proj = TfMatrix::perspective2(95,(float)width/height,10000,5);
@@ -60,6 +53,7 @@ int main(int argc, char* argv[]) {
         light.push_back(t);
         light.push_back(m);
     }
+    AmbientLight ambient = {2};
 
     // For flat shading, the colors we need to fill surfaces with
     Color colors[nSurfs];
@@ -67,17 +61,17 @@ int main(int argc, char* argv[]) {
     bool show[nSurfs];
 
     // Intialize a transformation matrix to transform object
-    const float ztranslate = -10;
+    const float ztranslate = -15;
     Matrix<float> rotator =
-        TfMatrix::translation({ztranslate/2,0,ztranslate})
+        TfMatrix::translation({0,0,ztranslate})
         * TfMatrix::rotation(2,{1,1,0},{0,0,0})
-        * TfMatrix::translation({-ztranslate/2,0,-ztranslate});
+        * TfMatrix::translation({0,0,-ztranslate});
 
     // Initially translate object to viewable part of
     // world coordinate
-    tho.vmatrix() /= TfMatrix::translation({ztranslate/2,0,ztranslate});
+    obj.vmatrix() /= TfMatrix::translation({0,0,ztranslate});
 
-    std::cout << "Ambient light intensity\t" << Iambient << std::endl;
+    std::cout << "Ambient light intensity\t" << ambient.intensity << std::endl;
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
 
     while (!fb.checkTerm()) {
@@ -85,12 +79,12 @@ int main(int argc, char* argv[]) {
         timekeeper.start();
 
         // Apply transformation to object
-        tho.vmatrix() /= rotator;
+        obj.vmatrix() /= rotator;
 
         // Flat-shading : calculate the colors to shade each surface with
         for (int i=0; i<nSurfs; i++) {
-            const Vector& normal = tho.getSurfaceNormal(i);
-            const Vector& centroid = tho.getSurfaceCentroid(i);
+            const Vector& normal = obj.getSurfaceNormal(i);
+            const Vector& centroid = obj.getSurfaceCentroid(i);
 
             // Backface detection
             // TODO some problem in backface detection
@@ -109,45 +103,47 @@ int main(int argc, char* argv[]) {
             show[i] = true;
 
             // Calculate ambient, diffused and specular lighting
-            float intensity = Iambient*ka;
+            float intensity = ambient.intensity*obj.material.ka;
             for(int i=0; i<light.size(); i++){
                 // Diffused lighting
                 float cosine = Vector::cosine((light[i].direction*(-1)),normal);
                 // This is to be done so that there won't be symmetric lighting
-                if(cosine <= 0)
+                if(cosine > 0)
+                    intensity += light[i].intensity*obj.material.kd*cosine;
+                else
                     continue;
 
-                Vector half = (light[i].direction + centroid)*(-1);
                 // Specular ligting
                 // TODO: In triangular surfaces in same plane
                 // specular reflection doesn't give good result
                 // for flat shading
-                float cosineNs = std::pow( Vector::cosine(half,normal), ns );
+                Vector half = (light[i].direction + centroid)*(-1);
+                float cosineNs = std::pow( Vector::cosine(half,normal), obj.material.ns );
 
-                // Get total intensity
-                intensity += light[i].intensity*(kd*cosine + ks*cosineNs);
+                if(cosineNs >0)
+                    intensity += light[i].intensity*obj.material.ks*cosineNs;
             }
             Uint8 clr = Math::min(intensity,1.0f) * 255;
             colors[i] =  {clr,clr,clr,255};
         }
 
         // Create a copy of object and apply the projection transform
-        Object th = tho;
-        th.vmatrix() /= proj;
+        Object copy = obj;
+        copy.vmatrix() /= proj;
 
         // Change the homogenous co-ordinates to normalized form
         // and device co-ordinate
         for (unsigned i=0; i<nVerts; i++) {
             // Perspective divide
-            th(0,i) /= th(3,i);
-            th(1,i) /= th(3,i);
-            th(2,i) /= th(3,i);
+            copy(0,i) /= copy(3,i);
+            copy(1,i) /= copy(3,i);
+            copy(2,i) /= copy(3,i);
 
             // Change the normalized X Y co-ordinates to device co-ordinate
-            th(0,i) = th(0,i)*width + width/2;
-            th(1,i) = height - (th(1,i)*height + height/2);
+            copy(0,i) = copy(0,i)*width + width/2;
+            copy(1,i) = height - (copy(1,i)*height + height/2);
             // Converting normalized Z co-ordinate [-1,1] to viewport [1,0]*maxdepth
-            th(2,i) = (-th(2,i)*0.5 + 0.5)*0xffff;
+            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*0xffff;
             // The Z map is like this
             //        0       n       f
             // -ve   inf      1       0   -ve
@@ -162,9 +158,9 @@ int main(int argc, char* argv[]) {
             if(!show[i])
                 continue;
             drawer.fillD(
-                    th.getVertex(th.getSurface(i).x),
-                    th.getVertex(th.getSurface(i).y),
-                    th.getVertex(th.getSurface(i).z),
+                    copy.getVertex(copy.getSurface(i).x),
+                    copy.getVertex(copy.getSurface(i).y),
+                    copy.getVertex(copy.getSurface(i).z),
                     colors[i]);
         }
 

@@ -43,136 +43,164 @@ struct Surface : public Triplet<unsigned> {
 
 };
 
+struct Material {
+    // ambient-reflection coefficient
+    float ka;
+    // diffuse-reflection coefficient
+    float kd;
+    // specular-reflection coefficient
+    float ks;
+    // specular-reflection parameter
+    // smaller values for dull surfaces
+    float ns;
+
+    Material():
+        ka(0.001),kd(0.03),ks(0.001),ns(100)
+    {
+    }
+
+    Material(std::initializer_list<float> l)
+        : ka(*(l.begin()+0)),
+        kd(*(l.begin()+1)),
+        ks(*(l.begin()+2)),
+        ns(*(l.begin()+3))
+    {
+    }
+};
+
 // Work on progress
 // An Object is collection of Vertices, Edges and Surfaces
 class Object{
 
     private:
-    // A matrix is (4 x count) matrix is used to represent m_vertex
-    // A homogeneous vertex matrix
-    Matrix<float> m_vertex;
-    // A vector of pair of indexes to represent edges
-    std::vector<Edge> m_edge;
-    // A vector of triplet of indexes to represent surfaces (triangles)
-    std::vector<Surface> m_surface;
-    // The total no. of points
+        // A matrix is (4 x count) matrix is used to represent m_vertex
+        // A homogeneous vertex matrix
+        Matrix<float> m_vertex;
+        // A vector of pair of indexes to represent edges
+        std::vector<Edge> m_edge;
+        // A vector of triplet of indexes to represent surfaces (triangles)
+        std::vector<Surface> m_surface;
+
 
     public:
-    Object (unsigned vertex_count);
 
-    // Load an object from an .obj file
-    Object(const std::string& filename);
+        Material material;
 
-    // Tesselate a polygon to triangles
-    std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned>
-            face);
+        Object (unsigned vertex_count);
 
-    // get total no. of vertices in the matrix
-    inline unsigned vertexCount() const {
-        return m_vertex.col();
-    }
+        // Load an object from an .obj file
+        Object(const std::string& filename);
 
-    // get total no. of edge in the matrix
-    inline unsigned edgeCount() const {
-        return m_edge.size();
-    }
+        // Tesselate a polygon to triangles
+        std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned>
+                face);
 
-    // get total no. of surface in the matrix
-    inline unsigned surfaceCount() const {
-        return m_surface.size();
-    }
-
-    // Retuns the vertex matrix
-    inline Matrix<float>& vmatrix() {
-        return m_vertex;
-    }
-
-    // Getter in form matrix(x,y)
-    inline float& operator()(unsigned row, unsigned col){
-        return m_vertex(row,col);
-    }
-
-    // Setter in form matrix(x,y)
-    inline const float& operator()(unsigned row, unsigned col) const {
-        return m_vertex(row,col);
-    }
-
-    // Getter in the form matrix(p)
-    inline const float& operator()(unsigned place) const {
-        return m_vertex(place);
-    }
-
-    // Setter in the form matrix(p)
-    inline float& operator()(unsigned place){
-        return m_vertex(place);
-    }
-
-    // setVertex overwrites, others append
-    void inline setVertex(unsigned point,const Vector& p){
-        if(point >= vertexCount())
-            throw ex::OutOfBounds();
-        m_vertex(0,point) = p.x;
-        m_vertex(1,point) = p.y;
-        m_vertex(2,point) = p.z;
-        m_vertex(3,point) = p.w;
-    }
-
-    inline Vector getVertex(unsigned point) const {
-        if(point >= vertexCount())
-            throw ex::OutOfBounds();
-        return {m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point)};
-    }
-
-    inline void setEdge(const Pair<unsigned>& p) {
-        if(p.x >= vertexCount() || p.y >= vertexCount())
-            throw ex::OutOfBounds();
-        m_edge.push_back({p.x,p.y});
-    }
-
-    inline void setSurface(const Triplet<unsigned>& p) {
-        if(p.x>=vertexCount()||p.y>=vertexCount()||p.z>=vertexCount()) {
-            throw ex::OutOfBounds();
+        // get total no. of vertices in the matrix
+        inline unsigned vertexCount() const {
+            return m_vertex.col();
         }
-        Surface surf = {p.x,p.y,p.z};
 
-        Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
+        // get total no. of edge in the matrix
+        inline unsigned edgeCount() const {
+            return m_edge.size();
+        }
 
-        Vector sidea=v2-v1, sideb=v3-v2;
-        surf.normal=(sidea*sideb).normalized();
-        m_surface.push_back(surf);
-    }
+        // get total no. of surface in the matrix
+        inline unsigned surfaceCount() const {
+            return m_surface.size();
+        }
 
-    inline Surface getSurface(unsigned point) {
-        if(point>=surfaceCount())
-            throw ex::OutOfBounds();
-        return m_surface[point];
-    }
+        // Retuns the vertex matrix
+        inline Matrix<float>& vmatrix() {
+            return m_vertex;
+        }
 
-    inline Edge getEdge(unsigned point) {
-        if(point>=edgeCount())
-            throw ex::OutOfBounds();
-        return m_edge[point];
-    }
+        // Getter in form matrix(x,y)
+        inline float& operator()(unsigned row, unsigned col){
+            return m_vertex(row,col);
+        }
 
-    inline Vector getSurfaceNormal(unsigned point) {
-        if(point>=surfaceCount())
-            throw ex::OutOfBounds();
-        Surface p = getSurface(point);
-        Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
-        Vector sidea=v2-v1, sideb=v3-v2;
-        m_surface[point].normal=(sidea*sideb).normalized();
-        return m_surface[point].normal;
-    }
+        // Setter in form matrix(x,y)
+        inline const float& operator()(unsigned row, unsigned col) const {
+            return m_vertex(row,col);
+        }
 
-    inline Vector getSurfaceCentroid(unsigned point) {
-        if(point>=surfaceCount())
-            throw ex::OutOfBounds();
-        Surface p = getSurface(point);
-        Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
-        return {(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,1};
-    }
+        // Getter in the form matrix(p)
+        inline const float& operator()(unsigned place) const {
+            return m_vertex(place);
+        }
 
-    void showVx() const;
+        // Setter in the form matrix(p)
+        inline float& operator()(unsigned place){
+            return m_vertex(place);
+        }
+
+        // setVertex overwrites, others append
+        void inline setVertex(unsigned point,const Vector& p){
+            if(point >= vertexCount())
+                throw ex::OutOfBounds();
+            m_vertex(0,point) = p.x;
+            m_vertex(1,point) = p.y;
+            m_vertex(2,point) = p.z;
+            m_vertex(3,point) = p.w;
+        }
+
+        inline Vector getVertex(unsigned point) const {
+            if(point >= vertexCount())
+                throw ex::OutOfBounds();
+            return {m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point)};
+        }
+
+        inline void setEdge(const Pair<unsigned>& p) {
+            if(p.x >= vertexCount() || p.y >= vertexCount())
+                throw ex::OutOfBounds();
+            m_edge.push_back({p.x,p.y});
+        }
+
+        inline void setSurface(const Triplet<unsigned>& p) {
+            if(p.x>=vertexCount()||p.y>=vertexCount()||p.z>=vertexCount()) {
+                throw ex::OutOfBounds();
+            }
+            Surface surf = {p.x,p.y,p.z};
+
+            Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
+
+            Vector sidea=v2-v1, sideb=v3-v2;
+            surf.normal=(sidea*sideb).normalized();
+            m_surface.push_back(surf);
+        }
+
+        inline Surface getSurface(unsigned point) {
+            if(point>=surfaceCount())
+                throw ex::OutOfBounds();
+            return m_surface[point];
+        }
+
+        inline Edge getEdge(unsigned point) {
+            if(point>=edgeCount())
+                throw ex::OutOfBounds();
+            return m_edge[point];
+        }
+
+        inline Vector getSurfaceNormal(unsigned point) {
+            if(point>=surfaceCount())
+                throw ex::OutOfBounds();
+            Surface p = getSurface(point);
+            Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
+            Vector sidea=v2-v1, sideb=v3-v2;
+            m_surface[point].normal=(sidea*sideb).normalized();
+            return m_surface[point].normal;
+        }
+
+        inline Vector getSurfaceCentroid(unsigned point) {
+            if(point>=surfaceCount())
+                throw ex::OutOfBounds();
+            Surface p = getSurface(point);
+            Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
+            return {(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,1};
+        }
+
+        void showVx() const;
 };
 
 #endif
