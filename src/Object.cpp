@@ -63,12 +63,6 @@ Object::Object(const std::string& filename) : m_vertex({4,1}) {
     }
 }
 
-void Object::showVx() const {
-    for (auto i=0; i<vertexCount(); i++) {
-        getVertex(i).display();
-    }
-}
-
 // Tesselate a polygon to triangles
 std::vector<Triplet<unsigned> > Object::tesselate(
         std::vector<unsigned> face) {
@@ -87,5 +81,11 @@ std::vector<Triplet<unsigned> > Object::tesselate(
             }
         }
         return tesselated;
+    }
+}
+
+void Object::showVx() const {
+    for (auto i=0; i<vertexCount(); i++) {
+        getVertex(i).display();
     }
 }

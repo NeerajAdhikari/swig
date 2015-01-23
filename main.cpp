@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
             float intensity = Iambient*ka;
             for(int i=0; i<light.size(); i++){
                 // Diffused lighting
-                float cosine = ( (light[i].direction*-1) % normal);
+                float cosine = Vector::cosine((light[i].direction*(-1)),normal);
                 // This is to be done so that there won't be symmetric lighting
                 if(cosine <= 0)
                     continue;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
                 // TODO: In triangular surfaces in same plane
                 // specular reflection doesn't give good result
                 // for flat shading
-                float cosineNs = std::pow( half.normalized() % normal , ns );
+                float cosineNs = std::pow( Vector::cosine(half,normal), ns );
 
                 // Get total intensity
                 intensity += light[i].intensity*(kd*cosine + ks*cosineNs);

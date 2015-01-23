@@ -10,14 +10,15 @@ struct Vector: public Quadruple<float> {
 
     Vector();
 
-    float magnitude() const;
-
     // Constructor
     Vector(float xx, float yy, float zz, float ww);
 
     Vector(std::initializer_list<float> il);
 
     Vector(const Vector& v);
+
+    // Returns the magnitude of the Vector
+    float magnitude() const;
 
     // Return a normalized vector
     Vector normalized() const;
@@ -31,14 +32,6 @@ struct Vector: public Quadruple<float> {
     void operator*=(const Vector& m);
     // matrix x this
     void operator/=(const Vector& m);
-
-    friend float cosine(const Vector& a, const Vector& b){
-        return (a % b)/(a.magnitude() * b.magnitude());
-    }
-
-    friend float sine(const Vector& a, const Vector& b){
-        return (a * b).magnitude()/(a.magnitude() * b.magnitude());
-    }
 
     void operator+=(const Vector& m){
         x += m.x;
@@ -94,7 +87,17 @@ struct Vector: public Quadruple<float> {
     void display() const {
         std::cout << "(" << x << ", " << y << ", " << z << "," << w << ")" << std::endl;
     }
-};
 
+    // Returns cosine of angle between two vectors
+    static float cosine(const Vector& a, const Vector& b){
+        return (a % b)/(a.magnitude() * b.magnitude());
+    }
+
+    // Returns sine of angle between two vectors
+    static float sine(const Vector& a, const Vector& b){
+        return (a * b).magnitude()/(a.magnitude() * b.magnitude());
+    }
+
+};
 
 #endif

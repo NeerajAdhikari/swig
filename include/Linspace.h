@@ -21,15 +21,16 @@ class Linspace {
             :dx(dxx-1),d(dss),dd(dee-dss),ctr(0),pos(0)
         {
             if(dx<-1)
-                throw "dxx must be atleast 0";
+                throw ex::InitFailure();
         }
 
-        inline operator int(){
+        // Get the value of the Linspace
+        inline operator int() const {
             return d;
         }
 
-        // Forward to certain position
-        void leap(unsigned fwd){
+        // Increment the Linspace by "fwd"
+        inline void leap(unsigned fwd){
             if (dx==0)
                 return;
             ctr += dd*fwd;
@@ -40,6 +41,7 @@ class Linspace {
             pos += fwd;
         }
 
+        // Increment the Linspace by 1
         inline void operator++(){
             if (dx==0)
                 return;

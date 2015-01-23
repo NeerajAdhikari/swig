@@ -3,9 +3,9 @@
 
 #include "helper.h"
 #include "Point.h"
-#include "setPlotter.h"
 #include "Matrix.h"
 
+#include "setPlotter.h"
 #include SSTR(Plotter_.h)
 
 // The drawer class is an abstraction that handles the drawing of

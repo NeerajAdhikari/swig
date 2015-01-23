@@ -144,8 +144,10 @@ class Matrix {
         // Returns true if it is a Square matrix
         bool isSquare() const;
 
+        // Returns the determinant of a matrix
         T determinant() const;
 
+        // Clears the matrix
         inline void clear() {
             memset(m_matrix,0,space()*sizeof(T));
         }

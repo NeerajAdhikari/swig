@@ -82,11 +82,10 @@ class Object{
         return m_surface.size();
     }
 
+    // Retuns the vertex matrix
     inline Matrix<float>& vmatrix() {
         return m_vertex;
     }
-
-
 
     // Getter in form matrix(x,y)
     inline float& operator()(unsigned row, unsigned col){

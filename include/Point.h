@@ -1,8 +1,8 @@
 #ifndef __POINT__
 #define __POINT__
-
 #include <stdint.h>
 #include "Vector.h"
+#include "helper.h"
 
 struct Color {
     uint8_t blue;
@@ -12,6 +12,12 @@ struct Color {
 };
 
 struct ScreenPoint {
+    // Changed int16 to int32
+    // Changed int32 to int64
+    // ScreenPoint needs to hold infromation about
+    // points outside of the Device co-ordinate
+    // Ex: drawing a clipped line, triangle
+
     int32_t x;
     int32_t y;
     int64_t d;
@@ -19,10 +25,12 @@ struct ScreenPoint {
 
     ScreenPoint() {
     }
+
+    // Constructing ScreenPoint using Vector
     ScreenPoint(const Vector& v){
-        x = v.x+0.5;
-        y = v.y+0.5;
-        d = v.z+0.5;
+        x = Math::round(v.x);
+        y = Math::round(v.y);
+        d = Math::round(v.z);
     }
 };
 
