@@ -138,6 +138,13 @@ class Object{
             return {m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point)};
         }
 
+        // TODO for now vertex count and vertex normal count is equal
+        inline Vector getVertexNormal(unsigned i) const {
+            if(i >= vertexCount())
+                throw ex::OutOfBounds();
+            return {m_vertex_normal(0,i),m_vertex_normal(1,i),m_vertex_normal(2,i),m_vertex_normal(3,i)};
+        }
+
         inline void setEdge(const Pair<unsigned>& p) {
             if(p.x >= vertexCount() || p.y >= vertexCount())
                 throw ex::OutOfBounds();
@@ -168,6 +175,7 @@ class Object{
                 throw ex::OutOfBounds();
             return m_edge[point];
         }
+
 
         inline Vector getSurfaceNormal(unsigned point) {
             if(point>=surfaceCount())

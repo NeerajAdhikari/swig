@@ -31,6 +31,7 @@ struct ScreenPoint {
         x = Math::round(v.x);
         y = Math::round(v.y);
         d = Math::round(v.z);
+        color = {255,255,255,255};
     }
 };
 

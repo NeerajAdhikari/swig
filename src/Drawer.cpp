@@ -199,8 +199,6 @@ void Drawer::hLineD(int y, int xStart,
 
 }
 
-
-
 // We need to sort the points according to their
 // y-coordinates
 void Drawer::initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& end,
@@ -362,57 +360,10 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
 // What is implemented here is a special case of
 // scan-line filling which works only for triangles.
 // considering depth buffer
-void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
-        ScreenPoint pt3, Color clr1, Color clr2, Color clr3){
+void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3){
 
     ScreenPoint start, mid, end;
-    Color startclr,midclr,endclr;
-
-    if (pt1.y<=pt2.y && pt1.y<=pt3.y) {
-        start = pt1;
-        startclr = clr1;
-        if (pt2.y<=pt3.y) {
-            mid = pt2;
-            end = pt3;
-            midclr = clr2;
-            endclr = clr3;
-        } else {
-            mid = pt3;
-            end = pt2;
-            midclr = clr3;
-            endclr = clr2;
-        }
-    }
-    else if (pt2.y<=pt1.y && pt2.y<=pt3.y) {
-        start = pt2;
-        startclr = clr2;
-        if (pt1.y<=pt3.y) {
-            mid = pt1;
-            end = pt3;
-            midclr = clr1;
-            endclr = clr3;
-        } else {
-            mid = pt3;
-            end = pt1;
-            midclr = clr3;
-            endclr = clr1;
-        }
-    }
-    else {
-        start = pt3;
-        startclr = clr3;
-        if (pt1.y<=pt2.y) {
-            mid = pt1;
-            end = pt2;
-            midclr = clr1;
-            endclr = clr2;
-        } else {
-            mid = pt2;
-            end = pt1;
-            midclr = clr2;
-            endclr = clr1;
-        }
-    }
+    initAscending(start,mid,end,pt1,pt2,pt3);
 
     if( start.y >= (int)plotter->height() || end.y < 0)
         return;
@@ -432,8 +383,8 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     Linspace d1(start.d,mid.d, mid.y-start.y+1);
     Linspace d2(start.d,end.d, end.y-start.y+1);
 
-    Lincolor c1(startclr,midclr,mid.y-start.y+1);
-    Lincolor c2(startclr,endclr,end.y-start.y+1);
+    Lincolor c1(start.color,mid.color,mid.y-start.y+1);
+    Lincolor c2(start.color,end.color,end.y-start.y+1);
 
     // Clipping
     int low = Math::min(mid.y,Math::max(start.y,0));
@@ -460,7 +411,7 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     Linspace x3(mid.x,end.x, end.y-mid.y+1);
     Linspace d3(mid.d,end.d, end.y-mid.y+1);
 
-    Lincolor c3(midclr,endclr,end.y-mid.y+1);
+    Lincolor c3(mid.color,end.color,end.y-mid.y+1);
 
     // Clipping
     int lows = Math::max(mid.y,0);

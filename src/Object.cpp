@@ -11,42 +11,6 @@ Object::Object (unsigned vertex_count):
 }
 
 
-void Object::initNormal() {
-
-    // Get normals
-    m_vertex_normal.clear();
-    for(auto i=0;i<m_surface.size();i++) {
-        Vector  normal = getSurfaceNormal(i);
-        Surface surf = getSurface(i);
-        m_vertex_normal(0,surf.x) += normal.x;
-        m_vertex_normal(1,surf.x) += normal.y;
-        m_vertex_normal(2,surf.x) += normal.z;
-        m_vertex_normal(3,surf.x) += normal.w;
-
-        m_vertex_normal(0,surf.y) += normal.x;
-        m_vertex_normal(1,surf.y) += normal.y;
-        m_vertex_normal(2,surf.y) += normal.z;
-        m_vertex_normal(3,surf.y) += normal.w;
-
-        m_vertex_normal(0,surf.z) += normal.x;
-        m_vertex_normal(1,surf.z) += normal.y;
-        m_vertex_normal(2,surf.z) += normal.z;
-        m_vertex_normal(3,surf.z) += normal.w;
-
-    }
-
-    // Normalize
-    for(auto i=0;i<m_vertex.col();i++){
-        float x =m_vertex_normal(0,i);
-        float y =m_vertex_normal(1,i);
-        float z =m_vertex_normal(2,i);
-        float mag = std::pow(x*x+y*y+z*z,0.5);
-        m_vertex_normal(0,i) /= mag;
-        m_vertex_normal(1,i) /= mag;
-        m_vertex_normal(2,i) /= mag;
-    }
-
-}
 
 // Load an object from an .obj file
     Object::Object(const std::string& filename)
@@ -131,4 +95,42 @@ void Object::showVx() const {
     for (auto i=0; i<vertexCount(); i++) {
         getVertex(i).display();
     }
+}
+
+// TODO calculating vertex normal by averaging
+// Bad bad idea
+void Object::initNormal() {
+
+    // Get normals
+    m_vertex_normal.clear();
+    for(auto i=0;i<m_surface.size();i++) {
+        Vector  normal = getSurfaceNormal(i);
+        Surface surf = getSurface(i);
+        m_vertex_normal(0,surf.x) += normal.x;
+        m_vertex_normal(1,surf.x) += normal.y;
+        m_vertex_normal(2,surf.x) += normal.z;
+        m_vertex_normal(3,surf.x) += normal.w;
+
+        m_vertex_normal(0,surf.y) += normal.x;
+        m_vertex_normal(1,surf.y) += normal.y;
+        m_vertex_normal(2,surf.y) += normal.z;
+        m_vertex_normal(3,surf.y) += normal.w;
+
+        m_vertex_normal(0,surf.z) += normal.x;
+        m_vertex_normal(1,surf.z) += normal.y;
+        m_vertex_normal(2,surf.z) += normal.z;
+        m_vertex_normal(3,surf.z) += normal.w;
+    }
+
+    // Normalize
+    for(auto i=0;i<m_vertex.col();i++){
+        float x =m_vertex_normal(0,i);
+        float y =m_vertex_normal(1,i);
+        float z =m_vertex_normal(2,i);
+        float mag = std::pow(x*x+y*y+z*z,0.5);
+        m_vertex_normal(0,i) /= mag;
+        m_vertex_normal(1,i) /= mag;
+        m_vertex_normal(2,i) /= mag;
+    }
+
 }

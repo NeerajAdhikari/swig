@@ -8,7 +8,7 @@
 // RGB coeffecient
 struct Coeffecient {
     public:
-        float r,g,b;
+        float b,g,r;
 };
 
 struct PointLight {

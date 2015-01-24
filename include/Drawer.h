@@ -40,6 +40,8 @@ class Drawer {
     // Draw a horizontal line considering the depth buffer
     void hLineD(int y, int xs, int hs,
             int xe, int he, Color cl);
+    // Draw a horizontal line considering the depth buffer
+    // and color gradient
     void hLineD(int y, int xs, int hs,
             int xe, int he, Color cStart, Color cEnd);
 
@@ -50,8 +52,10 @@ class Drawer {
     // considering depth buffer
     void fillD(ScreenPoint pt1, ScreenPoint pt2,
             ScreenPoint pt3, Color fillcolor);
+    // Fill the triangle bounded by pt1, pt2 and pt3
+    // considering depth buffer and color gradient
     void fillD(ScreenPoint pt1, ScreenPoint pt2,
-            ScreenPoint pt3, Color clr1, Color clr2, Color clr3);
+            ScreenPoint pt3);
 
 };
 

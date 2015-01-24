@@ -34,11 +34,11 @@ int main(int argc, char* argv[]) {
     Benchmark timekeeper;
 
     // Intialize the light sources
-    AmbientLight ambient = {{2,2,2}};
+    AmbientLight ambient = {{10,10,10}};
     std::vector<PointLight> light;;
     {
-        PointLight t = {{-1,-1,-1,0},{10,5,8}};
-        PointLight m = {{1,0,0,0},{8,10,5}};
+        PointLight t = {{-1,-1,-1,0},{10,0,0}};
+        PointLight m = {{1,-1,-1,0},{0,0,10}};
         light.push_back(t);
         light.push_back(m);
     }
@@ -83,9 +83,10 @@ int main(int argc, char* argv[]) {
 
         for(auto i=0;i<nVerts;i++){
 
-            Vector normal(obj.nmatrix()(0,i),obj.nmatrix()(1,i),obj.nmatrix()(2,i),obj.nmatrix()(3,i));
-            Vector centroid(obj.vmatrix()(0,i),obj.vmatrix()(1,i),obj.vmatrix()(2,i),obj.vmatrix()(3,i));
-            //const Vector& centroid = obj.getSurfaceCentroid(i);
+            Vector normal = obj.getVertexNormal(i);
+            Vector position = obj.getVertex(i).normalized();
+
+            //const Vector& position = obj.getSurfaceCentroid(i);
 
             // Backface detection
             // TODO some problem in backface detection
@@ -121,7 +122,8 @@ int main(int argc, char* argv[]) {
                 // TODO: In triangular surfaces in same plane
                 // specular reflection doesn't give good result
                 // for flat shading
-                Vector half = (light[i].direction + centroid)*(-1);
+
+                Vector half = (light[i].direction + position)*(-1);
                 float cosineNs = std::pow( Vector::cosine(half,normal), obj.material.ns );
 
                 if(cosineNs >0){
@@ -169,12 +171,14 @@ int main(int argc, char* argv[]) {
             unsigned a = copy.getSurface(i).x;
             unsigned b = copy.getSurface(i).y;
             unsigned c = copy.getSurface(i).z;
+            ScreenPoint f = copy.getVertex(a);
+            f.color = colors[a];
+            ScreenPoint s = copy.getVertex(b);
+            s.color = colors[b];
+            ScreenPoint t = copy.getVertex(c);
+            t.color = colors[c];
 
-            drawer.fillD(
-                    copy.getVertex(a),
-                    copy.getVertex(b),
-                    copy.getVertex(c),
-                    colors[a],colors[b],colors[c]);
+            drawer.fillD(f,s,t);
         }
 
         // Update framebuffer
