@@ -52,6 +52,10 @@ class Object{
         // A matrix is (4 x count) matrix is used to represent m_vertex
         // A homogeneous vertex matrix
         Matrix<float> m_vertex;
+
+        // TODO added here
+        Matrix<float> m_vertex_normal;
+
         // A vector of pair of indexes to represent edges
         std::vector<Edge> m_edge;
         // A vector of triplet of indexes to represent surfaces (triangles)
@@ -66,6 +70,8 @@ class Object{
 
         // Load an object from an .obj file
         Object(const std::string& filename);
+
+        void initNormal();
 
         // Tesselate a polygon to triangles
         std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned>
@@ -89,6 +95,11 @@ class Object{
         // Retuns the vertex matrix
         inline Matrix<float>& vmatrix() {
             return m_vertex;
+        }
+
+        // Retuns the vertex matrix
+        inline Matrix<float>& nmatrix() {
+            return m_vertex_normal;
         }
 
         // Getter in form matrix(x,y)

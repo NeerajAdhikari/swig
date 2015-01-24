@@ -1,7 +1,8 @@
 #include "Object.h"
 
 Object::Object (unsigned vertex_count):
-    m_vertex({4,vertex_count})
+    m_vertex({4,vertex_count}),
+    m_vertex_normal({4,vertex_count})
 {
     // Initialize the points
     for(int i=0;i < vertexCount();i++)
@@ -9,8 +10,49 @@ Object::Object (unsigned vertex_count):
     // Initialize edges and surfaces
 }
 
+
+void Object::initNormal() {
+
+    // Get normals
+    m_vertex_normal.clear();
+    for(auto i=0;i<m_surface.size();i++) {
+        Vector  normal = getSurfaceNormal(i);
+        Surface surf = getSurface(i);
+        m_vertex_normal(0,surf.x) += normal.x;
+        m_vertex_normal(1,surf.x) += normal.y;
+        m_vertex_normal(2,surf.x) += normal.z;
+        m_vertex_normal(3,surf.x) += normal.w;
+
+        m_vertex_normal(0,surf.y) += normal.x;
+        m_vertex_normal(1,surf.y) += normal.y;
+        m_vertex_normal(2,surf.y) += normal.z;
+        m_vertex_normal(3,surf.y) += normal.w;
+
+        m_vertex_normal(0,surf.z) += normal.x;
+        m_vertex_normal(1,surf.z) += normal.y;
+        m_vertex_normal(2,surf.z) += normal.z;
+        m_vertex_normal(3,surf.z) += normal.w;
+
+    }
+
+    // Normalize
+    for(auto i=0;i<m_vertex.col();i++){
+        float x =m_vertex_normal(0,i);
+        float y =m_vertex_normal(1,i);
+        float z =m_vertex_normal(2,i);
+        float mag = std::pow(x*x+y*y+z*z,0.5);
+        m_vertex_normal(0,i) /= mag;
+        m_vertex_normal(1,i) /= mag;
+        m_vertex_normal(2,i) /= mag;
+    }
+
+}
+
 // Load an object from an .obj file
-Object::Object(const std::string& filename) : m_vertex({4,1}) {
+    Object::Object(const std::string& filename)
+: m_vertex({4,1}),
+    m_vertex_normal({4,1})
+{
     std::ifstream objfile(filename,std::ios::in);
     std::string line,keyword;
     Triplet<float> vtxpoint(0,0,0);
@@ -26,8 +68,10 @@ Object::Object(const std::string& filename) : m_vertex({4,1}) {
         linestrm>>keyword;
 
         if (keyword=="v") {
-            if (vertex_count!=0)
+            if (vertex_count!=0){
                 m_vertex.addColumn();
+                m_vertex_normal.addColumn();
+            }
             linestrm>>vtxpoint.x;
             linestrm>>vtxpoint.y;
             linestrm>>vtxpoint.z;

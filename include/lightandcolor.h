@@ -36,7 +36,7 @@ struct Material {
         ka({0.01,0.01,0.01}),
         kd({0.05,0.05,0.05}),
         ks({0.05,0.05,0.05}),
-        ns(100)
+        ns(10)
     {
     }
     // TODO constructor

@@ -9,9 +9,11 @@ Antialiased Filling
 Object clipping
 
 Gourad / Fast Phong Shading
+
 Manage object information
-    : Point normals, Surface normals, Point color,
-    surface color, Surface parameter coefficients
-Color & Distance Consideration in lighting
+    : Point normals, Point color, Surface normals
+Shadow
+
+Distance Consideration in lighting
+
 Add distance Falloff
-Shadow and Lighting

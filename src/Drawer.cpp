@@ -146,6 +146,61 @@ void Drawer::hLineD(int y, int xStart,
 
 }
 
+
+
+
+// This one considers the pixel depths while plotting. It only
+// plots points closer than already there.
+// The parameters are : y-coordinate, starting x-coordinate,
+// starting depth value, ending x-coordinate and ending depth
+// value
+void Drawer::hLineD(int y, int xStart,
+        int dStart, int xEnd, int dEnd, Color cStart,Color cEnd) {
+    // Sort the start end end values if they are not in order
+    if (xStart>xEnd) {
+        swap(xStart,xEnd);
+        swap(dStart,dEnd);
+        swap(cStart,cEnd);
+    }
+    // If y lies outside then return
+    if( y >= (int)plotter->height() || y < 0)
+        return;
+    // If x lies outside then return
+    if( xStart >= (int)plotter->width() || xEnd < 0)
+        return;
+
+
+    Linspace d(dStart,dEnd,xEnd-xStart+1);
+    Lincolor c(cStart,cEnd,xEnd-xStart+1);
+
+    // Clipping
+    xEnd = Math::min(xEnd,(int)plotter->width()-1);
+    // Clipping
+    int low = Math::max(0,xStart);
+    if(low-xStart > 0){
+        c.leap(low-xStart);
+        d.leap(low-xStart);
+    }
+    xStart = low;
+
+    while(xStart <= xEnd){
+        // Depth clipping, checking with zero isn't necessary
+        // as depth(xStart,y) is always greater than or equal to 0
+        // checking with far value must be done however
+        // 0xffffff value because it is the maximum value it should attain
+        if (d <= 0xffff && d>=depth(xStart,y)) {
+            plotter->plot(xStart,y,c,true);
+            depth(xStart,y)=d;
+        }
+        ++xStart;
+        ++d;
+        ++c;
+    }
+
+}
+
+
+
 // We need to sort the points according to their
 // y-coordinates
 void Drawer::initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& end,
@@ -297,5 +352,135 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
         ++x3;
         ++d2;
         ++d3;
+    }
+}
+
+
+
+
+// Fill the triangle bounded by pt1, pt2 and pt3
+// What is implemented here is a special case of
+// scan-line filling which works only for triangles.
+// considering depth buffer
+void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
+        ScreenPoint pt3, Color clr1, Color clr2, Color clr3){
+
+    ScreenPoint start, mid, end;
+    Color startclr,midclr,endclr;
+
+    if (pt1.y<=pt2.y && pt1.y<=pt3.y) {
+        start = pt1;
+        startclr = clr1;
+        if (pt2.y<=pt3.y) {
+            mid = pt2;
+            end = pt3;
+            midclr = clr2;
+            endclr = clr3;
+        } else {
+            mid = pt3;
+            end = pt2;
+            midclr = clr3;
+            endclr = clr2;
+        }
+    }
+    else if (pt2.y<=pt1.y && pt2.y<=pt3.y) {
+        start = pt2;
+        startclr = clr2;
+        if (pt1.y<=pt3.y) {
+            mid = pt1;
+            end = pt3;
+            midclr = clr1;
+            endclr = clr3;
+        } else {
+            mid = pt3;
+            end = pt1;
+            midclr = clr3;
+            endclr = clr1;
+        }
+    }
+    else {
+        start = pt3;
+        startclr = clr3;
+        if (pt1.y<=pt2.y) {
+            mid = pt1;
+            end = pt2;
+            midclr = clr1;
+            endclr = clr2;
+        } else {
+            mid = pt2;
+            end = pt1;
+            midclr = clr2;
+            endclr = clr1;
+        }
+    }
+
+    if( start.y >= (int)plotter->height() || end.y < 0)
+        return;
+    if(start.y == end.y)
+        return;
+
+    // THe negative region is backside of the camera
+    // or away from the far point
+    if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
+        return ;
+    if(start.d > 0xffffff && end.d > 0xffffff && mid.d > 0xffffff)
+        return ;
+
+    Linspace x1(start.x,mid.x, mid.y-start.y+1);
+    Linspace x2(start.x,end.x, end.y-start.y+1);
+
+    Linspace d1(start.d,mid.d, mid.y-start.y+1);
+    Linspace d2(start.d,end.d, end.y-start.y+1);
+
+    Lincolor c1(startclr,midclr,mid.y-start.y+1);
+    Lincolor c2(startclr,endclr,end.y-start.y+1);
+
+    // Clipping
+    int low = Math::min(mid.y,Math::max(start.y,0));
+    if(low-start.y>0){
+        x1.leap(low-start.y);
+        x2.leap(low-start.y);
+        d1.leap(low-start.y);
+        d2.leap(low-start.y);
+        c1.leap(low-start.y);
+        c2.leap(low-start.y);
+    }
+    start.y = low;
+
+    for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++){
+        hLineD(i,x1,d1,x2,d2,c1,c2);
+        ++x1;
+        ++x2;
+        ++d1;
+        ++d2;
+        ++c1;
+        ++c2;
+    }
+
+    Linspace x3(mid.x,end.x, end.y-mid.y+1);
+    Linspace d3(mid.d,end.d, end.y-mid.y+1);
+
+    Lincolor c3(midclr,endclr,end.y-mid.y+1);
+
+    // Clipping
+    int lows = Math::max(mid.y,0);
+    if(lows-mid.y>0){
+        x2.leap(lows-mid.y);
+        x3.leap(lows-mid.y);
+        d2.leap(lows-mid.y);
+        d3.leap(lows-mid.y);
+        c2.leap(lows-mid.y);
+        c3.leap(lows-mid.y);
+    }
+    mid.y = lows;
+
+    for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
+        hLineD(i, x2, d2, x3, d3, c2, c3);
+        ++x2;
+        ++x3;
+        ++d2;
+        ++d3;
+        ++c2;
+        ++c3;
     }
 }

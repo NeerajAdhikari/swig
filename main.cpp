@@ -7,58 +7,52 @@
 #include "Benchmark.h"
 #include "lightandcolor.h"
 #include <iostream>
+#include "Linspace.h"
 #include <cmath>
 
 int main(int argc, char* argv[]) {
+
     if (argc<2) {
         std::cout<<"Usage: "<<argv[0]<<" filename"<<std::endl;
         return 1;
     }
 
-
     // Initialize constant parameters
-    const unsigned width = 400;
-    const unsigned height = 300;
+    const unsigned width = 800;
+    const unsigned height = 600;
 
     const uintmax_t FPS = 100;
     const uintmax_t DELAY = 1e6/FPS;
-
-    // TODO: Suface is inherited so that
-    // color info and show can be kept inside it
-    // even though it's only useful for flat shading and backface resp.
-    // And all these light information and surface information should
-    // be modeled
 
     // Initialize the plotter interface
     Plotter_ fb(width,height);
     Drawer drawer(&fb);
 
+    drawer.clear();
+
     // Intialize the benchmark
     Benchmark timekeeper;
 
-    // Initialize the object
-    Object obj(argv[1]);
-    unsigned nSurfs = obj.surfaceCount();
-    unsigned nVerts = obj.vertexCount();
-    //obj.material = {0.01,0.05,0.05,270};
-
-    // Initialize projection matrix
-    Matrix<float> proj = TfMatrix::perspective2(95,(float)width/height,10000,5);
-
     // Intialize the light sources
-    std::vector<PointLight> light;
+    AmbientLight ambient = {{2,2,2}};
+    std::vector<PointLight> light;;
     {
-        PointLight t = {{-1,-1,-1,0},{10,0,0}};
-        PointLight m = {{1,0,0,0},{0,10,0}};
+        PointLight t = {{-1,-1,-1,0},{10,5,8}};
+        PointLight m = {{1,0,0,0},{8,10,5}};
         light.push_back(t);
         light.push_back(m);
     }
-    AmbientLight ambient = {{2,2,2}};
 
-    // For flat shading, the colors we need to fill surfaces with
-    Color colors[nSurfs];
-    // Detect backfaces - should we display the surface?
-    bool show[nSurfs];
+    // Initialize the object
+    Object obj(argv[1]);
+    obj.initNormal();
+    // material has a default constructor
+    //obj.material = {0.01,0.05,0.05,270};
+    unsigned nSurfs = obj.surfaceCount();
+    unsigned nVerts = obj.vertexCount();
+
+    // Initialize projection matrix
+    Matrix<float> proj = TfMatrix::perspective2(95,(float)width/height,10000,5);
 
     // Intialize a transformation matrix to transform object
     const float ztranslate = -15;
@@ -71,23 +65,28 @@ int main(int argc, char* argv[]) {
     // world coordinate
     obj.vmatrix() /= TfMatrix::translation({0,0,ztranslate});
 
-    //std::cout << "Ambient light intensity\t" << ambient.intensity << std::endl;
+    // For flat shading, the colors we need to fill surfaces with
+    Color colors[nVerts];
+    // Detect backfaces - should we display the surface?
+    //bool show[nSurfs];
+
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
-
-
     while (!fb.checkTerm()) {
         // Start benchmark time
         timekeeper.start();
 
         // Apply transformation to object
         obj.vmatrix() /= rotator;
+        obj.nmatrix() /= TfMatrix::rotation(2,{1,1,0},{0,0,0});
 
         // Flat-shading : calculate the colors to shade each surface with
-        for (int i=0; i<nSurfs; i++) {
-            const Vector& normal = obj.getSurfaceNormal(i);
-            const Vector& centroid = obj.getSurfaceCentroid(i);
 
-            show[i] = true;
+        for(auto i=0;i<nVerts;i++){
+
+            Vector normal(obj.nmatrix()(0,i),obj.nmatrix()(1,i),obj.nmatrix()(2,i),obj.nmatrix()(3,i));
+            Vector centroid(obj.vmatrix()(0,i),obj.vmatrix()(1,i),obj.vmatrix()(2,i),obj.vmatrix()(3,i));
+            //const Vector& centroid = obj.getSurfaceCentroid(i);
+
             // Backface detection
             // TODO some problem in backface detection
             // backface detection for perspective view required
@@ -165,13 +164,17 @@ int main(int argc, char* argv[]) {
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
-            if(!show[i])
-                continue;
+            // if(!show[i])
+            //    continue;
+            unsigned a = copy.getSurface(i).x;
+            unsigned b = copy.getSurface(i).y;
+            unsigned c = copy.getSurface(i).z;
+
             drawer.fillD(
-                    copy.getVertex(copy.getSurface(i).x),
-                    copy.getVertex(copy.getSurface(i).y),
-                    copy.getVertex(copy.getSurface(i).z),
-                    colors[i]);
+                    copy.getVertex(a),
+                    copy.getVertex(b),
+                    copy.getVertex(c),
+                    colors[a],colors[b],colors[c]);
         }
 
         // Update framebuffer
