@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     {
         PointLight t = {{-1,-1,-1,0},{10,0,0}};
         PointLight m = {{1,-1,-1,0},{0,0,10}};
-        PointLight n = {{0,-1,-1,0},{0,10,0}};
+        PointLight n = {{0,0,1,0},{10,10,0}};
         light.push_back(m);
         light.push_back(n);
         light.push_back(t);
@@ -57,14 +57,18 @@ int main(int argc, char* argv[]) {
     unsigned nVerts = obj.vertexCount();
 
     // Initialize camera position and direction
-    Vector camera_pos(0,0,10);
-    Vector camera_dir(-0.1,0.0,-1);
+    Vector camera_pos(0,10,3);
+    Vector camera_dir(0,-5,-1);
     camera_dir.normalize();
     // the direction of z doesn't matter
     // The camera position is shifted to origin and rotated to align with negative z axis
     Matrix<float> proj = TfMatrix::translation(camera_pos*-1);
-    proj /= TfMatrix::rotationy(std::atan(camera_dir.x/camera_dir.magnitude()));
-    proj /= TfMatrix::rotationx(-std::atan(camera_dir.y / std::sqrt( std::pow(camera_dir.x,2) + std::pow(camera_dir.z,2)  ) ));
+    if( camera_dir.z > 0)
+        proj /= TfMatrix::rotationy( Math::pi - std::atan(camera_dir.x / camera_dir.magnitude()));
+    else
+        proj /= TfMatrix::rotationy( std::atan(camera_dir.x / camera_dir.magnitude()));
+    proj /= TfMatrix::rotationx( - std::atan(camera_dir.y /
+                std::sqrt( std::pow(camera_dir.x,2) + std::pow(camera_dir.z,2)  ) ));
     // Applying projection matrix
     proj /= TfMatrix::perspective2(95,(float)width/height,10000,5);
 
@@ -129,18 +133,18 @@ int main(int argc, char* argv[]) {
                 Vector half = (light[i].direction + position)*(-1);
                 float cosine2 = Vector::cosine(half,normal);
                 float cosineNs = std::pow( cosine2 , obj.material.ns );
-
                 if(cosine2 > 0){
                     intensityR += light[i].intensity.r*obj.material.ks.r*cosineNs;
                     intensityG += light[i].intensity.g*obj.material.ks.g*cosineNs;
                     intensityB += light[i].intensity.b*obj.material.ks.b*cosineNs;
                 }
+
             }
+
             Uint8 clrR = Math::min(intensityR,1.0f) * 255;
             Uint8 clrG = Math::min(intensityG,1.0f) * 255;
             Uint8 clrB = Math::min(intensityB,1.0f) * 255;
             colors[i] =  {clrR,clrG,clrB,255};
-
         }
 
         // Create a copy of object and apply the projection transform
