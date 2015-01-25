@@ -5,9 +5,11 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include "Point.h"
-#include "Matrix.h"
-#include "Vector.h"
+
+#include "ScreenPoint.h"
+#include "Material.h"
+#include "mathematics/Matrix.h"
+#include "mathematics/Vector.h"
 
 // A edge contains 2 index points
 struct Edge :public Pair<unsigned> {

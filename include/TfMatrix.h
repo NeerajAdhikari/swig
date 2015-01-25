@@ -1,8 +1,8 @@
 #ifndef __TRANSFORMATION_MATRIX__
 #define __TRANSFORMATION_MATRIX__
 
-#include "Vector.h"
-#include "Matrix.h"
+#include "mathematics/Vector.h"
+#include "mathematics/Matrix.h"
 
 // TfMatrix class is derived from Matrix class
 // and is meant for tasks related to 3d objects and transformation

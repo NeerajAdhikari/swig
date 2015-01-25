@@ -10,8 +10,6 @@ Object::Object (unsigned vertex_count):
     // Initialize edges and surfaces
 }
 
-
-
 // Load an object from an .obj file
     Object::Object(const std::string& filename)
 : m_vertex({4,1}),

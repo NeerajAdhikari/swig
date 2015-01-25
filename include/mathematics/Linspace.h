@@ -1,10 +1,8 @@
 #ifndef __LINSPACE__
 #define __LINSPACE__
 
-#include "ex.h"
-#include "Point.h"
-#include "helper.h"
-#include <iostream>
+#include "common/ex.h"
+#include "common/helper.h"
 
 class Linspace {
     private:

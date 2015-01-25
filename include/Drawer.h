@@ -1,10 +1,11 @@
 #ifndef __DRAWER__
 #define __DRAWER__
 
-#include "helper.h"
-#include "Point.h"
-#include "Matrix.h"
-#include "ex.h"
+#include "mathematics/Matrix.h"
+#include "mathematics/Linspace.h"
+
+#include "ScreenPoint.h"
+#include "Lincolor.h"
 
 #define Plotter_ SDLPlotter
 #include SSTR(Plotter_.h)
@@ -38,21 +39,22 @@ class Drawer {
 
     // Draw a horizontal line between (xs,y) and (xe,y)
     void hLine(int y, int xs, int xe, Color cl);
-    // Draw a horizontal line considering the depth buffer
-    void hLineD(int y, int xs, int hs,
-            int xe, int he, Color cl);
-    // Draw a horizontal line considering the depth buffer
-    // and color gradient
-    void hLineD(int y, int xs, int hs,
-            int xe, int he, Color cStart, Color cEnd);
-
     // Fill the triangle bounded by pt1, pt2 and pt3
     void fill(ScreenPoint pt1, ScreenPoint pt2,
             ScreenPoint pt3, Color fillcolor);
+
+    // Draw a horizontal line considering the depth buffer
+    void hLineD(int y, int xs, int hs,
+            int xe, int he, Color cl);
     // Fill the triangle bounded by pt1, pt2 and pt3
     // considering depth buffer
     void fillD(ScreenPoint pt1, ScreenPoint pt2,
             ScreenPoint pt3, Color fillcolor);
+
+    // Draw a horizontal line considering the depth buffer
+    // and color gradient
+    void hLineD(int y, int xs, int hs,
+            int xe, int he, Color cStart, Color cEnd);
     // Fill the triangle bounded by pt1, pt2 and pt3
     // considering depth buffer and color gradient
     void fillD(ScreenPoint pt1, ScreenPoint pt2,

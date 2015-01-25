@@ -1,12 +1,16 @@
-#include "Matrix.h"
-#include "TfMatrix.h"
-#include "Vector.h"
-#include "Point.h"
-#include "Object.h"
-#include "Drawer.h"
 #include <iostream>
-#include "Time.h"
-#include <cmath>
+
+#include "mathematics/Vector.h"
+#include "mathematics/Matrix.h"
+#include "TfMatrix.h"
+
+#include "Drawer.h"
+
+#include "PointLight.h"
+#include "AmbientLight.h"
+#include "Object.h"
+
+#include "misc/Time.h"
 
 int main(int argc, char* argv[]) {
 

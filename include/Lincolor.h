@@ -1,9 +1,10 @@
 #ifndef __LINCOLOR__
 #define __LINCOLOR__
 
-#include "ex.h"
-#include "helper.h"
-#include "Linspace.h"
+#include "common/ex.h"
+#include "common/helper.h"
+#include "mathematics/Linspace.h"
+#include "Color.h"
 
 class Lincolor {
     private:
@@ -27,7 +28,7 @@ class Lincolor {
 
 
 // Start depth, End depth, no. of elements
-Lincolor::Lincolor(const Color& dss,const Color& dee,int dxx):
+inline Lincolor::Lincolor(const Color& dss,const Color& dee,int dxx):
     b(dss.blue,dee.blue,dxx),
     r(dss.red,dee.red,dxx),
     g(dss.green,dee.green,dxx)

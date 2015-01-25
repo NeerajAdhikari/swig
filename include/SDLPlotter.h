@@ -4,8 +4,9 @@
 #include <SDL2/SDL.h>
 #include <cstring>
 
-#include "Point.h"
-#include "ex.h"
+#include "common/ex.h"
+#include "common/helper.h"
+#include "ScreenPoint.h"
 
 // Class SDLPlotter is a plotting and windowing interface used
 // by the rest of the system. It implements a uniform interface

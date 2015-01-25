@@ -5,9 +5,9 @@
 #include <iostream>
 #include <iomanip>
 
-#include "ex.h"
-#include "containers.h"
-#include "helper.h"
+#include "common/ex.h"
+#include "common/helper.h"
+#include "common/containers.h"
 
 // Matrix Class
 template <class T=float>

@@ -1,9 +1,9 @@
 #ifndef __VECTORTRIPLET__
 #define __VECTORTRIPLET__
 
-#include "containers.h"
-#include "helper.h"
-#include "ex.h"
+#include "common/helper.h"
+#include "common/ex.h"
+#include "common/containers.h"
 
 class Vector: public Quadruple<float> {
     public:

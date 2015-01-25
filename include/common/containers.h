@@ -3,10 +3,6 @@
 // container.h contains data structures
 // for grouped data
 
-#include "iostream"
-#include "ex.h"
-#include "helper.h"
-
 template <typename T>
 struct Pair{
     T x,y;

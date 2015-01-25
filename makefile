@@ -38,7 +38,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(INCDIR)/%.h $(OBJDIR) $(BINDIR)
 $(OBJDIR)/%.o: %.cpp | $(OBJDIR) $(BINDIR)
 	$(CC) -o $@ $< $(CFLAGS)
 
-#Create oject directory
+#Create object directory
 $(OBJDIR): | $(BINDIR)
 	mkdir $(OBJDIR)
 
