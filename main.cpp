@@ -5,7 +5,6 @@
 #include "Object.h"
 #include "Drawer.h"
 #include <iostream>
-#include "Linspace.h"
 #include "Time.h"
 #include <cmath>
 
@@ -15,6 +14,8 @@ int main(int argc, char* argv[]) {
         std::cout<<"Usage: "<<argv[0]<<" filename"<<std::endl;
         return 1;
     }
+
+
 
     // Initialize constant parameters
     const unsigned width = 800;
@@ -28,6 +29,38 @@ int main(int argc, char* argv[]) {
     Drawer drawer(&fb);
 
     drawer.clear();
+
+
+    /*
+    {
+    ScreenPoint a;
+    a.x = 10;
+    a.y = 10;
+    a.d = 10;
+
+    ScreenPoint b;
+    b.x = 140;
+    b.y = 100;
+    b.d = 10;
+
+    ScreenPoint c;
+    c.x = 100;
+    c.y = 300;
+    c.d = 10;
+
+    a.color = {255,10,100,255};
+    b.color = {10,255,10,255};
+    c.color = {0,0,255,255};
+
+    drawer.clear();
+    drawer.fillD(a,b,c);
+    drawer.update();
+    SDL_Delay(1000);
+
+    return 0;
+    }
+    */
+
 
     // Intialize the benchmark
     Time timekeeper;

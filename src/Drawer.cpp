@@ -1,5 +1,6 @@
 #include "Drawer.h"
 #include "Linspace.h"
+#include "Lincolor.h"
 #include <iostream>
 
 // Construct.
