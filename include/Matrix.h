@@ -5,9 +5,9 @@
 #include <iostream>
 #include <iomanip>
 
+#include "ex.h"
 #include "containers.h"
 #include "helper.h"
-#include "ex.h"
 
 // Matrix Class
 template <class T=float>
@@ -49,47 +49,25 @@ class Matrix {
             }
 
         // Returns the number of columns
-        inline unsigned col() const {
-            return m_col;
-        }
+        inline unsigned col() const;
 
         // Returns the number of rows of matrix
-        inline unsigned row() const {
-            return m_row;
-        }
+        inline unsigned row() const;
 
         // Returns the total space of matrix
-        inline unsigned space() const {
-            return m_space;
-        }
+        inline unsigned space() const;
 
         // Getter in form matrix(x,y)
-        inline T& operator()(unsigned row, unsigned col){
-            if(row >= m_row || col >= m_col)
-                throw ex::OutOfBounds();
-            return *(m_matrix+row*m_col+col);
-        }
+        T& operator()(unsigned row, unsigned col);
 
         // Setter in form matrix(x,y)
-        inline const T& operator()(unsigned row, unsigned col) const {
-            if(row >= m_row || col >= m_col)
-                throw ex::OutOfBounds();
-            return *(m_matrix+row*m_col+col);
-        }
+        const T& operator()(unsigned row, unsigned col) const;
 
         // Getter in the form matrix(p)
-        inline const T& operator()(unsigned place) const {
-            if(place >= space())
-                throw ex::OutOfBounds();
-            return *(m_matrix+place);
-        }
+        const T& operator()(unsigned place) const;
 
         // Setter in the form matrix(p)
-        inline T& operator()(unsigned place){
-            if(place >= space())
-                throw ex::OutOfBounds();
-            return *(m_matrix+place);
-        }
+        T& operator()(unsigned place);
 
         // Adds matrix m to itself
         // this = this + m
@@ -146,13 +124,70 @@ class Matrix {
         T determinant() const;
 
         // Clears the matrix
-        inline void clear() {
-            memset(m_matrix,0,space()*sizeof(T));
-        }
+        void clear();
 
         // Prints the matrix
         void print() const ;
 };
+
+
+// Getter in form matrix(x,y)
+template<class T>
+inline T& Matrix<T>::operator()(unsigned row, unsigned col){
+    if(row >= m_row || col >= m_col)
+        throw ex::OutOfBounds();
+    return *(m_matrix+row*m_col+col);
+}
+
+// Setter in form matrix(x,y)
+template<class T>
+inline const T& Matrix<T>::operator()(unsigned row, unsigned col) const {
+    if(row >= m_row || col >= m_col)
+        throw ex::OutOfBounds();
+    return *(m_matrix+row*m_col+col);
+}
+
+// Getter in the form matrix(p)
+template<class T>
+inline const T& Matrix<T>::operator()(unsigned place) const {
+    if(place >= space())
+        throw ex::OutOfBounds();
+    return *(m_matrix+place);
+}
+
+// Setter in the form matrix(p)
+template<class T>
+inline T& Matrix<T>::operator()(unsigned place){
+    if(place >= space())
+        throw ex::OutOfBounds();
+    return *(m_matrix+place);
+}
+
+
+
+// Returns the number of columns
+template<class T>
+inline unsigned Matrix<T>::col() const {
+    return m_col;
+}
+
+// Returns the number of rows of matrix
+template<class T>
+inline unsigned Matrix<T>::row() const {
+    return m_row;
+}
+
+// Returns the total space of matrix
+template<class T>
+inline unsigned Matrix<T>::space() const {
+    return m_space;
+}
+
+
+template<class T>
+inline void Matrix<T>::clear() {
+    memset(m_matrix,0,space()*sizeof(T));
+}
 
 template<class T>
 bool Matrix<T>::isSquare() const {
