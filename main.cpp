@@ -4,7 +4,7 @@
 #include "Point.h"
 #include "Object.h"
 #include "Drawer.h"
-#include "Benchmark.h"
+#include "Time.h"
 #include "lightandcolor.h"
 #include <iostream>
 #include "Linspace.h"
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     drawer.clear();
 
     // Intialize the benchmark
-    Benchmark timekeeper;
+    Time timekeeper;
 
     // Intialize the light sources
     AmbientLight ambient = {{10,10,10}};

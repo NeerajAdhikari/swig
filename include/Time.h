@@ -2,16 +2,15 @@
 #define __BENCHMARK__
 #include "ex.h"
 #include "helper.h"
-#include <iostream>
 #include <sys/time.h>
 
-class Benchmark {
+class Time {
     private:
         timeval m_start,m_end;
         bool m_running;
     public:
 
-        Benchmark() : m_running(false) {
+        Time () : m_running(false) {
         }
 
         // Start the benchmark
@@ -34,7 +33,7 @@ class Benchmark {
         // and stop time in micro seconds
         inline uintmax_t time() {
             if(m_running)
-                throw "WTF";
+                throw ex::Wtf();
             return (m_end.tv_sec * 1e6 + m_end.tv_usec - m_start.tv_sec * 1e6 - m_start.tv_usec);
         }
 };
