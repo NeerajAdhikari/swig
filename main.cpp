@@ -19,8 +19,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-
-
     // Initialize constant parameters
     const unsigned width = 800;
     const unsigned height = 600;
