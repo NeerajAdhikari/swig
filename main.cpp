@@ -58,39 +58,40 @@ int main(int argc, char* argv[]) {
     unsigned nVerts = obj.vertexCount();
 
     // Initialize camera position and direction
-    Vector camera_pos(0,10,3);
-    Vector camera_dir(0,-5,-1);
+    Vector camera_pos(0,0,15);
+    Vector camera_dir(0,0,-1);
     camera_dir.normalize();
-    // the direction of z doesn't matter
-    // The camera position is shifted to origin and rotated to align with negative z axis
-    Matrix<float> proj = TfMatrix::translation(camera_pos*-1);
-    if( camera_dir.z > 0)
-        proj /= TfMatrix::rotationy( Math::pi - std::atan(camera_dir.x / camera_dir.magnitude()));
-    else
-        proj /= TfMatrix::rotationy( std::atan(camera_dir.x / camera_dir.magnitude()));
-    proj /= TfMatrix::rotationx( - std::atan(camera_dir.y /
-                std::sqrt( std::pow(camera_dir.x,2) + std::pow(camera_dir.z,2)  ) ));
-    // Applying projection matrix
-    proj /= TfMatrix::perspective2(95,(float)width/height,10000,5);
-
-    // Intialize a transformation matrix to transform object
-    Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
-    // For flat shading, the colors we need to fill surfaces with
 
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
-
     while (!fb.checkTerm()) {
 
         // Start benchmark time
         timekeeper.start();
 
+        // The transformation matrices must be dynamic and must change with the
+        // use input so keeping it inside the main loop
+        // The camera position is shifted to origin and rotated to align with negative z axis
+        Matrix<float> proj = TfMatrix::translation(camera_pos*-1);
+        if( camera_dir.z > 0)
+            proj /= TfMatrix::rotationy( Math::pi - std::atan(camera_dir.x / camera_dir.magnitude()));
+        else
+            proj /= TfMatrix::rotationy( std::atan(camera_dir.x / camera_dir.magnitude()));
+        proj /= TfMatrix::rotationx( - std::atan(camera_dir.y / std::sqrt( std::pow(camera_dir.x,2) + std::pow(camera_dir.z,2)  ) ));
+        // Applying projection matrix
+        proj /= TfMatrix::perspective2(95,(float)width/height,10000,5);
+
+        // Intialize a transformation matrix to transform object
+        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+        // For flat shading, the colors we need to fill surfaces with
+
         // Apply transformation to object
-        // Apply transformation to vertex normals (only rotation type)
         obj.vmatrix() /= rotator;
+        // Apply transformation to vertex normals (only rotation type)
         obj.nmatrix() /= TfMatrix::rotation(Math::toRadian(2),{1,1,0},{0,0,0});
 
-        // Create a copy of object and apply the projection transform
+        // Create a copy of object
         Object copy = obj;
+        // Apply perspective projection
         copy.vmatrix() /= proj;
 
         // Change the homogenous co-ordinates to
@@ -105,7 +106,7 @@ int main(int argc, char* argv[]) {
             copy(0,i) = copy(0,i)*width + width/2;
             copy(1,i) = height - (copy(1,i)*height + height/2);
 
-            // Converting normalized Z co-ordinate [-1,1] to viewport [1,0]*maxdepth
+            // Converting normalized Z co-ordinate [-1,1] to depthmap [1,0]*depth
             // Visible part is between n and f.
             // The z map is shown below
             //        0       n       f
@@ -113,45 +114,46 @@ int main(int argc, char* argv[]) {
             copy(2,i) = (-copy(2,i)*0.5 + 0.5)*0xffff;
         }
 
-        // Color for each vertices
+        // Stores Color for each vertices
         Color colors[nVerts];
-        // Flat-shading : calculate the colors to shade each surface with
+        // Gourad-shading : calculate the colors to shade each surface with
         for(auto i=0;i<nVerts;i++) {
+
             Vector normal = obj.getVertexNormal(i);
             Vector position = obj.getVertex(i).normalized();
 
+            Coeffecient intensity;
+
             // Ambient lighting
-            float intensityR = ambient.intensity.r*obj.material.ka.r;
-            float intensityG = ambient.intensity.g*obj.material.ka.g;
-            float intensityB = ambient.intensity.b*obj.material.ka.b;
+            intensity.r = ambient.intensity.r*obj.material.ka.r;
+            intensity.g = ambient.intensity.g*obj.material.ka.g;
+            intensity.b = ambient.intensity.b*obj.material.ka.b;
 
             for(int i=0; i<light.size(); i++){
 
                 // Diffused lighting
                 float cosine = Vector::cosine((light[i].direction*(-1)),normal);
                 // This is to be done so that there won't be symmetric lighting
-                if(cosine > 0){
-                    intensityR += light[i].intensity.r*obj.material.kd.r*cosine;
-                    intensityG += light[i].intensity.g*obj.material.kd.g*cosine;
-                    intensityB += light[i].intensity.b*obj.material.kd.b*cosine;
-                } else
+                if(cosine <= 0)
                     continue;
+                intensity.r += light[i].intensity.r*obj.material.kd.r*cosine;
+                intensity.g += light[i].intensity.g*obj.material.kd.g*cosine;
+                intensity.b += light[i].intensity.b*obj.material.kd.b*cosine;
 
                 // Specular ligting
                 Vector half = (light[i].direction + position)*(-1);
                 float cosine2 = Vector::cosine(half,normal);
                 float cosineNs = std::pow( cosine2 , obj.material.ns );
-                if(cosine2 > 0){
-                    intensityR += light[i].intensity.r*obj.material.ks.r*cosineNs;
-                    intensityG += light[i].intensity.g*obj.material.ks.g*cosineNs;
-                    intensityB += light[i].intensity.b*obj.material.ks.b*cosineNs;
-                }
-
+                if(cosine2 <= 0)
+                    continue;
+                intensity.r += light[i].intensity.r*obj.material.ks.r*cosineNs;
+                intensity.g += light[i].intensity.g*obj.material.ks.g*cosineNs;
+                intensity.b += light[i].intensity.b*obj.material.ks.b*cosineNs;
             }
 
-            Uint8 clrR = Math::min(intensityR,1.0f) * 255;
-            Uint8 clrG = Math::min(intensityG,1.0f) * 255;
-            Uint8 clrB = Math::min(intensityB,1.0f) * 255;
+            Uint8 clrR = Math::min(intensity.r,1.0f) * 255;
+            Uint8 clrG = Math::min(intensity.g,1.0f) * 255;
+            Uint8 clrB = Math::min(intensity.b,1.0f) * 255;
             colors[i] =  {clrR,clrG,clrB,255};
         }
 
@@ -169,8 +171,10 @@ int main(int argc, char* argv[]) {
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
-             if(!show[i])
+
+            if(!show[i])
                 continue;
+
             unsigned index;
             Vector vec;
 
