@@ -5,8 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <initializer_list>
-#include "lightandcolor.h"
+#include "Point.h"
 #include "Matrix.h"
 #include "Vector.h"
 
@@ -16,11 +15,6 @@ struct Edge :public Pair<unsigned> {
     // Constructor
     Edge(unsigned xx, unsigned yy)
         : Pair<unsigned>(xx,yy) {}
-
-    Edge(std::initializer_list<unsigned> il)
-        : Pair<unsigned>(*il.begin(),*(il.begin()+1))
-    {}
-
     // Some other attributes;
     // like line color, width
 };
@@ -34,10 +28,6 @@ struct Surface : public Triplet<unsigned> {
     // Constructor
     Surface(unsigned xx, unsigned yy, unsigned zz)
         : Triplet<unsigned>(xx,yy,zz)
-    {}
-
-    Surface(std::initializer_list<unsigned> l)
-        : Triplet<unsigned>(*l.begin(),*(l.begin()+1),*(l.begin()+2))
     {}
 
     // like color, luminosity, texture
@@ -135,14 +125,14 @@ class Object{
         inline Vector getVertex(unsigned point) const {
             if(point >= vertexCount())
                 throw ex::OutOfBounds();
-            return {m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point)};
+            return Vector(m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point));
         }
 
         // TODO for now vertex count and vertex normal count is equal
         inline Vector getVertexNormal(unsigned i) const {
             if(i >= vertexCount())
                 throw ex::OutOfBounds();
-            return {m_vertex_normal(0,i),m_vertex_normal(1,i),m_vertex_normal(2,i),m_vertex_normal(3,i)};
+            return Vector(m_vertex_normal(0,i),m_vertex_normal(1,i),m_vertex_normal(2,i),m_vertex_normal(3,i));
         }
 
         inline void setEdge(const Pair<unsigned>& p) {
@@ -155,7 +145,7 @@ class Object{
             if(p.x>=vertexCount()||p.y>=vertexCount()||p.z>=vertexCount()) {
                 throw ex::OutOfBounds();
             }
-            Surface surf = {p.x,p.y,p.z};
+            Surface surf(p.x,p.y,p.z);
 
             Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
 
@@ -176,13 +166,13 @@ class Object{
             return m_edge[point];
         }
 
-
         inline Vector getSurfaceNormal(unsigned point) {
             if(point>=surfaceCount())
                 throw ex::OutOfBounds();
             Surface p = getSurface(point);
             Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
-            Vector sidea=v2-v1, sideb=v3-v2;
+            Vector sidea=v2-v1;
+            Vector sideb=v3-v2;
             m_surface[point].normal=(sidea*sideb).normalized();
             return m_surface[point].normal;
         }
@@ -191,8 +181,10 @@ class Object{
             if(point>=surfaceCount())
                 throw ex::OutOfBounds();
             Surface p = getSurface(point);
-            Vector v1=getVertex(p.x),v2=getVertex(p.y),v3=getVertex(p.z);
-            return {(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,(v1.x+v2.x+v3.x)/3,1};
+            Vector v1=getVertex(p.x);
+            Vector v2=getVertex(p.y);
+            Vector v3=getVertex(p.z);
+            return Vector((v1.x+v2.x+v3.x)/3,(v1.y+v2.y+v3.y)/3,(v1.z+v2.z+v3.z)/3,1);
         }
 
         void showVx() const;

@@ -4,16 +4,15 @@
 #include "containers.h"
 #include "helper.h"
 #include "ex.h"
-#include <initializer_list>
 
 struct Vector: public Quadruple<float> {
 
     Vector();
 
     // Constructor
-    Vector(float xx, float yy, float zz, float ww);
+    Vector(float xx, float yy, float zz, float ww=0);
 
-    Vector(std::initializer_list<float> il);
+//    Vector(std::initializer_list<float> il);
 
     Vector(const Vector& v);
 

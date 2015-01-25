@@ -10,9 +10,11 @@ Vector::Vector(float xx, float yy, float zz, float ww):
 {
 }
 
+/*
 Vector::Vector(std::initializer_list<float> il)
         : Quadruple<float>(*il.begin(),*(il.begin()+1),*(il.begin()+2),*(il.begin()+3))
 {}
+*/
 
 Vector::Vector(const Vector& v)
     : Quadruple<float>(v.x,v.y,v.z,v.w)
@@ -20,9 +22,6 @@ Vector::Vector(const Vector& v)
 
 Vector Vector::normalized() const {
     float M = magnitude();
-    if(Math::equal(x,0.0)&&Math::equal(y,0.0)&&Math::equal(z,0.0)) {
-        return {0,0,0};
-    }
     if (Math::equal(M,0.0))
         throw ex::DivideByZero();
     return {x/M,y/M,z/M,w};

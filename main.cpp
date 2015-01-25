@@ -4,10 +4,9 @@
 #include "Point.h"
 #include "Object.h"
 #include "Drawer.h"
-#include "Time.h"
-#include "lightandcolor.h"
 #include <iostream>
 #include "Linspace.h"
+#include "Time.h"
 #include <cmath>
 
 int main(int argc, char* argv[]) {
@@ -57,13 +56,13 @@ int main(int argc, char* argv[]) {
     // Intialize a transformation matrix to transform object
     const float ztranslate = -15;
     Matrix<float> rotator =
-        TfMatrix::translation({0,0,ztranslate})
-        * TfMatrix::rotation(2,{1,1,0},{0,0,0})
-        * TfMatrix::translation({0,0,-ztranslate});
+        TfMatrix::translation(Vector(0,0,ztranslate))
+        * TfMatrix::rotation(2,Vector(1,1,0),Vector(0,0,0))
+        * TfMatrix::translation(Vector(0,0,-ztranslate));
 
     // Initially translate object to viewable part of
     // world coordinate
-    obj.vmatrix() /= TfMatrix::translation({0,0,ztranslate});
+    obj.vmatrix() /= TfMatrix::translation(Vector(0,0,ztranslate));
 
     // For flat shading, the colors we need to fill surfaces with
     Color colors[nVerts];
@@ -168,17 +167,34 @@ int main(int argc, char* argv[]) {
         for (int i=0; i<nSurfs; i++) {
             // if(!show[i])
             //    continue;
-            unsigned a = copy.getSurface(i).x;
-            unsigned b = copy.getSurface(i).y;
-            unsigned c = copy.getSurface(i).z;
-            ScreenPoint f = copy.getVertex(a);
-            f.color = colors[a];
-            ScreenPoint s = copy.getVertex(b);
-            s.color = colors[b];
-            ScreenPoint t = copy.getVertex(c);
-            t.color = colors[c];
+            unsigned index;
+            Vector vec;
 
-            drawer.fillD(f,s,t);
+            index = copy.getSurface(i).x;
+            vec = copy.getVertex(index);
+            ScreenPoint a;
+            a.x = Math::round(vec.x);
+            a.y = Math::round(vec.y);
+            a.d = Math::round(vec.z);
+            a.color =  colors[index];
+
+            index = copy.getSurface(i).y;
+            vec = copy.getVertex(index);
+            ScreenPoint b;
+            b.x = Math::round(vec.x);
+            b.y = Math::round(vec.y);
+            b.d = Math::round(vec.z);
+            b.color =  colors[index];
+
+            index = copy.getSurface(i).z;
+            vec = copy.getVertex(index);
+            ScreenPoint c;
+            c.x = Math::round(vec.x);
+            c.y = Math::round(vec.y);
+            c.d = Math::round(vec.z);
+            c.color =  colors[index];
+
+            drawer.fillD(a,b,c);
         }
 
         // Update framebuffer

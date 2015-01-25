@@ -2,14 +2,12 @@
 #define __MATRIX__
 
 #include <cstring>
-#include <cmath>
 #include <iostream>
 #include <iomanip>
 
-#include "ex.h"
-#include "helper.h"
 #include "containers.h"
-
+#include "helper.h"
+#include "ex.h"
 
 // Matrix Class
 template <class T=float>

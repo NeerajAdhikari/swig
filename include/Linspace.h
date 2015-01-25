@@ -31,11 +31,6 @@ class Linspace {
             return d;
         }
 
-        // Returns how much it is off from the float value
-        inline int off() const {
-            return 1.0*ctr/dd;
-        }
-
         // Increment the Linspace by "fwd"
         inline void leap(unsigned fwd){
             if (dx==0)
@@ -93,13 +88,6 @@ class Lincolor {
         // Get the value of the Linspace
         inline operator Color() const {
             return {b,g,r,255};
-        }
-
-        // Returns how much it is off from the float value
-        // TODO
-        inline int off() const {
-            return 0;
-            //return 1.0*ctr/dd;
         }
 
         // Increment the Linspace by "fwd"
