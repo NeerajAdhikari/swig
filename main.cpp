@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 
 #include "mathematics/Vector.h"
 #include "mathematics/Matrix.h"
@@ -72,45 +73,52 @@ int main(int argc, char* argv[]) {
     // Applying projection matrix
     proj /= TfMatrix::perspective2(95,(float)width/height,10000,5);
 
-    Color colors[nVerts];
-    // Detect backfaces - should we display the surface?
-    //bool show[nSurfs];
-
     // Intialize a transformation matrix to transform object
     Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
     // For flat shading, the colors we need to fill surfaces with
 
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
+
     while (!fb.checkTerm()) {
+
         // Start benchmark time
         timekeeper.start();
 
         // Apply transformation to object
+        // Apply transformation to vertex normals (only rotation type)
         obj.vmatrix() /= rotator;
-        // Apply transformation to vertex normals, only rotation type
         obj.nmatrix() /= TfMatrix::rotation(Math::toRadian(2),{1,1,0},{0,0,0});
 
+        // Create a copy of object and apply the projection transform
+        Object copy = obj;
+        copy.vmatrix() /= proj;
+
+        // Change the homogenous co-ordinates to
+        // normalized co-ordinate and  to device co-ordinate
+        for (unsigned i=0; i<nVerts; i++) {
+            // Perspective divide
+            copy(0,i) /= copy(3,i);
+            copy(1,i) /= copy(3,i);
+            copy(2,i) /= copy(3,i);
+
+            // Change the normalized X Y co-ordinates to device co-ordinate
+            copy(0,i) = copy(0,i)*width + width/2;
+            copy(1,i) = height - (copy(1,i)*height + height/2);
+
+            // Converting normalized Z co-ordinate [-1,1] to viewport [1,0]*maxdepth
+            // Visible part is between n and f.
+            // The z map is shown below
+            //        0       n       f
+            // -ve   inf      1       0   -ve
+            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*0xffff;
+        }
+
+        // Color for each vertices
+        Color colors[nVerts];
         // Flat-shading : calculate the colors to shade each surface with
         for(auto i=0;i<nVerts;i++) {
             Vector normal = obj.getVertexNormal(i);
             Vector position = obj.getVertex(i).normalized();
-
-            //const Vector& position = obj.getSurfaceCentroid(i);
-
-            // Backface detection
-            // TODO some problem in backface detection
-            // backface detection for perspective view required
-            /*
-               if( normal.z < 0){
-               show[i] = false;
-               continue;
-            // NOTE: for surfaces like paper
-            // show[i] = true
-            // normal.z += -1;
-            } else {
-            show[i] = true;
-            }
-            */
 
             // Ambient lighting
             float intensityR = ambient.intensity.r*obj.material.ka.r;
@@ -147,27 +155,13 @@ int main(int argc, char* argv[]) {
             colors[i] =  {clrR,clrG,clrB,255};
         }
 
-        // Create a copy of object and apply the projection transform
-        Object copy = obj;
-        copy.vmatrix() /= proj;
-
-        // Change the homogenous co-ordinates to normalized form
-        // and device co-ordinate
-        for (unsigned i=0; i<nVerts; i++) {
-            // Perspective divide
-            copy(0,i) /= copy(3,i);
-            copy(1,i) /= copy(3,i);
-            copy(2,i) /= copy(3,i);
-
-            // Change the normalized X Y co-ordinates to device co-ordinate
-            copy(0,i) = copy(0,i)*width + width/2;
-            copy(1,i) = height - (copy(1,i)*height + height/2);
-            // Converting normalized Z co-ordinate [-1,1] to viewport [1,0]*maxdepth
-            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*0xffff;
-            // The Z map is like this
-            //        0       n       f
-            // -ve   inf      1       0   -ve
-            //                 visible
+        // Detect backfaces in normalized co-ordinates
+        bool show[nSurfs];
+        memset(show,0,nSurfs*sizeof(bool));
+        for(int i=0;i<nSurfs;i++) {
+            Vector normal = copy.getSurfaceNormal(i);
+            if( normal.z < 0)
+                show[i] = true;
         }
 
         // Clear framebuffer, we're about to plot
@@ -175,8 +169,8 @@ int main(int argc, char* argv[]) {
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
-            // if(!show[i])
-            //    continue;
+             if(!show[i])
+                continue;
             unsigned index;
             Vector vec;
 
