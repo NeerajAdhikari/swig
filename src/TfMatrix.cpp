@@ -57,12 +57,11 @@ Matrix<float> TfMatrix::scaling(const Vector& s, const Vector& p){
     return transformation;
 }
 
-Matrix<float> TfMatrix::rotation(float degree, const Vector& r, const Vector& point){
+Matrix<float> TfMatrix::rotation(float radian, const Vector& r, const Vector& point){
 
     Vector axis = r.normalized();
 
     //degree = std::fmod(degree,360);
-    float radian = Math::toRadian(degree);
     float sine = std::sin(radian);
     float cosine = std::cos(radian);
 
@@ -75,6 +74,46 @@ Matrix<float> TfMatrix::rotation(float degree, const Vector& r, const Vector& po
             u*v*(1-cosine)+w*sine,  v*v+(u*u+w*w)*cosine,      v*w*(1-cosine)-u*sine,  (b*(u*u+w*w)-v*(a*u+c*w))*(1-cosine)+(c*u-a*w)*sine,
             u*w*(1-cosine)-v*sine,  v*w*(1-cosine)+u*sine,  w*w+(u*u+v*v)*cosine,      (c*(u*u+v*v)-w*(a*u+b*v))*(1-cosine)+(a*v-b*u)*sine,
             0,                      0,                      0,                      1
+            );
+    return transformation;
+}
+
+
+Matrix<float> TfMatrix::rotationx(float alpha) {
+    float cosine = std::cos(alpha);
+    float sine  = std::sin(alpha);
+    Matrix<float> transformation({4,4});
+    transformation.initialize(
+            1,      0,      0,      0,
+            0,      cosine, -sine,  0,
+            0,      sine,   cosine, 0,
+            0,      0,      0,      1
+            );
+    return transformation;
+}
+
+Matrix<float> TfMatrix::rotationy(float beta) {
+    float cosine = std::cos(beta);
+    float sine  = std::sin(beta);
+    Matrix<float> transformation({4,4});
+    transformation.initialize(
+            cosine, 0,      sine,   0,
+            0,      1,      0,      0,
+            -sine,  0,      cosine, 0,
+            0,      0,      0,      1
+            );
+    return transformation;
+}
+
+Matrix<float> TfMatrix::rotationz(float gamma) {
+    float cosine = std::cos(gamma);
+    float sine  = std::sin(gamma);
+    Matrix<float> transformation({4,4});
+    transformation.initialize(
+            cosine, -sine,  0,      0,
+            sine,   cosine, 0,      0,
+            0,      0,      1,      0,
+            0,      0,      0,      1
             );
     return transformation;
 }

@@ -20,6 +20,8 @@ class Vector: public Quadruple<float> {
         // Return a normalized vector
         Vector normalized() const;
 
+        void normalize();
+
         // Dot Product
         float operator%(const Vector& m) const;
 
@@ -77,8 +79,14 @@ inline Vector::Vector(const Vector& v):
 inline Vector Vector::normalized() const {
     float M = magnitude();
     if (Math::equal(M,0.0))
-        throw ex::DivideByZero();
+        return {0,0,0};
     return {x/M,y/M,z/M,w};
+}
+
+inline void Vector::normalize() {
+    float M = magnitude();
+    if(!Math::equal(M,0.0))
+        (*this) /= M;
 }
 
 inline float Vector::magnitude() const {

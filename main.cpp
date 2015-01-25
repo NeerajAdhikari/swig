@@ -32,38 +32,6 @@ int main(int argc, char* argv[]) {
 
     drawer.clear();
 
-
-    /*
-    {
-    ScreenPoint a;
-    a.x = 10;
-    a.y = 10;
-    a.d = 10;
-
-    ScreenPoint b;
-    b.x = 140;
-    b.y = 100;
-    b.d = 10;
-
-    ScreenPoint c;
-    c.x = 100;
-    c.y = 300;
-    c.d = 10;
-
-    a.color = {255,10,100,255};
-    b.color = {10,255,10,255};
-    c.color = {0,0,255,255};
-
-    drawer.clear();
-    drawer.fillD(a,b,c);
-    drawer.update();
-    SDL_Delay(1000);
-
-    return 0;
-    }
-    */
-
-
     // Intialize the benchmark
     Time timekeeper;
 
@@ -73,36 +41,40 @@ int main(int argc, char* argv[]) {
     {
         PointLight t = {{-1,-1,-1,0},{10,0,0}};
         PointLight m = {{1,-1,-1,0},{0,0,10}};
-        light.push_back(t);
+        PointLight n = {{0,-1,-1,0},{0,10,0}};
         light.push_back(m);
+        light.push_back(n);
+        light.push_back(t);
     }
 
     // Initialize the object
     Object obj(argv[1]);
+    // Initialize the normal to the surfaces
     obj.initNormal();
     // material has a default constructor
     //obj.material = {0.01,0.05,0.05,270};
     unsigned nSurfs = obj.surfaceCount();
     unsigned nVerts = obj.vertexCount();
 
-    // Initialize projection matrix
-    Matrix<float> proj = TfMatrix::perspective2(95,(float)width/height,10000,5);
+    // Initialize camera position and direction
+    Vector camera_pos(0,0,10);
+    Vector camera_dir(-0.1,0.0,-1);
+    camera_dir.normalize();
+    // the direction of z doesn't matter
+    // The camera position is shifted to origin and rotated to align with negative z axis
+    Matrix<float> proj = TfMatrix::translation(camera_pos*-1);
+    proj /= TfMatrix::rotationy(std::atan(camera_dir.x/camera_dir.magnitude()));
+    proj /= TfMatrix::rotationx(-std::atan(camera_dir.y / std::sqrt( std::pow(camera_dir.x,2) + std::pow(camera_dir.z,2)  ) ));
+    // Applying projection matrix
+    proj /= TfMatrix::perspective2(95,(float)width/height,10000,5);
 
-    // Intialize a transformation matrix to transform object
-    const float ztranslate = -15;
-    Matrix<float> rotator =
-        TfMatrix::translation(Vector(0,0,ztranslate))
-        * TfMatrix::rotation(2,Vector(1,1,0),Vector(0,0,0))
-        * TfMatrix::translation(Vector(0,0,-ztranslate));
-
-    // Initially translate object to viewable part of
-    // world coordinate
-    obj.vmatrix() /= TfMatrix::translation(Vector(0,0,ztranslate));
-
-    // For flat shading, the colors we need to fill surfaces with
     Color colors[nVerts];
     // Detect backfaces - should we display the surface?
     //bool show[nSurfs];
+
+    // Intialize a transformation matrix to transform object
+    Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+    // For flat shading, the colors we need to fill surfaces with
 
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
     while (!fb.checkTerm()) {
@@ -111,12 +83,11 @@ int main(int argc, char* argv[]) {
 
         // Apply transformation to object
         obj.vmatrix() /= rotator;
-        obj.nmatrix() /= TfMatrix::rotation(2,{1,1,0},{0,0,0});
+        // Apply transformation to vertex normals, only rotation type
+        obj.nmatrix() /= TfMatrix::rotation(Math::toRadian(2),{1,1,0},{0,0,0});
 
         // Flat-shading : calculate the colors to shade each surface with
-
-        for(auto i=0;i<nVerts;i++){
-
+        for(auto i=0;i<nVerts;i++) {
             Vector normal = obj.getVertexNormal(i);
             Vector position = obj.getVertex(i).normalized();
 
@@ -137,11 +108,13 @@ int main(int argc, char* argv[]) {
             }
             */
 
-            // Calculate ambient, diffused and specular lighting
+            // Ambient lighting
             float intensityR = ambient.intensity.r*obj.material.ka.r;
             float intensityG = ambient.intensity.g*obj.material.ka.g;
             float intensityB = ambient.intensity.b*obj.material.ka.b;
+
             for(int i=0; i<light.size(); i++){
+
                 // Diffused lighting
                 float cosine = Vector::cosine((light[i].direction*(-1)),normal);
                 // This is to be done so that there won't be symmetric lighting
@@ -153,14 +126,11 @@ int main(int argc, char* argv[]) {
                     continue;
 
                 // Specular ligting
-                // TODO: In triangular surfaces in same plane
-                // specular reflection doesn't give good result
-                // for flat shading
-
                 Vector half = (light[i].direction + position)*(-1);
-                float cosineNs = std::pow( Vector::cosine(half,normal), obj.material.ns );
+                float cosine2 = Vector::cosine(half,normal);
+                float cosineNs = std::pow( cosine2 , obj.material.ns );
 
-                if(cosineNs >0){
+                if(cosine2 > 0){
                     intensityR += light[i].intensity.r*obj.material.ks.r*cosineNs;
                     intensityG += light[i].intensity.g*obj.material.ks.g*cosineNs;
                     intensityB += light[i].intensity.b*obj.material.ks.b*cosineNs;
@@ -170,6 +140,7 @@ int main(int argc, char* argv[]) {
             Uint8 clrG = Math::min(intensityG,1.0f) * 255;
             Uint8 clrB = Math::min(intensityB,1.0f) * 255;
             colors[i] =  {clrR,clrG,clrB,255};
+
         }
 
         // Create a copy of object and apply the projection transform
