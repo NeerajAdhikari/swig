@@ -19,6 +19,10 @@ class Lincolor {
         // Get the value of the Linspace
         inline operator Color() const;
 
+        Color valueAt(unsigned fwd) const {
+            return {(uint8_t)b.valueAt(fwd),(uint8_t)g.valueAt(fwd),(uint8_t)r.valueAt(fwd),255};
+        }
+
         // Increment the Linspace by "fwd"
         inline void leap(unsigned fwd);
 

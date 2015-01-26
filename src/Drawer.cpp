@@ -186,7 +186,7 @@ void Drawer::hLineD(int y, int xStart,
         // as depth(xStart,y) is always greater than or equal to 0
         // checking with far value must be done however
         // 0xffffff value because it is the maximum value it should attain
-        if (d <= 0xffff && d>=depth(xStart,y)) {
+        if (d <= 0xffffff && d>=depth(xStart,y)) {
             plotter->plot(xStart,y,c,true);
             depth(xStart,y)=d;
         }

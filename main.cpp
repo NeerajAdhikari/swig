@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     {
         PointLight t = {{-1,-1,-1,0},{10,0,0}};
         PointLight m = {{1,-1,-1,0},{0,0,10}};
-        PointLight n = {{0,0,1,0},{10,10,0}};
+        PointLight n = {{0,-1,-1,0},{0,10,0}};
         light.push_back(m);
         light.push_back(n);
         light.push_back(t);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     unsigned nVerts = obj.vertexCount();
 
     // Initialize camera position and direction
-    Vector camera_pos(0,0,15);
+    Vector camera_pos(0,0,20);
     Vector camera_dir(0,0,-1);
     camera_dir.normalize();
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
             // The z map is shown below
             //        0       n       f
             // -ve   inf      1       0   -ve
-            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*0xffff;
+            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*0xffffff;
         }
 
         // Stores Color for each vertices
