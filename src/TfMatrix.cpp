@@ -13,6 +13,8 @@ Matrix<float> TfMatrix::perspective(float r, float t, float f, float n){
 }
 
 Matrix<float> TfMatrix::perspective2(float ang, float ratio, float f, float n){
+    // this matrix transfers world co-ordinates to homogenous coordinate and then normal-coordinates
+    // NOTE: for near plane Z=-1 and far plane Z=1 after normalization LHS
     float tangent = std::tan( Math::toRadian(ang/2) );
     Matrix<float> transformation({4,4});
     transformation.initialize(

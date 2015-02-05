@@ -8,12 +8,10 @@ Other filling algorithms
 Antialiased Filling
 Object clipping
 
-Gourad / Fast Phong Shading
-
-Manage object information
-    : Point normals, Point color, Surface normals
-Shadow
-
-Distance Consideration in lighting
-
+Load vertex normal
+Manage object information (Point normals, Point color, Surface normals)
+Distance Consideration in lighting ( currently all sources are infinitely far )
 Add distance Falloff
+Selection of shading algorithm
+Selection of object type (bounded/nonbounded)
+Shadow
