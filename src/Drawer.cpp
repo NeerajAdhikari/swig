@@ -94,7 +94,7 @@ void Drawer::hLine(int y, int xStart, int xEnd, Color cl) {
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
 
     while(xStart <= xEnd){
-        plotter->plot(xStart,y,cl,true);
+        plotter->plot(xStart,y,cl,false);
         xStart++;
     }
 }
@@ -134,8 +134,8 @@ void Drawer::hLineD(int y, int xStart,
         // as depth(xStart,y) is always greater than or equal to 0
         // checking with far value must be done however
         // 0xffffff value because it is the maximum value it should attain
-        if (d <= 0xffff && d>=depth(xStart,y)) {
-            plotter->plot(xStart,y,cl,true);
+        if ( d <= INT32_MAX && d>=depth(xStart,y)) {
+            plotter->plot(xStart,y,cl,false);
             depth(xStart,y)=d;
         }
         ++xStart;
@@ -186,8 +186,10 @@ void Drawer::hLineD(int y, int xStart,
         // as depth(xStart,y) is always greater than or equal to 0
         // checking with far value must be done however
         // 0xffffff value because it is the maximum value it should attain
-        if (d <= 0xffffff && d>=depth(xStart,y)) {
-            plotter->plot(xStart,y,c,true);
+        if (d <=INT32_MAX && d>=depth(xStart,y)) {
+            //Color cl = c;
+            //cl.alpha = 100 + 155/(INT32_MAX-d+1);
+            plotter->plot(xStart,y,c,false);
             depth(xStart,y)=d;
         }
         ++xStart;
@@ -303,8 +305,11 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     // or away from the far point
     if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
         return ;
+    // values can't exceed 0xffffff
+    /*
     if(start.d > 0xffffff && end.d > 0xffffff && mid.d > 0xffffff)
         return ;
+    */
 
     Linspace x1(start.x,mid.x, mid.y-start.y+1);
     Linspace d1(start.d,mid.d, mid.y-start.y+1);
@@ -372,8 +377,11 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3){
     // or away from the far point
     if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
         return ;
+    // values can't exceed 0xffffff
+    /*
     if(start.d > 0xffffff && end.d > 0xffffff && mid.d > 0xffffff)
         return ;
+    */
 
     Linspace x1(start.x,mid.x, mid.y-start.y+1);
     Linspace x2(start.x,end.x, end.y-start.y+1);

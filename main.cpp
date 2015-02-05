@@ -15,8 +15,11 @@
 
 
 // Initialize constant parameters
-const unsigned width = 800;
-const unsigned height = 600;
+const uint16_t width = 800;
+const uint16_t height = 600;
+// depth in respect to Screenpoint,
+// also used inside drawer
+const uint32_t depth = INT32_MAX;
 
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6/FPS;
@@ -41,12 +44,12 @@ int main(int argc, char* argv[]) {
     AmbientLight ambient = {{10,10,10}};
     std::vector<PointLight> light;;
     {
-        PointLight t = {{-1,-1,-1,0},{10,0,0}};
-        PointLight m = {{1,-1,-1,0},{0,0,10}};
-        PointLight n = {{0,-1,-1,0},{0,10,0}};
-        light.push_back(m);
-        light.push_back(n);
-        light.push_back(t);
+        PointLight b = {{-100,100,100,0},{10,0,0}};
+        PointLight g = {{0,100,100,0},{0,15,0}};
+        PointLight r = {{20,20,20,0},{0,0,10}};
+        light.push_back(b);
+        light.push_back(g);
+        light.push_back(r);
     }
 
     // Initialize the object
@@ -54,11 +57,11 @@ int main(int argc, char* argv[]) {
     // TODO load vertex normals for the file
     // Initialize the normal to the surfaces
     obj.initNormal();
-    obj.vmatrix() /= TfMatrix::translation({0,0,-2});
-    obj.material.ka = {0.01,0.01,0.01};
-    obj.material.kd = {0.05,0.05,0.05};
-    obj.material.ks = {0.05,0.05,0.05};
-    obj.material.ns = 10;
+    //obj.vmatrix() /= TfMatrix::translation({0,0,-2});
+    obj.material.ka = {0.1,0.1,0.1};
+    obj.material.kd = {79.5,79.5,79.5};
+    obj.material.ks = {99.5,99.5,99.5};
+    obj.material.ns = 30;
 
     unsigned nSurfs = obj.surfaceCount();
     unsigned nVerts = obj.vertexCount();
@@ -70,17 +73,15 @@ int main(int argc, char* argv[]) {
         // Start benchmark time
         timekeeper.start();
 
-
         // Intialize a transformation matrix to transform object
-        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(0,1,0),Vector(0,0,0));
+        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
         // Apply transformation to object
         obj.vmatrix() /= rotator;
         // Apply transformation to vertex normals (only rotation type)
         obj.nmatrix() /= rotator;
 
-
         // view reference point
-        Vector vrp(0,8,8);
+        Vector vrp(0,0,10);
         // view plane normal
         Vector vpn= Vector(0,0,0) - vrp;
         // View up
@@ -114,7 +115,7 @@ int main(int argc, char* argv[]) {
             // value: -ve   inf      1       0   -ve
             // NOTE: n and f have negative values as in right hand system
             // camera is towards negative Z axis
-            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*0xffffff;
+            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*depth;
             // Change the normalized X Y co-ordinates to device co-ordinate
             copy(0,i) = copy(0,i)*width + width/2;
             copy(1,i) = height - (copy(1,i)*height + height/2);
@@ -122,44 +123,48 @@ int main(int argc, char* argv[]) {
 
         // Stores Color for each vertices
         Color colors[nVerts];
+
         // Gourad-shading : calculate the colors to shade each surface with
         for(auto i=0;i<nVerts;i++) {
-
-            Vector normal = obj.getVertexNormal(i);
-            Vector position = obj.getVertex(i).normalized();
-
+            // Intensity
             Coeffecient intensity;
-
             // Ambient lighting
             intensity.r = ambient.intensity.r*obj.material.ka.r;
             intensity.g = ambient.intensity.g*obj.material.ka.g;
             intensity.b = ambient.intensity.b*obj.material.ka.b;
 
+            Vector normal = obj.getVertexNormal(i);
+            Vector position = obj.getVertex(i).normalized();
             for(int i=0; i<light.size(); i++){
 
+                Coeffecient decintensity= light[i].intensityAt(position);
+                Vector decdirection = light[i].directionAt(position);
+
                 // Diffused lighting
-                float cosine = Vector::cosine((light[i].direction*(-1)),normal);
+                float cosine = Vector::cosine((decdirection*(-1)),normal);
                 // This is to be done so that there won't be symmetric lighting
                 if(cosine <= 0)
                     continue;
-                intensity.r += light[i].intensity.r*obj.material.kd.r*cosine;
-                intensity.g += light[i].intensity.g*obj.material.kd.g*cosine;
-                intensity.b += light[i].intensity.b*obj.material.kd.b*cosine;
+                intensity.r += decintensity.r*obj.material.kd.r*cosine;
+                intensity.g += decintensity.g*obj.material.kd.g*cosine;
+                intensity.b += decintensity.b*obj.material.kd.b*cosine;
 
                 // Specular ligting
-                Vector half = (light[i].direction + position)*(-1);
+                Vector half = (decdirection + position)*(-1);
                 float cosine2 = Vector::cosine(half,normal);
                 float cosineNs = std::pow( cosine2 , obj.material.ns );
                 if(cosine2 <= 0)
                     continue;
-                intensity.r += light[i].intensity.r*obj.material.ks.r*cosineNs;
-                intensity.g += light[i].intensity.g*obj.material.ks.g*cosineNs;
-                intensity.b += light[i].intensity.b*obj.material.ks.b*cosineNs;
+                intensity.r += decintensity.r*obj.material.ks.r*cosineNs;
+                intensity.g += decintensity.g*obj.material.ks.g*cosineNs;
+                intensity.b += decintensity.b*obj.material.ks.b*cosineNs;
             }
-
-            Uint8 clrR = Math::min(intensity.r,1.0f) * 255;
-            Uint8 clrG = Math::min(intensity.g,1.0f) * 255;
-            Uint8 clrB = Math::min(intensity.b,1.0f) * 255;
+            // The intensity gathered can be seen the reflected light source
+            PointLight ref = {position,intensity};
+            Coeffecient refintensity = ref.intensityAt(vrp);
+            Uint8 clrR = Math::min( refintensity.r ,1.0f) * 255;
+            Uint8 clrG = Math::min( refintensity.g ,1.0f) * 255;
+            Uint8 clrB = Math::min( refintensity.b ,1.0f) * 255;
             colors[i] =  {clrR,clrG,clrB,255};
         }
 

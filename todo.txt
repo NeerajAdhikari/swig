@@ -8,10 +8,10 @@ Other filling algorithms
 Antialiased Filling
 Object clipping
 
-Load vertex normal
+Load vertex normao
 Manage object information (Point normals, Point color, Surface normals)
-Distance Consideration in lighting ( currently all sources are infinitely far )
-Add distance Falloff
 Selection of shading algorithm
 Selection of object type (bounded/nonbounded)
+Add distance Falloff (through depth map)
 Shadow
+May include directional light
