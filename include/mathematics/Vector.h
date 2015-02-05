@@ -48,6 +48,10 @@ class Vector: public Quadruple<float> {
 
         Vector operator/(float m) const ;
 
+        Vector operator-() const;
+
+        Vector operator+() const;
+
         // Display for debugging
         void display() const ;
 
@@ -162,6 +166,18 @@ inline Vector Vector::operator/(float m) const {
     Vector temp = (*this);
     temp /= m;
     return temp;
+}
+
+inline Vector Vector::operator-() const {
+    Vector ans;
+    ans.x =-x;
+    ans.y =-y;
+    ans.z =-z;
+    return ans;
+}
+
+inline Vector Vector::operator+() const {
+    return *this;
 }
 
 // Display for debugging

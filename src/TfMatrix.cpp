@@ -1,5 +1,20 @@
 #include "TfMatrix.h"
 
+Matrix<float> TfMatrix::lookAt(const Vector& vrp, const Vector& vpn, const Vector& vup){
+    Matrix<float> transformation({4,4});
+    Vector forward = vpn.normalized();
+    Vector side = (forward * vup).normalized();
+    Vector up = (side * forward).normalized();
+
+    // UVN system is left handed
+    transformation.initialize(
+            side.x,     side.y,     side.z,     0,
+            up.x,       up.y,       up.z,       0,
+            -forward.x, -forward.y, -forward.z, 0,
+            0,          0,          0,          1
+            );
+    return transformation;
+}
 
 Matrix<float> TfMatrix::perspective(float r, float t, float f, float n){
     Matrix<float> transformation({4,4});

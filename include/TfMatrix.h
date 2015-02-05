@@ -39,6 +39,10 @@ class TfMatrix: public Matrix<float> {
         // FOV angle in degree, width to height ratio of projection plane
         static Matrix<float> perspective2(float POV, float ratio, float far, float near);
 
+
+        // Returns a camera transformation
+        // View reference point, view plane normal, view up vector
+        static Matrix<float> lookAt(const Vector& vrp, const Vector& vpn, const Vector& vup);
 };
 
 #endif
