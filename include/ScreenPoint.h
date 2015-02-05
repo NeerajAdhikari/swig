@@ -2,6 +2,7 @@
 #define __SCREENPOINT__
 
 #include <stdint.h>
+#include "mathematics/Vector.h"
 #include "Color.h"
 
 struct ScreenPoint {
@@ -14,6 +15,16 @@ struct ScreenPoint {
     int32_t y;
     int64_t d;
     Color color;
+
+    ScreenPoint(){
+    }
+
+    ScreenPoint(const Vector& vec, const Color& col){
+        x = Math::round(vec.x);
+        y = Math::round(vec.y);
+        d = Math::round(vec.z);
+        color = col;
+    }
 };
 
 #endif

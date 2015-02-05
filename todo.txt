@@ -1,17 +1,15 @@
 TODO
-Manage the plotting abstractions:
-    - Unform interface for the renderer - done
-    - Separation to two levels:
-    - A viewport manager: handles windowing, framebuffer, etc
-    - A primitives manager: handles primitives like lines, filling, etc
-Other filling algorithms
-Antialiased Filling
-Object clipping
+(*) Unform interface for the renderer - done
+(B) Separation to two levels:
+    A viewport manager: handles windowing, framebuffer, etc
+    A primitives manager: handles primitives like lines, filling, etc
+(C) Other filling algorithms
+(C) Antialiased Filling
+(B) Object clipping
 
-Load vertex normao
-Manage object information (Point normals, Point color, Surface normals)
-Selection of shading algorithm
-Selection of object type (bounded/nonbounded)
-Add distance Falloff (through depth map)
-Shadow
-May include directional light
+(A) Load vertex normal
+(A) Manage object information (Point normals, Point color, Surface normals)
+(B) Selection of shading algorithm
+(B) Selection of object type (bounded/nonbounded)
+(A) Shadow
+(C) May include directional light

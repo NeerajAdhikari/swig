@@ -9,7 +9,7 @@ struct PointLight {
         Coeffecient intensity;
 
     Coeffecient intensityAt(const Vector& pos){
-        float ratio = (std::pow((pos-position).magnitude(),1) + 1);
+        float ratio = (0.001*std::pow((pos-position).magnitude(),2) + 100);
         return {intensity.b/ratio, intensity.g/ratio, intensity.r/ratio};
     }
 

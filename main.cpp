@@ -40,13 +40,12 @@ int main(int argc, char* argv[]) {
     Time timekeeper;
 
     // Intialize the light sources
-    // TODO point light sources are infinitely far away
-    AmbientLight ambient = {{10,10,10}};
+    AmbientLight ambient = {{100,100,100}};
     std::vector<PointLight> light;;
     {
-        PointLight b = {{-100,100,100,0},{10,0,0}};
-        PointLight g = {{0,100,100,0},{0,15,0}};
-        PointLight r = {{20,20,20,0},{0,0,10}};
+        PointLight b = {{-100,100,100,0},{30000,0,0}};
+        PointLight g = {{0,100,100,0},{0,25000,0}};
+        PointLight r = {{20,20,20,0},{0,0,30000}};
         light.push_back(b);
         light.push_back(g);
         light.push_back(r);
@@ -59,8 +58,8 @@ int main(int argc, char* argv[]) {
     obj.initNormal();
     //obj.vmatrix() /= TfMatrix::translation({0,0,-2});
     obj.material.ka = {0.1,0.1,0.1};
-    obj.material.kd = {79.5,79.5,79.5};
-    obj.material.ks = {99.5,99.5,99.5};
+    obj.material.kd = {0.5,0.5,0.5};
+    obj.material.ks = {0.5,0.5,0.5};
     obj.material.ns = 30;
 
     unsigned nSurfs = obj.surfaceCount();
@@ -80,6 +79,7 @@ int main(int argc, char* argv[]) {
         // Apply transformation to vertex normals (only rotation type)
         obj.nmatrix() /= rotator;
 
+        // camera
         // view reference point
         Vector vrp(0,0,10);
         // view plane normal
@@ -186,32 +186,14 @@ int main(int argc, char* argv[]) {
             if(!show[i])
                 continue;
 
-            unsigned index;
-            Vector vec;
-
-            index = copy.getSurface(i).x;
-            vec = copy.getVertex(index);
-            ScreenPoint a;
-            a.x = Math::round(vec.x);
-            a.y = Math::round(vec.y);
-            a.d = Math::round(vec.z);
-            a.color =  colors[index];
+            int index = copy.getSurface(i).x;
+            ScreenPoint a(copy.getVertex(index),colors[index]);
 
             index = copy.getSurface(i).y;
-            vec = copy.getVertex(index);
-            ScreenPoint b;
-            b.x = Math::round(vec.x);
-            b.y = Math::round(vec.y);
-            b.d = Math::round(vec.z);
-            b.color =  colors[index];
+            ScreenPoint b(copy.getVertex(index),colors[index]);
 
             index = copy.getSurface(i).z;
-            vec = copy.getVertex(index);
-            ScreenPoint c;
-            c.x = Math::round(vec.x);
-            c.y = Math::round(vec.y);
-            c.d = Math::round(vec.z);
-            c.color =  colors[index];
+            ScreenPoint c(copy.getVertex(index),colors[index]);
 
             drawer.fillD(a,b,c);
         }
