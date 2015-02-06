@@ -9,7 +9,8 @@ TODO
 
 (A) Load vertex normal
 (A) Manage object information (Point normals, Point color, Surface normals)
-(B) Selection of shading algorithm
-(B) Selection of object type (bounded/nonbounded)
 (A) Shadow
 (C) May include directional light
+(D) Selection of clear color
+(D) Try removing Linspace and use float arithmetics instead
+    Could use parallelization

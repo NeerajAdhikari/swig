@@ -13,16 +13,16 @@
 
 #include "misc/Time.h"
 
-
 // Initialize constant parameters
-const uint16_t width = 800;
-const uint16_t height = 600;
-// depth in respect to Screenpoint,
-// also used inside drawer
-const uint32_t depth = INT32_MAX;
-
+const uint16_t WIDTH = 800;
+const uint16_t HEIGHT = 600;
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6/FPS;
+// Backface detection
+const bool BACKFACEDETECTION = true;
+//const bool UNBOUNDED = false;
+// Gourad Shading
+const bool GOURAD = true;
 
 int main(int argc, char* argv[]) {
 
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize the plotter interface
-    Plotter_ fb(width,height);
+    Plotter_ fb(WIDTH,HEIGHT);
     Drawer drawer(&fb);
     drawer.clear();
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 
         // camera
         // view reference point
-        Vector vrp(0,0,10);
+        Vector vrp(0,0,50);
         // view plane normal
         Vector vpn= Vector(0,0,0) - vrp;
         // View up
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
         // TODO: this could only replicate the vertex as
         // other properties are constant
         copy.vmatrix() /=
-            TfMatrix::perspective2(95,(float)width/height,10000,5)
+            TfMatrix::perspective2(95,(float)WIDTH/HEIGHT,10000,5)
             * TfMatrix::lookAt(vrp,vpn,vup);
 
         // Change the homogenous co-ordinates to
@@ -111,17 +111,35 @@ int main(int argc, char* argv[]) {
             // NOTE: n and f have negative values
             // Normalized co-rodinate is in right hand system
             // camera is towards negative Z axis
-            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*depth;
+            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*ScreenPoint::maxDepth;
             // Change the normalized X Y co-ordinates to device co-ordinate
-            copy(0,i) = copy(0,i)*width + width/2;
-            copy(1,i) = height - (copy(1,i)*height + height/2);
+            copy(0,i) = copy(0,i)*WIDTH + WIDTH/2;
+            copy(1,i) = HEIGHT - (copy(1,i)*HEIGHT + HEIGHT/2);
         }
 
+
+        // Detect backfaces in normalized co-ordinates
+        bool* show;
+        if(BACKFACEDETECTION){
+        show = new bool[nSurfs];
+        memset(show,1,nSurfs*sizeof(bool));
+        //if(UNBOUNDED || BACKFACEDETECTION){
+            // Required for backface detection
+            // When backface is off, still can be useful for unbounded objects
+            // to reverse the direction
+            for(int i=0;i<nSurfs;i++) {
+                Vector normal = copy.getSurfaceNormal(i);
+                if( normal.z >= 0)
+                    show[i] = false;
+            }
+        }
+
+        unsigned iteration = GOURAD?nVerts:nSurfs;
         // Stores Color for each vertices
-        Color colors[nVerts];
+        Color* colors = new Color[iteration];
 
         // Gourad-shading : calculate the colors to shade each surface with
-        for(auto i=0;i<nVerts;i++) {
+        for(auto i=0;i<iteration;i++) {
             // Intensity
             Coeffecient intensity;
             // Ambient lighting
@@ -129,8 +147,16 @@ int main(int argc, char* argv[]) {
             intensity.g = ambient.intensity.g*obj.material.ka.g;
             intensity.b = ambient.intensity.b*obj.material.ka.b;
 
-            Vector normal = obj.getVertexNormal(i);
-            Vector position = obj.getVertex(i).normalized();
+            Vector normal = GOURAD?obj.getVertexNormal(i):obj.getSurfaceNormal(obj.getSurface(i));
+            Vector position = GOURAD?obj.getVertex(i).normalized():obj.getSurfaceCentroid(i).normalized();
+
+            // TODO proper gourad shading ie. load normal vectors
+            // before using this technique
+            // TODO some bad pixels seen on the boundaries
+            //if(UNBOUNDED && show[i]==false){
+            //    normal = -normal;
+            //}
+
             for(int i=0; i<light.size(); i++){
 
                 Coeffecient decintensity= light[i].intensityAt(position);
@@ -139,7 +165,7 @@ int main(int argc, char* argv[]) {
                 // Diffused lighting
                 float cosine = Vector::cosine((decdirection*(-1)),normal);
                 // This is to be done so that there won't be symmetric lighting
-                if(cosine <= 0)
+                if(cosine < 0)
                     continue;
                 intensity.r += decintensity.r*obj.material.kd.r*cosine;
                 intensity.g += decintensity.g*obj.material.kd.g*cosine;
@@ -149,7 +175,7 @@ int main(int argc, char* argv[]) {
                 Vector half = (decdirection + position)*(-1);
                 float cosine2 = Vector::cosine(half,normal);
                 float cosineNs = std::pow( cosine2 , obj.material.ns );
-                if(cosine2 <= 0)
+                if(cosine2 < 0)
                     continue;
                 intensity.r += decintensity.r*obj.material.ks.r*cosineNs;
                 intensity.g += decintensity.g*obj.material.ks.g*cosineNs;
@@ -164,35 +190,33 @@ int main(int argc, char* argv[]) {
             colors[i] =  {clrR,clrG,clrB,255};
         }
 
-        // Detect backfaces in normalized co-ordinates
-        bool show[nSurfs];
-        memset(show,0,nSurfs*sizeof(bool));
-        for(int i=0;i<nSurfs;i++) {
-            Vector normal = copy.getSurfaceNormal(i);
-            if( normal.z < 0)
-                show[i] = true;
-        }
-
         // Clear framebuffer, we're about to plot
         drawer.clear();
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
 
-            if(!show[i])
+            if(BACKFACEDETECTION && !show[i])
                 continue;
 
             int index = copy.getSurface(i).x;
-            ScreenPoint a(copy.getVertex(index),colors[index]);
+            ScreenPoint a(copy.getVertex(index),colors[GOURAD?index:i]);
 
             index = copy.getSurface(i).y;
-            ScreenPoint b(copy.getVertex(index),colors[index]);
+            ScreenPoint b(copy.getVertex(index),colors[GOURAD?index:i]);
 
             index = copy.getSurface(i).z;
-            ScreenPoint c(copy.getVertex(index),colors[index]);
+            ScreenPoint c(copy.getVertex(index),colors[GOURAD?index:i]);
 
-            drawer.fillD(a,b,c);
+            if (GOURAD)
+                drawer.fillD(a,b,c);
+            else
+                drawer.fillD(a,b,c,colors[i]);
         }
+
+        if(BACKFACEDETECTION)
+            delete []show;
+        delete []colors;
 
         // Update framebuffer
         drawer.update();
@@ -208,6 +232,6 @@ int main(int argc, char* argv[]) {
 
         std::cout << DELETE;
         std::cout << "Nolimit FPS:\t" << real_fps << std::endl;
+        }
+        return 0;
     }
-    return 0;
-}

@@ -134,7 +134,7 @@ void Drawer::hLineD(int y, int xStart,
         // as depth(xStart,y) is always greater than or equal to 0
         // checking with far value must be done however
         // 0xffffff value because it is the maximum value it should attain
-        if ( d <= INT32_MAX && d>=depth(xStart,y)) {
+        if ( d <= ScreenPoint::maxDepth && d>=depth(xStart,y)) {
             plotter->plot(xStart,y,cl,false);
             depth(xStart,y)=d;
         }
@@ -186,7 +186,7 @@ void Drawer::hLineD(int y, int xStart,
         // as depth(xStart,y) is always greater than or equal to 0
         // checking with far value must be done however
         // 0xffffff value because it is the maximum value it should attain
-        if (d <=INT32_MAX && d>=depth(xStart,y)) {
+        if (d <= ScreenPoint::maxDepth && d>=depth(xStart,y)) {
             //Color cl = c;
             //cl.alpha = 100 + 155/(INT32_MAX-d+1);
             plotter->plot(xStart,y,c,false);
@@ -376,7 +376,7 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3){
     // THe negative region is backside of the camera
     // or away from the far point
     if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
-        return ;
+        return;
     // values can't exceed 0xffffff
     /*
     if(start.d > 0xffffff && end.d > 0xffffff && mid.d > 0xffffff)
@@ -416,7 +416,6 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3){
 
     Linspace x3(mid.x,end.x, end.y-mid.y+1);
     Linspace d3(mid.d,end.d, end.y-mid.y+1);
-
     Lincolor c3(mid.color,end.color,end.y-mid.y+1);
 
     // Clipping
