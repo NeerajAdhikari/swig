@@ -11,38 +11,59 @@ Object::Object (unsigned vertex_count):
 }
 
 // Load an object from an .obj file
-    Object::Object(const std::string& filename)
-: m_vertex({4,1}),
+Object::Object(const std::string& filename) :
+    m_vertex({4,1}),
     m_vertex_normal({4,1})
 {
+    // throw exception if bad bit or fail bit
     std::ifstream objfile(filename,std::ios::in);
-    std::string line,keyword;
-    Triplet<float> vtxpoint(0,0,0);
-    std::string facepoint;
-    unsigned vertex_count = 0;
+    // TODO if enabled doesn't work for "gourd.obj"
+    // objfile.exceptions( std::ifstream::failbit | std::ifstream::badbit );
 
+    std::string line,keyword;
+
+    // Precalculate the vertex_count
+    // Preestimate the face_count
+    unsigned vcount = 0;
+    unsigned fcount = 0;
+    while(!objfile.eof()){
+        std::getline(objfile,line);
+        rtrim(line);
+        if(line.size()<3)
+            continue;
+        std::istringstream linestrm(line);
+        linestrm>>keyword;
+        if(keyword=="v"){
+            vcount++;
+        } else if(keyword=="f"){
+            fcount++;
+        }
+    }
+
+    m_vertex.readjust({4,vcount});
+    m_vertex_normal.readjust({4,vcount});
+    m_surface.reserve(fcount);
+
+    // Read the file again
+    objfile.clear();
+    objfile.seekg(0 , std::ios::beg);
+
+    unsigned vertex_count = 0;
     while (!objfile.eof()) {
         std::getline(objfile,line);
         rtrim(line);
         if (line.size()<3)
             continue;
         std::istringstream linestrm(line);
-        linestrm>>keyword;
 
+        linestrm>>keyword;
         if (keyword=="v") {
-            if (vertex_count!=0){
-                m_vertex.addColumn();
-                m_vertex_normal.addColumn();
-            }
-            linestrm>>vtxpoint.x;
-            linestrm>>vtxpoint.y;
-            linestrm>>vtxpoint.z;
-            m_vertex(0,vertex_count)=vtxpoint.x;
-            m_vertex(1,vertex_count)=vtxpoint.y;
-            m_vertex(2,vertex_count)=vtxpoint.z;
-            m_vertex(3,vertex_count)=1;
+            Vector vtxpoint(0,0,0,1);
+            linestrm >> vtxpoint.x >> vtxpoint.y >> vtxpoint.z;
+            setVertex(vertex_count,vtxpoint);
             vertex_count++;
         } else if (keyword=="f") {
+            std::string facepoint;
             std::vector<unsigned> face;
             size_t space=line.find(' ');
             line=line.substr(space+1,line.size()-space-1);
@@ -66,6 +87,9 @@ Object::Object (unsigned vertex_count):
             }
         }
     }
+    // TODO load vertex normals for the file
+    // Initialize the normal to the surfaces
+    initNormal();
 }
 
 // Tesselate a polygon to triangles

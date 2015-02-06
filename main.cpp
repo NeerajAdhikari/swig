@@ -53,14 +53,11 @@ int main(int argc, char* argv[]) {
 
     // Initialize the object
     Object obj(argv[1]);
-    // TODO load vertex normals for the file
-    // Initialize the normal to the surfaces
-    obj.initNormal();
-    //obj.vmatrix() /= TfMatrix::translation({0,0,-2});
     obj.material.ka = {0.1,0.1,0.1};
     obj.material.kd = {0.5,0.5,0.5};
     obj.material.ks = {0.5,0.5,0.5};
     obj.material.ns = 30;
+    //obj.vmatrix() /= TfMatrix::translation({0,0,-2});
 
     unsigned nSurfs = obj.surfaceCount();
     unsigned nVerts = obj.vertexCount();
@@ -79,6 +76,9 @@ int main(int argc, char* argv[]) {
         // Apply transformation to vertex normals (only rotation type)
         obj.nmatrix() /= rotator;
 
+        // Create a copy of object
+        Object copy = obj;
+
         // camera
         // view reference point
         Vector vrp(0,0,10);
@@ -87,17 +87,12 @@ int main(int argc, char* argv[]) {
         // View up
         Vector vup(0,1,-1);
 
-        // Applying projection matrix
-        //proj /= TfMatrix::perspective2(95,(float)width/height,-10000,-5);
-        Matrix<float> proj =
+        // Apply perspective projection and camera projection on copy
+        // TODO: this could only replicate the vertex as
+        // other properties are constant
+        copy.vmatrix() /=
             TfMatrix::perspective2(95,(float)width/height,10000,5)
-            * TfMatrix::lookAt(vrp,vpn,vup)
-            * TfMatrix::translation(-vrp);
-
-        // Create a copy of object
-        Object copy = obj;
-        // Apply perspective projection
-        copy.vmatrix() /= proj;
+            * TfMatrix::lookAt(vrp,vpn,vup);
 
         // Change the homogenous co-ordinates to
         // normalized co-ordinate and  to device co-ordinate
@@ -113,7 +108,8 @@ int main(int argc, char* argv[]) {
             // The z map is shown below
             // space:        0       n       f
             // value: -ve   inf      1       0   -ve
-            // NOTE: n and f have negative values as in right hand system
+            // NOTE: n and f have negative values
+            // Normalized co-rodinate is in right hand system
             // camera is towards negative Z axis
             copy(2,i) = (-copy(2,i)*0.5 + 0.5)*depth;
             // Change the normalized X Y co-ordinates to device co-ordinate

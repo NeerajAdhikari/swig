@@ -6,11 +6,12 @@ Matrix<float> TfMatrix::lookAt(const Vector& vrp, const Vector& vpn, const Vecto
     Vector side = (forward * vup).normalized();
     Vector up = (side * forward).normalized();
 
-    // UVN system is left handed
+    // UVN system is left handed so forward is negative
+    // Translate + Rotate
     transformation.initialize(
-            side.x,     side.y,     side.z,     0,
-            up.x,       up.y,       up.z,       0,
-            -forward.x, -forward.y, -forward.z, 0,
+            side.x,     side.y,     side.z,     side % -vrp,
+            up.x,       up.y,       up.z,       up % -vrp,
+            -forward.x, -forward.y, -forward.z, -forward % -vrp,
             0,          0,          0,          1
             );
     return transformation;
