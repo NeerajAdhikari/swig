@@ -372,6 +372,9 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3){
         return;
     if(start.y == end.y)
         return;
+    // TODO sort x and find out if all lie outside
+    if(start.x == mid.x == end.x)
+        return;
 
     // THe negative region is backside of the camera
     // or away from the far point

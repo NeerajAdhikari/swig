@@ -19,10 +19,11 @@ const uint16_t HEIGHT = 600;
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6/FPS;
 // Backface detection
-const bool BACKFACEDETECTION = true;
+const bool BACKFACEDETECTION = false;
 //const bool UNBOUNDED = false;
 // Gourad Shading
-const bool GOURAD = true;
+const bool GOURAD = false;
+
 
 int main(int argc, char* argv[]) {
 
@@ -45,7 +46,7 @@ int main(int argc, char* argv[]) {
     {
         PointLight b = {{-100,100,100,0},{30000,0,0}};
         PointLight g = {{0,100,100,0},{0,25000,0}};
-        PointLight r = {{20,20,20,0},{0,0,30000}};
+        PointLight r = {{20,-20,20,0},{0,0,30000}};
         light.push_back(b);
         light.push_back(g);
         light.push_back(r);
@@ -70,7 +71,7 @@ int main(int argc, char* argv[]) {
         timekeeper.start();
 
         // Intialize a transformation matrix to transform object
-        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(0,1,0),Vector(0,0,0));
         // Apply transformation to object
         obj.vmatrix() /= rotator;
         // Apply transformation to vertex normals (only rotation type)
@@ -81,7 +82,7 @@ int main(int argc, char* argv[]) {
 
         // camera
         // view reference point
-        Vector vrp(0,0,50);
+        Vector vrp(0,-5,10);
         // view plane normal
         Vector vpn= Vector(0,0,0) - vrp;
         // View up
@@ -120,7 +121,7 @@ int main(int argc, char* argv[]) {
 
         // Detect backfaces in normalized co-ordinates
         bool* show;
-        if(BACKFACEDETECTION){
+        //if(BACKFACEDETECTION){
         show = new bool[nSurfs];
         memset(show,1,nSurfs*sizeof(bool));
         //if(UNBOUNDED || BACKFACEDETECTION){
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
                 if( normal.z >= 0)
                     show[i] = false;
             }
-        }
+        //}
 
         unsigned iteration = GOURAD?nVerts:nSurfs;
         // Stores Color for each vertices
@@ -153,9 +154,10 @@ int main(int argc, char* argv[]) {
             // TODO proper gourad shading ie. load normal vectors
             // before using this technique
             // TODO some bad pixels seen on the boundaries
-            //if(UNBOUNDED && show[i]==false){
-            //    normal = -normal;
-            //}
+
+            if(/*UNBOUNDED && */show[i]==false){
+                normal = -normal;
+            }
 
             for(int i=0; i<light.size(); i++){
 

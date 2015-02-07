@@ -1,6 +1,7 @@
 CC=g++
 #Flags for the compiler
-CFLAGS=-w -g -Ofast -ftree-vectorize -floop-strip-mine -floop-parallelize-all -funroll-loops -ffast-math --std=c++11 -c -I$(INCDIR)/
+#-ffast-math
+CFLAGS=-w -g -Ofast -ftree-vectorize -floop-strip-mine -floop-parallelize-all -funroll-loops --std=c++11 -c -I$(INCDIR)/
 #Flags for the linker
 LDFLAGS=-lSDL2
 

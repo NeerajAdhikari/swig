@@ -79,7 +79,7 @@ class SDLPlotter {
 
     // Clear scren with black
     inline void clear() {
-        SDL_FillRect(screen, NULL, RGBA({0,0,0,0}));
+        SDL_FillRect(screen, NULL, RGBA({255,0,255,0}));
     }
 
     // return screen width

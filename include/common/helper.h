@@ -19,7 +19,7 @@
 
 namespace Math {
 
-    const float PRECISION = 0.00005;
+    const float PRECISION = 0.0000005;
 
     // Value of pi
     const float pi = 3.14159;
@@ -33,6 +33,14 @@ namespace Math {
     // equal with in a certain range
     inline bool equal(float a, float b){
         return  std::fabs(a-b) <= PRECISION;
+    }
+
+    inline bool equalPlus(float a, float b){
+        return  std::fabs(a-b) <= PRECISION && a>=b;
+    }
+
+    inline bool equalMinus(float a, float b){
+        return  std::fabs(a-b) <= PRECISION && b>=a;
     }
 
     // Convert degree into radian
