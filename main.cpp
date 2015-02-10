@@ -19,43 +19,43 @@ const uint16_t HEIGHT = 600;
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6/FPS;
 // Backface detection
-const bool BACKFACEDETECTION = false;
-//const bool UNBOUNDED = false;
-// Gourad Shading
-const bool GOURAD = true;
 
 
 int main(int argc, char* argv[]) {
-
 
     if (argc<2) {
         std::cout<<"Usage: "<<argv[0]<<" filename"<<std::endl;
         return 1;
     }
 
+    Color black = {0,0,0,255};
+    Color white = {255,255,255,255};
+    Color badcolor = {255,0,255,255};
+
+    // Gourad Shading
+    bool GOURAD = false;
+    bool TWOFACE = false;
+    bool BACKFACEDETECTION = false;
+    if(TWOFACE)
+        BACKFACEDETECTION = false;
 
     // Initialize the plotter interface
     Plotter_ fb(WIDTH,HEIGHT);
     Drawer drawer(&fb);
     drawer.clear();
 
-
     // Intialize the benchmark
     Time timekeeper;
 
-    // Intialize the light sources
-    AmbientLight ambient = {{100,100,100}};
+    // Intialize the point light sources
     std::vector<PointLight> light;
-    {
-        PointLight b = {{-100,100,100,0},{20000,0,0}};
-        PointLight g = {{0,100,100,0},{0,15000,0}};
-        PointLight r = {{0,0,100,0},{0,0,20000}};
-        PointLight w = {{0,-100,100,0},{10000,10000,10000}};
-        light.push_back(b);
-        light.push_back(g);
-        light.push_back(r);
-        light.push_back(w);
-    }
+    light.push_back({{-100,100,100,0},  {20000,0,0}});
+    light.push_back({{0,100,100,0},     {0,15000,0}});
+    light.push_back({{0,0,100,0},       {0,0,20000}});
+    light.push_back({{0,-100,100,0},    {10000,10000,10000}});
+
+    // Intialize the ambient light sources
+    AmbientLight ambient = {{100,100,100}};
 
     // Initialize the object
     Object obj(argv[1]);
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     obj.material.kd = {0.5,0.5,0.5};
     obj.material.ks = {0.5,0.5,0.5};
     obj.material.ns = 140;
-    //obj.vmatrix() /= TfMatrix::translation({0,0,-2});
+    obj.vmatrix() /= TfMatrix::translation({0,0,-2});
 
     unsigned nSurfs = obj.surfaceCount();
     unsigned nVerts = obj.vertexCount();
@@ -75,31 +75,108 @@ int main(int argc, char* argv[]) {
         // Start benchmark time
         timekeeper.start();
 
+        // Initialize camera
+        // View reference point
+        // View plane normal
+        // View up vector
+        Vector vrp(10,5,15);
+        Vector vpn = Vector(0,0,0) - vrp;
+        Vector vup(0,1,-1);
+
+        // Vertex Shader
         // Intialize a transformation matrix to transform object
-        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,1),Vector(0,0,0));
         // Apply transformation to object
-        obj.vmatrix() /= rotator;
         // Apply transformation to vertex normals (only rotation type)
+        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+        obj.vmatrix() /= rotator;
         obj.nmatrix() /= rotator;
+
+        // Surface Shader
+        // Detect backfaces in normalized co-ordinates
+        bool* show = new bool[nSurfs];
+        if(BACKFACEDETECTION){
+            memset(show,1,nSurfs*sizeof(bool));
+            // Required for backface detection
+            // When backface is off, still can be useful for TWOFACE objects
+            // to reverse the direction
+
+            for(int i=0;i<nSurfs;i++) {
+            Vector normal = obj.getSurfaceNormal(obj.getSurface(i));
+            Vector position = obj.getSurfaceCentroid(i);
+            if( Vector::cosine((position-vrp),normal) > 0)
+                show[i] = false;
+            // TODO validate the previous method, may be buggy in
+            // perspective projection
+            /*
+                Vector normal = copy.getSurfaceNormal(i);
+                if( normal.z >= 0)
+                    show[i] = false;
+                    */
+            }
+        }
+
+        // Vertex / Surface Shader
+        // Gourad or Flat shading
+        unsigned iteration = GOURAD?nVerts:nSurfs;
+        // Stores Color for each vertices
+        Color* colors = new Color[iteration];
+
+        // Calcualte Shading
+        for(auto i=0;i<iteration;i++) {
+
+            Vector normal = GOURAD?
+                obj.getVertexNormal(i):
+                obj.getSurfaceNormal(obj.getSurface(i));
+
+            Vector position = GOURAD?
+                obj.getVertex(i):
+                obj.getSurfaceCentroid(i);
+
+
+            // TODO some bad pixels seen on the boundaries
+            // Still better than previous alternative
+            // Good for flat shading than gourad
+            // May improve when using vertex normals from loaded file
+            //   if(show[i]==false)
+            //   normal = -normal;
+            if( TWOFACE && Vector::cosine((position-vrp),normal) > 0)
+                normal = normal * -1;
+
+            // Ambient lighting
+            Coeffecient intensity = ambient.intensity * obj.material.ka;
+            for(int i=0; i<light.size(); i++){
+                Coeffecient decintensity= light[i].intensityAt(position);
+                Vector decdirection = light[i].directionAt(position);
+                // Diffused lighting
+                {
+                    float cosine = Vector::cosine((decdirection*(-1)),normal);
+                    if(cosine <= 0)
+                        continue;
+                    intensity += (decintensity * obj.material.kd) * cosine;
+                }
+                // Specular ligting
+                {
+                    Vector half = (decdirection + (position-vrp).normalized())*(-1);
+                    float cosine = Vector::cosine(half,normal);
+                    if(cosine <= 0)
+                        continue;
+                    intensity += (decintensity * obj.material.ks) * std::pow(cosine, obj.material.ns);
+                }
+            }
+            // The reflection surface can be seen as a light source to camera
+            colors[i] = PointLight({position,intensity}).intensityAt(vrp);
+        }
+
 
         // Create a copy of object
         Object copy = obj;
-
-        // camera
-        // view reference point
-        Vector vrp(0,-2,10);
-        // view plane normal
-        Vector vpn= Vector(0,0,0) - vrp;
-        // View up
-        Vector vup(0,1,-1);
-
+        // Vertex Shader
+        // TODO: Don't copy the whole object but only the vertex matrix as they are same
         // Apply perspective projection and camera projection on copy
-        // TODO: this could only replicate the vertex as
-        // other properties are constant
         copy.vmatrix() /=
             TfMatrix::perspective2(95,(float)WIDTH/HEIGHT,10000,5)
             * TfMatrix::lookAt(vrp,vpn,vup);
-
+        // Vertex Shader
         // Change the homogenous co-ordinates to
         // normalized co-ordinate and  to device co-ordinate
         for (unsigned i=0; i<nVerts; i++) {
@@ -124,86 +201,8 @@ int main(int argc, char* argv[]) {
         }
 
 
-        // Detect backfaces in normalized co-ordinates
-        bool* show;
-        //if(BACKFACEDETECTION){
-        show = new bool[nSurfs];
-        memset(show,1,nSurfs*sizeof(bool));
-        //if(UNBOUNDED || BACKFACEDETECTION){
-            // Required for backface detection
-            // When backface is off, still can be useful for unbounded objects
-            // to reverse the direction
-            for(int i=0;i<nSurfs;i++) {
-                Vector normal = copy.getSurfaceNormal(i);
-                if( normal.z >= 0)
-                    show[i] = false;
-            }
-        //}
-
-        unsigned iteration = GOURAD?nVerts:nSurfs;
-        // Stores Color for each vertices
-        Color* colors = new Color[iteration];
-
-        // Gourad-shading : calculate the colors to shade each surface with
-        for(auto i=0;i<iteration;i++) {
-            // Intensity
-            Coeffecient intensity;
-            // Ambient lighting
-            intensity.b = ambient.intensity.b*obj.material.ka.b;
-            intensity.g = ambient.intensity.g*obj.material.ka.g;
-            intensity.r = ambient.intensity.r*obj.material.ka.r;
-
-            Vector normal = GOURAD?
-                            obj.getVertexNormal(i):
-                            obj.getSurfaceNormal(obj.getSurface(i));
-            Vector position = GOURAD?
-                            obj.getVertex(i).normalized():
-                            obj.getSurfaceCentroid(i).normalized();
-
-            // TODO proper gourad shading ie. load normal vectors
-            // before using this technique
-            // TODO some bad pixels seen on the boundaries
-            /*
-            if(show[i]==false){
-                normal = -normal;
-            }
-            */
-
-            for(int i=0; i<light.size(); i++){
-
-                Coeffecient decintensity= light[i].intensityAt(position);
-                Vector decdirection = light[i].directionAt(position);
-
-                // Diffused lighting
-                float cosine = Vector::cosine((decdirection*(-1)),normal);
-                // This is to be done so that there won't be symmetric lighting
-                if(cosine < 0)
-                    continue;
-                intensity.b += decintensity.b*obj.material.kd.b*cosine;
-                intensity.g += decintensity.g*obj.material.kd.g*cosine;
-                intensity.r += decintensity.r*obj.material.kd.r*cosine;
-
-                // Specular ligting
-                Vector half = (decdirection + position)*(-1);
-                float cosine2 = Vector::cosine(half,normal);
-                float cosineNs = std::pow( cosine2 , obj.material.ns );
-                if(cosine2 < 0)
-                    continue;
-                intensity.b += decintensity.b*obj.material.ks.b*cosineNs;
-                intensity.g += decintensity.g*obj.material.ks.g*cosineNs;
-                intensity.r += decintensity.r*obj.material.ks.r*cosineNs;
-            }
-            // The intensity gathered can be seen the reflected light source
-            PointLight ref = {position,intensity};
-            Coeffecient refintensity = ref.intensityAt(vrp);
-            Uint8 clrB = Math::min( refintensity.b ,1.0f) * 255;
-            Uint8 clrG = Math::min( refintensity.g ,1.0f) * 255;
-            Uint8 clrR = Math::min( refintensity.r ,1.0f) * 255;
-            colors[i] =  {clrB,clrG,clrR,255};
-        }
-
         // Clear framebuffer, we're about to plot
-        drawer.clear({0,0,0,0});
+        drawer.clear(black);
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
@@ -226,12 +225,11 @@ int main(int argc, char* argv[]) {
                 drawer.fillD(a,b,c,colors[i]);
         }
 
-        if(BACKFACEDETECTION)
-            delete []show;
-        delete []colors;
-
         // Update framebuffer
         drawer.update();
+
+        delete []show;
+        delete []colors;
 
         // Stop benchmark time
         timekeeper.stop();
@@ -244,6 +242,6 @@ int main(int argc, char* argv[]) {
 
         std::cout << DELETE;
         std::cout << "Nolimit FPS:\t" << real_fps << std::endl;
-        }
-        return 0;
     }
+    return 0;
+}

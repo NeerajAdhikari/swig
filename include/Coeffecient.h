@@ -1,6 +1,8 @@
 #ifndef __COEFFECIENT__
 #define __COEFFECIENT__
 
+#include "Color.h"
+#include "common/helper.h"
 #include <iostream>
 
 // RGB coeffecient
@@ -8,10 +10,42 @@ struct Coeffecient {
     public:
         float b,g,r;
 
-    void display(){
-        std::cout << b << " " << g << " " << r <<std::endl;
+    Coeffecient operator*(const Coeffecient& c){
+        return {b*c.b,g*c.g,r*c.r};
     }
 
+    Coeffecient operator*(float c){
+        return {b*c,g*c,r*c};
+    }
+
+    Coeffecient operator+(const Coeffecient& c){
+        return {b+c.b,g+c.g,r+c.r};
+    }
+
+    void operator*=(const Coeffecient& c){
+        b *= c.b;
+        g *= c.g;
+        r *= c.r;
+    }
+
+    void operator*=(float c){
+        b *= c;
+        g *= c;
+        r *= c;
+    }
+
+    void operator+=(const Coeffecient& c){
+        b += c.b;
+        g += c.g;
+        r += c.r;
+    }
+
+    // Get color from normalized Coeffecient
+    operator Color(){
+        return  {Math::min( b ,1.0f) * 255,
+            Math::min( g ,1.0f) * 255,
+            Math::min( r ,1.0f) * 255};
+    }
 };
 
 #endif

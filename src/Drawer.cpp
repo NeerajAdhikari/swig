@@ -108,6 +108,7 @@ void Drawer::hLine(int y, int xStart, int xEnd, Color cl) {
 // The parameters are : y-coordinate, starting x-coordinate,
 // starting depth value, ending x-coordinate and ending depth
 // value
+
 void Drawer::hLineD(int y, int xStart,
         int dStart, int xEnd, int dEnd, Color cl) {
     // Sort the start end end values if they are not in order
@@ -148,8 +149,6 @@ void Drawer::hLineD(int y, int xStart,
     }
 
 }
-
-
 
 
 // This one considers the pixel depths while plotting. It only
@@ -360,9 +359,6 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
         ++d3;
     }
 }
-
-
-
 
 // Fill the triangle bounded by pt1, pt2 and pt3
 // What is implemented here is a special case of
