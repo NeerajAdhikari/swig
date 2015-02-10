@@ -70,7 +70,7 @@ class SDLPlotter {
     // Return a 32-bit memory representation of the Color struct.
     // TODO storage format may be machine-dependent
     inline Uint32 RGBA(Color pt) {
-        return (pt.alpha<<24)|(pt.blue<<16)|(pt.green<<8)|(pt.red);
+        return (pt.alpha<<24)|(pt.red<<16)|(pt.green<<8)|(pt.blue);
     }
     // Update the screen
     inline void update() {
@@ -78,8 +78,8 @@ class SDLPlotter {
     }
 
     // Clear scren with black
-    inline void clear() {
-        SDL_FillRect(screen, NULL, RGBA({255,0,255,0}));
+    inline void clear(Color clearColor = {255,0,255}) {
+        SDL_FillRect(screen, NULL, RGBA(clearColor));
     }
 
     // return screen width

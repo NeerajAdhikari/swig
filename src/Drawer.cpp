@@ -7,9 +7,13 @@ Drawer::Drawer(Plotter_ *pltr):
 {
 }
 
+void Drawer::pixel(const ScreenPoint& point){
+  plotter->plot(point.x,point.y,point.color,false);
+}
+
 // Clear scren with black
-void Drawer::clear() {
-    plotter->clear();
+void Drawer::clear(Color clearColor) {
+    plotter->clear(clearColor);
     // Also clear the depth-buffer
     depth.clear();
 }
@@ -107,6 +111,7 @@ void Drawer::hLine(int y, int xStart, int xEnd, Color cl) {
 void Drawer::hLineD(int y, int xStart,
         int dStart, int xEnd, int dEnd, Color cl) {
     // Sort the start end end values if they are not in order
+
     if (xStart>xEnd) {
         swap(xStart,xEnd);
         swap(dStart,dEnd);

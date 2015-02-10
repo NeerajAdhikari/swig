@@ -32,7 +32,9 @@ class Drawer {
     void update();
 
     // Clear the screen
-    void clear();
+    void clear(Color clearColor={255,0,255});
+
+    void pixel(const ScreenPoint& point);
 
     // Draw a line from start to end
     void line(const ScreenPoint& start,const ScreenPoint& end);
