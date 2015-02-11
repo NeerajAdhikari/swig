@@ -18,8 +18,6 @@ const uint16_t WIDTH = 800;
 const uint16_t HEIGHT = 600;
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6/FPS;
-// Backface detection
-
 
 int main(int argc, char* argv[]) {
 
@@ -34,8 +32,10 @@ int main(int argc, char* argv[]) {
 
     // Gourad Shading
     bool GOURAD = false;
+    // Enable two face
     bool TWOFACE = false;
-    bool BACKFACEDETECTION = false;
+    // Bacface detection
+    bool BACKFACEDETECTION = true;
     if(TWOFACE)
         BACKFACEDETECTION = false;
 
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     obj.material.kd = {0.5,0.5,0.5};
     obj.material.ks = {0.5,0.5,0.5};
     obj.material.ns = 140;
-    obj.vmatrix() /= TfMatrix::translation({0,0,-2});
+    //obj.vmatrix() /= TfMatrix::translation({0,0,-2});
 
     unsigned nSurfs = obj.surfaceCount();
     unsigned nVerts = obj.vertexCount();
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         // View reference point
         // View plane normal
         // View up vector
-        Vector vrp(10,5,15);
+        Vector vrp(0,0,6);
         Vector vpn = Vector(0,0,0) - vrp;
         Vector vup(0,1,-1);
 
@@ -168,23 +168,23 @@ int main(int argc, char* argv[]) {
         }
 
 
-        // Create a copy of object
-        Object copy = obj;
         // Vertex Shader
-        // TODO: Don't copy the whole object but only the vertex matrix as they are same
+        // Get the vector copy matrix which is
+        // initialized to the itself
+        obj.resetCopy();
+        Matrix<float>& copyalias = obj.vcmatrix();
         // Apply perspective projection and camera projection on copy
-        copy.vmatrix() /=
+        copyalias /=
             TfMatrix::perspective2(95,(float)WIDTH/HEIGHT,10000,5)
             * TfMatrix::lookAt(vrp,vpn,vup);
-        // Vertex Shader
         // Change the homogenous co-ordinates to
         // normalized co-ordinate and  to device co-ordinate
         for (unsigned i=0; i<nVerts; i++) {
             // Perspective divide
             // NOTE: normalization is also done during the projection transformation
-            copy(0,i) /= copy(3,i);
-            copy(1,i) /= copy(3,i);
-            copy(2,i) /= copy(3,i);
+            copyalias(0,i) /= copyalias(3,i);
+            copyalias(1,i) /= copyalias(3,i);
+            copyalias(2,i) /= copyalias(3,i);
 
             // Converting normalized Z co-ordinate [-1,1] to depthmap [1,0]*depth
             // Visible part is between n and f.
@@ -194,15 +194,15 @@ int main(int argc, char* argv[]) {
             // NOTE: n and f have negative values
             // Normalized co-rodinate is in right hand system
             // camera is towards negative Z axis
-            copy(2,i) = (-copy(2,i)*0.5 + 0.5)*ScreenPoint::maxDepth;
+            copyalias(2,i) = (-copyalias(2,i)*0.5 + 0.5)*ScreenPoint::maxDepth;
             // Change the normalized X Y co-ordinates to device co-ordinate
-            copy(0,i) = copy(0,i)*WIDTH + WIDTH/2;
-            copy(1,i) = HEIGHT - (copy(1,i)*HEIGHT + HEIGHT/2);
+            copyalias(0,i) = copyalias(0,i)*WIDTH + WIDTH/2;
+            copyalias(1,i) = HEIGHT - (copyalias(1,i)*HEIGHT + HEIGHT/2);
         }
 
 
         // Clear framebuffer, we're about to plot
-        drawer.clear(black);
+        drawer.clear(white);
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
@@ -210,14 +210,14 @@ int main(int argc, char* argv[]) {
             if(BACKFACEDETECTION && !show[i])
                 continue;
 
-            int index = copy.getSurface(i).x;
-            ScreenPoint a(copy.getVertex(index),colors[GOURAD?index:i]);
+            int index = obj.getSurface(i).x;
+            ScreenPoint a(obj.getCopyVertex(index),colors[GOURAD?index:i]);
 
-            index = copy.getSurface(i).y;
-            ScreenPoint b(copy.getVertex(index),colors[GOURAD?index:i]);
+            index = obj.getSurface(i).y;
+            ScreenPoint b(obj.getCopyVertex(index),colors[GOURAD?index:i]);
 
-            index = copy.getSurface(i).z;
-            ScreenPoint c(copy.getVertex(index),colors[GOURAD?index:i]);
+            index = obj.getSurface(i).z;
+            ScreenPoint c(obj.getCopyVertex(index),colors[GOURAD?index:i]);
 
             if (GOURAD)
                 drawer.fillD(a,b,c);

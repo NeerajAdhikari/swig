@@ -44,6 +44,7 @@ class Object{
         // A matrix is (4 x count) matrix is used to represent m_vertex
         // A homogeneous vertex matrix
         Matrix<float> m_vertex;
+        Matrix<float> m_cpyvertex;
 
         // TODO added here
         Matrix<float> m_vertex_normal;
@@ -80,6 +81,13 @@ class Object{
         // Retuns the vertex matrix
         Matrix<float>& vmatrix() ;
 
+        // Retuns the copy of vertex matrix
+        Matrix<float>& vcmatrix() ;
+
+        // Reset and initialize the value of copy
+        // matrix to vertex matrix
+        void resetCopy();
+
         // Retuns the vertex matrix
         Matrix<float>& nmatrix() ;
 
@@ -103,6 +111,8 @@ class Object{
         void setSurface(const Triplet<unsigned>& p) ;
 
         Vector getVertex(unsigned point) const ;
+
+        Vector getCopyVertex(unsigned point) const ;
 
         Edge getEdge(unsigned point) ;
 
@@ -137,6 +147,14 @@ inline unsigned Object::surfaceCount() const {
 
 inline Matrix<float>& Object::vmatrix() {
     return m_vertex;
+}
+
+inline Matrix<float>& Object::vcmatrix() {
+    return m_cpyvertex;
+}
+
+inline void Object::resetCopy() {
+    m_cpyvertex = m_vertex;
 }
 
 inline Matrix<float>& Object::nmatrix() {
@@ -188,6 +206,12 @@ inline Vector Object::getVertex(unsigned point) const {
     if(point >= vertexCount())
         throw ex::OutOfBounds();
     return Vector(m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point));
+}
+
+inline Vector Object::getCopyVertex(unsigned point) const {
+    if(point >= vertexCount())
+        throw ex::OutOfBounds();
+    return Vector(m_cpyvertex(0,point),m_cpyvertex(1,point),m_cpyvertex(2,point),m_cpyvertex(3,point));
 }
 
 inline Edge Object::getEdge(unsigned point) {

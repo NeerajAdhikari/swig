@@ -2,7 +2,8 @@
 
 Object::Object (unsigned vertex_count):
     m_vertex({4,vertex_count}),
-    m_vertex_normal({4,vertex_count})
+    m_vertex_normal({4,vertex_count}),
+    m_cpyvertex({4,vertex_count})
 {
     // Initialize the points
     for(int i=0;i < vertexCount();i++)
@@ -13,7 +14,8 @@ Object::Object (unsigned vertex_count):
 // Load an object from an .obj file
 Object::Object(const std::string& filename) :
     m_vertex({4,1}),
-    m_vertex_normal({4,1})
+    m_vertex_normal({4,1}),
+    m_cpyvertex({4,1})
 {
     // throw exception if bad bit or fail bit
     std::ifstream objfile(filename,std::ios::in);
@@ -41,6 +43,7 @@ Object::Object(const std::string& filename) :
     }
 
     m_vertex.readjust({4,vcount});
+    resetCopy();
     m_vertex_normal.readjust({4,vcount});
     m_surface.reserve(fcount);
 
