@@ -23,21 +23,8 @@ class Linspace {
         // Get the value of the Linspace
         operator int() const;
 
-        int valueAt(unsigned fwd) const {
-            if (dx==0)
-                return 0;
-            int tctr = dd*fwd;
-            int td;
-            if (Math::abs(tctr)>=dx){
-                td = tctr/dx;
-                //tctr %= dx;
-            }
-            //pos += fwd;
-            return td;
-        }
-
         // Increment the Linspace by "fwd"
-        inline void leap(unsigned fwd);
+        inline void operator+=(unsigned fwd);
 
         // Increment the Linspace by 1
         inline void operator++();
@@ -57,7 +44,7 @@ inline Linspace::operator int() const {
 }
 
 // Increment the Linspace by "fwd"
-inline void Linspace::leap(unsigned fwd){
+inline void Linspace::operator+=(unsigned fwd){
     if (dx==0)
         return;
     ctr += dd*fwd;

@@ -31,31 +31,31 @@ int main(int argc, char* argv[]) {
     Color badcolor = {255,0,255,255};
 
     // Gourad Shading
-    bool GOURAD = false;
+    bool GOURAD = true;
     // Enable two face
-    bool TWOFACE = false;
+    bool TWOFACE = true;
     // Bacface detection
     bool BACKFACEDETECTION = true;
-    if(TWOFACE)
-        BACKFACEDETECTION = false;
 
-    // Initialize the plotter interface
-    Plotter_ fb(WIDTH,HEIGHT);
-    Drawer drawer(&fb);
-    drawer.clear();
+    if(TWOFACE)
+        BACKFACEDETECTION = true;
 
     // Intialize the benchmark
     Time timekeeper;
 
-    // Intialize the point light sources
-    std::vector<PointLight> light;
-    light.push_back({{-100,100,100,0},  {20000,0,0}});
-    light.push_back({{0,100,100,0},     {0,15000,0}});
-    light.push_back({{0,0,100,0},       {0,0,20000}});
-    light.push_back({{0,-100,100,0},    {10000,10000,10000}});
+    // Initialize the plotter interface
+    Plotter_ fb(WIDTH,HEIGHT);
+    Drawer drawer(&fb);
 
     // Intialize the ambient light sources
     AmbientLight ambient = {{100,100,100}};
+
+    // Intialize the point light sources
+    std::vector<PointLight> light;
+    light.push_back({{-1000,1000,1000,0},  {200000,0,0}});
+    light.push_back({{0,1000,1000,0},     {0,150000,0}});
+    light.push_back({{0,0,1000,0},       {0,0,200000}});
+   // light.push_back({{0,0,100,0},    {100000,100000,10000}});
 
     // Initialize the object
     Object obj(argv[1]);
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         // View reference point
         // View plane normal
         // View up vector
-        Vector vrp(0,0,6);
+        Vector vrp(0,-4,10);
         Vector vpn = Vector(0,0,0) - vrp;
         Vector vup(0,1,-1);
 
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         // Intialize a transformation matrix to transform object
         // Apply transformation to object
         // Apply transformation to vertex normals (only rotation type)
-        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(0,1,0),Vector(0,0,0));
         obj.vmatrix() /= rotator;
         obj.nmatrix() /= rotator;
 
@@ -169,9 +169,7 @@ int main(int argc, char* argv[]) {
 
 
         // Vertex Shader
-        // Get the vector copy matrix which is
-        // initialized to the itself
-        obj.resetCopy();
+        // Get the vertex copy matrix which is
         Matrix<float>& copyalias = obj.vcmatrix();
         // Apply perspective projection and camera projection on copy
         copyalias /=
@@ -202,27 +200,30 @@ int main(int argc, char* argv[]) {
 
 
         // Clear framebuffer, we're about to plot
-        drawer.clear(white);
+        drawer.clear(black);
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
 
-            if(BACKFACEDETECTION && !show[i])
+            if( !TWOFACE && BACKFACEDETECTION && !show[i])
                 continue;
 
             int index = obj.getSurface(i).x;
             ScreenPoint a(obj.getCopyVertex(index),colors[GOURAD?index:i]);
+            //if( !show[i])
+            //a.d -= 5;
 
             index = obj.getSurface(i).y;
             ScreenPoint b(obj.getCopyVertex(index),colors[GOURAD?index:i]);
+            //if( !show[i])
+            //a.d -= 5;
 
             index = obj.getSurface(i).z;
             ScreenPoint c(obj.getCopyVertex(index),colors[GOURAD?index:i]);
+            //if( !show[i])
+            //a.d -= 5;
 
-            if (GOURAD)
-                drawer.fillD(a,b,c);
-            else
-                drawer.fillD(a,b,c,colors[i]);
+            drawer.fillD(a,b,c,GOURAD,show[i]);
         }
 
         // Update framebuffer
@@ -232,14 +233,13 @@ int main(int argc, char* argv[]) {
         delete []colors;
 
         // Stop benchmark time
-        timekeeper.stop();
         uintmax_t ti = timekeeper.time();
-        float real_fps = 1e6 / ti;
-        // Convert us to ms and delay
         if( ti < DELAY){
+            // Convert us to ms and delay
             SDL_Delay((DELAY-ti)/1000);
         }
 
+        float real_fps = 1e6 / ti;
         std::cout << DELETE;
         std::cout << "Nolimit FPS:\t" << real_fps << std::endl;
     }

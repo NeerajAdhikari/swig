@@ -86,6 +86,7 @@ class Object{
 
         // Reset and initialize the value of copy
         // matrix to vertex matrix
+        // TODO should be private
         void resetCopy();
 
         // Retuns the vertex matrix
@@ -149,7 +150,10 @@ inline Matrix<float>& Object::vmatrix() {
     return m_vertex;
 }
 
+// Don't call this function time and again
+// instead use a reference to store it
 inline Matrix<float>& Object::vcmatrix() {
+    resetCopy();
     return m_cpyvertex;
 }
 

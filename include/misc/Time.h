@@ -31,25 +31,23 @@ inline Time::Time() : m_running(false) {
 
 // Start the benchmark
 inline void Time::start() {
-    if(!m_running) {
-        gettimeofday(&m_start,0);
-        m_running = true;
-    }
+    gettimeofday(&m_start,0);
+    m_running = true;
 }
 
 // Stop the benchmark
 inline void Time::stop() {
-    if(m_running){
-        gettimeofday(&m_end,0);
-        m_running = false;
-    }
+    gettimeofday(&m_end,0);
+    m_running = false;
 }
 
 // Return the difference between start time
 // and stop time in micro seconds
 inline uintmax_t Time::time() {
-    if(m_running)
-        throw ex::Wtf();
+    if(m_running){
+        stop();
+        m_running = true;
+    }
     return (m_end.tv_sec * 1e6 + m_end.tv_usec - m_start.tv_sec * 1e6 - m_start.tv_usec);
 }
 
