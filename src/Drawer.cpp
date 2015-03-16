@@ -301,10 +301,8 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     ScreenPoint start, mid, end;
     initAscending(start,mid,end,pt1,pt2,pt3);
 
-    /*
     if(start.y == end.y)
         return;
-        */
     // A triangle with zero height is discarded
     if( start.y >= (int)plotter->height() || end.y < 0)
         return;
@@ -370,9 +368,6 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3, bool inter
     if(start.y == end.y)
         return;
     if( start.y >= (int)plotter->height() || end.y < 0)
-        return;
-    // TODO sort x and find out if all lie outside
-    if(start.x == mid.x == end.x)
         return;
     // THe negative region is backside of the camera
     // or away from the far point

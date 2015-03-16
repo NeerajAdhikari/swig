@@ -115,6 +115,9 @@ class Object{
 
         Vector getCopyVertex(unsigned point) const ;
 
+        Vector getVertexDistorted(unsigned point) const ;
+
+
         Edge getEdge(unsigned point) ;
 
         Surface getSurface(unsigned point) ;
@@ -214,6 +217,11 @@ inline Vector Object::getVertex(unsigned point) const {
     return Vector(m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point));
 }
 
+inline Vector Object::getVertexDistorted(unsigned point) const {
+    if(point >= vertexCount())
+        throw ex::OutOfBounds();
+    return Vector(m_cpyvertex(0,point),m_cpyvertex(1,point),m_cpyvertex(2,point),m_vertex(3,point));
+}
 
 inline Vector Object::getCopyVertex(unsigned point) const {
     if(point >= vertexCount())
@@ -251,9 +259,9 @@ inline Vector Object::getSurfaceNormal(const Surface& p){
 }
 
 inline Vector Object::getSurfaceNormalDistorted(const Surface& p){
-    Vector v1=getCopyVertex(p.x);
-    Vector v2=getCopyVertex(p.y);
-    Vector v3=getCopyVertex(p.z);
+    Vector v1=getVertexDistorted(p.x);
+    Vector v2=getVertexDistorted(p.y);
+    Vector v3=getVertexDistorted(p.z);
 
     Vector sidea=v2-v1;
     Vector sideb=v3-v2;

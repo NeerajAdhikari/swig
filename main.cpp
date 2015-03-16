@@ -82,7 +82,9 @@ int main(int argc, char* argv[]) {
     // View reference point
     // View plane normal
     // View up vector
-    Vector vrp(0,20,80);
+
+    //  Vector vrp(0,200,900);
+    Vector vrp(0,5,10);
     Vector vpn = Vector(0,0,0) - vrp;
     Vector vup(0,1,0);
 
@@ -107,10 +109,10 @@ int main(int argc, char* argv[]) {
         // SDL EVENTS
         if (SDL_PollEvent(&event))
             if(event.type == SDL_QUIT) break;
-        if (keys[SDL_GetScancodeFromKey(SDLK_w)]) vrp += vpn.normalized();
-        if (keys[SDL_GetScancodeFromKey(SDLK_s)]) vrp -= vpn.normalized();
-        if (keys[SDL_GetScancodeFromKey(SDLK_a)]) vrp -= (vpn * vup).normalized();
-        if (keys[SDL_GetScancodeFromKey(SDLK_d)]) vrp += (vpn * vup).normalized();
+        if (keys[SDL_GetScancodeFromKey(SDLK_w)]) vrp += vpn.normalized()/5;
+        if (keys[SDL_GetScancodeFromKey(SDLK_s)]) vrp -= vpn.normalized()/5;
+        if (keys[SDL_GetScancodeFromKey(SDLK_a)]) vrp -= (vpn * vup).normalized()/5;
+        if (keys[SDL_GetScancodeFromKey(SDLK_d)]) vrp += (vpn * vup).normalized()/5;
         // To rotation
         vpn = -vrp;
 
@@ -140,10 +142,18 @@ int main(int argc, char* argv[]) {
             // When backface detection is diasabled, still can be useful for TWOFACE objects
             // to reverse the direction
             for(int i=0;i<nSurfs;i++) {
-                Vector normal = obj.getSurfaceNormal(obj.getSurface(i));
-                Vector position = obj.getSurfaceCentroid(i);
-                if( Vector::cosine((position-vrp),normal) > 0)
+                // This normal is a special kind of normal, it uses x and y of
+                // the projected matrix so as to get orthogonal projection system
+                // but original z value for depth better depth calculation
+                Vector normal = obj.getSurfaceNormalDistorted(obj.getSurface(i));
+                if( normal.z >= 0)
                     show[i] = false;
+
+                // OLD WAY
+                //Vector normal = obj.getSurfaceNormal(obj.getSurface(i));
+                //Vector position = obj.getSurfaceCentroid(i);
+                //if( Vector::cosine((position-vrp),normal) > 0)
+                //    show[i] = true;
             }
         }
 
@@ -187,14 +197,16 @@ int main(int argc, char* argv[]) {
                 // Diffused lighting
                 {
                     float cosine = Vector::cosine((decdirection*(-1)),normal);
+                    // Check to remove symmetric lighting
                     if(cosine <= 0)
                         continue;
                     intensity += (decintensity * obj.material.kd) * cosine;
                 }
                 // Specular ligting
                 {
-                    Vector half = (decdirection.normalized() + (position-vrp).normalized()).normalized()*(-1);
+                    Vector half = (decdirection.normalized() + (position-vrp).normalized())*(-1);
                     float cosine = Vector::cosine(half,normal);
+                    // Check to remove symmetric lighting
                     if(cosine <= 0)
                         continue;
                     intensity += (decintensity * obj.material.ks) * std::pow(cosine, obj.material.ns);
@@ -204,16 +216,8 @@ int main(int argc, char* argv[]) {
             colors[i] = PointLight({position,intensity}).intensityAt(vrp);
         }
 
-
-
-
-
-
-
-
-
         // Clear framebuffer, we're about to plot
-        drawer.clear(white);
+        drawer.clear(badcolor);
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
