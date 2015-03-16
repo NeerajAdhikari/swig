@@ -47,6 +47,8 @@ int main(int argc, char* argv[]) {
     if( argc > 4 && std::strcmp(argv[4],"backface")==0 )
         BACKFACEDETECTION = true;
 
+    // Twoface or unbounded requires backfacedetection
+    // for enabling overwrite which helps remove bad pixels
     if(TWOFACE)
         BACKFACEDETECTION = true;
 
@@ -82,19 +84,15 @@ int main(int argc, char* argv[]) {
     // View reference point
     // View plane normal
     // View up vector
-
-    //  Vector vrp(0,200,900);
     Vector vrp(0,5,10);
     Vector vpn = Vector(0,0,0) - vrp;
     Vector vup(0,1,0);
 
-    SDL_Event event;
-    const Uint8* keys = SDL_GetKeyboardState(NULL);
-
     float n = 0;
     float avg = 0;
 
-    std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
+    SDL_Event event;
+    const Uint8* keys = SDL_GetKeyboardState(NULL);
     while (true) {
 
         // Start benchmark time
@@ -175,11 +173,12 @@ int main(int argc, char* argv[]) {
                 obj.getSurfaceCentroid(i);
 
 
+            // In gourad, we can't use show[i] because it signifies surface
+            // and not vertices, there is no thing as hidden vertex
+            // A vertex may be discarded if it isn't used in any visible
+            // surface which is harder to determine so using such condition
             if(GOURAD){
-                // In gourad, we can't use show[i] because it signifies surface
-                // and not vertices, there is no thing as hidden vertex
-                // A vertex may be discarded if it isn't used in any visible
-                // surface which is harder to determine
+                // Inverting the back surfaces for unbounded objects
                 if( TWOFACE && Vector::cosine((position-vrp),normal) > 0)
                     normal = normal * -1;
             } else {
@@ -234,27 +233,31 @@ int main(int argc, char* argv[]) {
             index = obj.getSurface(i).z;
             ScreenPoint c(obj.getCopyVertex(index),colors[GOURAD?index:i]);
 
+            // show[i] signifies backface detection
+            // for unbounded objects, overwrite must be diable for
+            // backface surfaces
             drawer.fillD(a,b,c,GOURAD,show[i]);
         }
 
         // Update framebuffer
         drawer.update();
 
+        // delete temporaries
         delete []show;
         delete []colors;
 
         // Stop benchmark time
         uintmax_t ti = timekeeper.time();
+        float real_fps = 1e6 / ti;
+        n++;
+        avg = (avg*(n-1)+real_fps)/n;
+        std::cout << DELETE << FPS << " : " << avg << " fps"<< std::endl;
+
+
         if( ti < DELAY){
             // Convert us to ms and delay
             SDL_Delay((DELAY-ti)/1000);
         }
-
-        float real_fps = 1e6 / ti;
-        n++;
-        avg = (avg*(n-1)+real_fps)/n;
-        std::cout << DELETE;
-        std::cout << "Nolimit FPS:\t" << avg << std::endl;
     }
     return 0;
 }

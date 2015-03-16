@@ -14,10 +14,6 @@ class Lincolor {
     public:
 
         // Start depth, End depth, no. of elements
-        Lincolor(const Color& dss,const Color& dee,int dxx);
-
-
-        // Start depth, End depth, no. of elements
         Lincolor(const Color& dss,const Color& dee,int xss, int xee);
 
         // Get the value of the Linspace
@@ -43,14 +39,6 @@ inline Lincolor::Lincolor(const Color& dss,const Color& dee,int xss, int xee):
     g(dss.green,dee.green,xss,xee)
 {
 
-}
-
-// Start depth, End depth, no. of elements
-inline Lincolor::Lincolor(const Color& dss,const Color& dee,int dxx):
-    b(dss.blue,dee.blue,dxx),
-    r(dss.red,dee.red,dxx),
-    g(dss.green,dee.green,dxx)
-{
 }
 
 // Get the value of the Linspace

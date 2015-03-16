@@ -41,25 +41,19 @@ class Drawer {
 
     // Draw a horizontal line between (xs,y) and (xe,y)
     void hLine(int y, int xs, int xe, Color cl);
-    // Fill the triangle bounded by pt1, pt2 and pt3
-    void fill(ScreenPoint pt1, ScreenPoint pt2,
-            ScreenPoint pt3, Color fillcolor);
 
     // Draw a horizontal line considering the depth buffer
     void hLineD(int y, int xs, int hs,
             int xe, int he, Color cl, bool overwrite=true);
-    // Fill the triangle bounded by pt1, pt2 and pt3
-    // considering depth buffer
-    // REDUNDANT
-    void fillD(ScreenPoint pt1, ScreenPoint pt2,
-            ScreenPoint pt3, Color fillcolor, bool overwrite=true);
 
     // Draw a horizontal line considering the depth buffer
     // and color gradient
     void hLineD(int y, int xs, int hs,
             int xe, int he, Color cStart, Color cEnd, bool overwrite=true);
+
     // Fill the triangle bounded by pt1, pt2 and pt3
     // considering depth buffer and color gradient
+    // overwrite when true will enable overwrite to same depth
     void fillD(ScreenPoint pt1, ScreenPoint pt2,
             ScreenPoint pt3, bool interpolate=true,bool overwrite=true);
 

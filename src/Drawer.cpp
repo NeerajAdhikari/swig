@@ -228,125 +228,11 @@ void Drawer::initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& en
 }
 
 
-
-// Fill the triangle bounded by pt1, pt2 and pt3
-// What is implemented here is a special case of
-// scan-line filling which works only for triangles.
-void Drawer::fill(ScreenPoint pt1, ScreenPoint pt2,
-        ScreenPoint pt3, Color fillcolor) {
-
-    ScreenPoint start, mid, end;
-    initAscending(start,mid,end,pt1,pt2,pt3);
-
-    if( start.y >= (int)plotter->height() || end.y < 0)
-        return;
-    if(start.y == end.y)
-        return;
-
-    Linspace x1(start.x,mid.x, mid.y-start.y+1);
-    Linspace x2(start.x,end.x, end.y-start.y+1);
-
-    // Clipping
-    int low = Math::min(mid.y,Math::max(start.y,0));
-    if(low-start.y>0){
-        x1 += (low-start.y);
-        x2 += (low-start.y);
-    }
-    start.y = low;
-
-    for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++){
-        hLine(i,x1,x2,fillcolor);
-        ++x1;
-        ++x2;
-    }
-
-    Linspace x3(mid.x,end.x, end.y-mid.y+1);
-
-    // Clipping
-    int lows = Math::max(mid.y,0);
-    if(lows-mid.y>0){
-        x2 += (lows-mid.y);
-        x3 += (lows-mid.y);
-    }
-    mid.y = lows;
-
-    for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
-        hLine(i, x2, x3, fillcolor);
-        ++x2;
-        ++x3;
-    }
-}
-
-
 // Fill the triangle bounded by pt1, pt2 and pt3
 // What is implemented here is a special case of
 // scan-line filling which works only for triangles.
 // considering depth buffer
-void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
-        ScreenPoint pt3, Color fillcolor, bool same) {
-
-    ScreenPoint start, mid, end;
-    initAscending(start,mid,end,pt1,pt2,pt3);
-
-    if(start.y == end.y)
-        return;
-    // A triangle with zero height is discarded
-    if( start.y >= (int)plotter->height() || end.y < 0)
-        return;
-    // The negative region is backside of the camera
-    // or away from the far point
-    if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
-        return ;
-
-    Linspace x1(start.x,mid.x, mid.y-start.y+1);
-    Linspace d1(start.d,mid.d, mid.y-start.y+1);
-    Linspace x2(start.x,end.x, end.y-start.y+1);
-    Linspace d2(start.d,end.d, end.y-start.y+1);
-    Linspace x3(mid.x,end.x, end.y-mid.y+1);
-    Linspace d3(mid.d,end.d, end.y-mid.y+1);
-
-    // Clipping
-    // Math::min because sometimes 0 may be greater than mid.y
-    int low = Math::min(mid.y,Math::max(start.y,0));
-    if(low-start.y>0){
-        x1+=(low-start.y);
-        x2+=(low-start.y);
-        d1+=(low-start.y);
-        d2+=(low-start.y);
-    }
-    start.y = low;
-
-    for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++){
-        hLineD(i,x1,d1,x2,d2,fillcolor,same);
-        ++x1;
-        ++x2;
-        ++d1;
-        ++d2;
-    }
-
-    // Clipping
-    int lows = Math::max(mid.y,0);
-    if(lows-mid.y>0){
-        x2+=(lows-mid.y);
-        x3+=(lows-mid.y);
-        d2+=(lows-mid.y);
-        d3+=(lows-mid.y);
-    }
-    mid.y = lows;
-
-    for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
-        hLineD(i, x2, d2, x3, d3, fillcolor,same);
-        ++x2;
-        ++x3;
-        ++d2;
-        ++d3;
-    }
-}
-
-// Fill the triangle bounded by pt1, pt2 and pt3
-// What is implemented here is a special case of
-// scan-line filling which works only for triangles.
-// considering depth buffer
+// overwrite when true will enable overwrite to same depth
 void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3, bool interpolate, bool overwrite){
 
     ScreenPoint start, mid, end;
@@ -374,20 +260,22 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3, bool inter
     Lincolor c3(mid.color,end.color,mid.y,end.y);
 
     // Clipping
-    start.y = Math::min(mid.y,Math::max(start.y,0));
-    for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++){
-        if(interpolate)
+    if(interpolate){
+        start.y = Math::min(mid.y,Math::max(start.y,0));
+        for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++)
             hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),c1.at(i),c2.at(i),overwrite);
-        else
-            hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),start.color,overwrite);
-    }
-
-    // Clipping
-    mid.y = Math::max(mid.y,0);
-    for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
-        if(interpolate)
+        // Clipping
+        mid.y = Math::max(mid.y,0);
+        for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++)
             hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i), c2.at(i), c3.at(i), overwrite);
-        else
+
+    } else {
+        start.y = Math::min(mid.y,Math::max(start.y,0));
+        for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++)
+            hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),start.color,overwrite);
+        // Clipping
+        mid.y = Math::max(mid.y,0);
+        for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++)
             hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i), start.color, overwrite);
     }
 }

@@ -20,9 +20,6 @@ class Linspace {
         int ds;
     public:
 
-        // Start depth, End depth, no. of elements
-        Linspace(int dss,int dee,int dxx);
-
         // Start depth, End depth, Start pos, End pos
         Linspace(int dss, int dee, int xss, int xee);
 
@@ -49,14 +46,6 @@ inline int Linspace::at(int i) const {
 // Start depth, End depth, no. of elements
 inline Linspace::Linspace(int dss,int dee,int xss, int xee):
     dx(xee-xss),d(dss),dd(dee-dss),ctr(0),pos(0),xs(xss),ds(dss)
-{
-    if(dx<-1)
-        throw ex::InitFailure();
-}
-
-// Start depth, End depth, no. of elements
-inline Linspace::Linspace(int dss,int dee,int dxx):
-    dx(dxx-1),d(dss),dd(dee-dss),ctr(0),pos(0)
 {
     if(dx<-1)
         throw ex::InitFailure();
