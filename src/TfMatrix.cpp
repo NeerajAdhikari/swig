@@ -18,6 +18,14 @@ Matrix<float> TfMatrix::lookAt(const Vector& vrp, const Vector& vpn, const Vecto
 }
 
 Matrix<float> TfMatrix::toDevice(float width, float height, float maxDepth){
+    // Converting normalized Z co-ordinate [-1,1] to depthmap [maxDepth,0]
+    // Visible part is between n and f.
+    // The Z map is shown below
+    // space:        0       n       f
+    // value: -ve   inf      1       0   -ve
+    // NOTE: n and f have negative values
+    // Normalized co-rodinate is in RHS
+    // camera pointing towards negative Z axis
     Matrix<float> transformation({4,4});
     transformation.initialize(
             width,      0,          0,              width/2,

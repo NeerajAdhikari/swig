@@ -34,13 +34,22 @@ int main(int argc, char* argv[]) {
 
     // Gourad Shading
     bool GOURAD = false;
+    if( argc > 2 && std::strcmp(argv[2],"gourad")==0 )
+        GOURAD = true;
+
     // Enable two face
     bool TWOFACE = false;
+    if( argc > 3 && std::strcmp(argv[3],"unbounded")==0 )
+        TWOFACE = true;
+
     // Bacface detection
-    bool BACKFACEDETECTION = true;
+    bool BACKFACEDETECTION = false;
+    if( argc > 4 && std::strcmp(argv[4],"backface")==0 )
+        BACKFACEDETECTION = true;
 
     if(TWOFACE)
         BACKFACEDETECTION = true;
+
 
     // Intialize the benchmark
     Time timekeeper;
@@ -57,7 +66,7 @@ int main(int argc, char* argv[]) {
     light.push_back({{-1000,1000,1000,0},  {200000,0,0}});
     light.push_back({{0,1000,1000,0},     {0,150000,0}});
     light.push_back({{0,0,1000,0},       {0,0,200000}});
-   // light.push_back({{0,0,100,0},    {100000,100000,10000}});
+    // light.push_back({{0,0,100,0},    {100000,100000,10000}});
 
     // Initialize the object
     Object obj(argv[1]);
@@ -66,67 +75,63 @@ int main(int argc, char* argv[]) {
     obj.material.ks = {0.5,0.5,0.5};
     obj.material.ns = 140;
     //obj.vmatrix() /= TfMatrix::translation({0,0,-2});
-
     unsigned nSurfs = obj.surfaceCount();
     unsigned nVerts = obj.vertexCount();
-
-    std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
-
 
     // Initialize camera
     // View reference point
     // View plane normal
     // View up vector
-    Vector vrp(0,5,10);
+    Vector vrp(0,20,80);
     Vector vpn = Vector(0,0,0) - vrp;
     Vector vup(0,1,0);
 
     SDL_Event event;
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
+    float n = 0;
+    float avg = 0;
+
+    std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
     while (true) {
 
         // Start benchmark time
         timekeeper.start();
 
         // VERTEX SHADER
-        // Get the vertex copy matrix which is
+        // Apply object transformation
+        // Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+        // obj.vmatrix() /= rotator;
+        // obj.nmatrix() /= rotator;
+
+        // SDL EVENTS
+        if (SDL_PollEvent(&event))
+            if(event.type == SDL_QUIT) break;
+        if (keys[SDL_GetScancodeFromKey(SDLK_w)]) vrp += vpn.normalized();
+        if (keys[SDL_GetScancodeFromKey(SDLK_s)]) vrp -= vpn.normalized();
+        if (keys[SDL_GetScancodeFromKey(SDLK_a)]) vrp -= (vpn * vup).normalized();
+        if (keys[SDL_GetScancodeFromKey(SDLK_d)]) vrp += (vpn * vup).normalized();
+        // To rotation
+        vpn = -vrp;
+
+        // VERTEX SHADER
+        // Get the vertex copy matrix
         Matrix<float>& copyalias = obj.vcmatrix();
-        // Apply perspective projection and camera projection on copy
+        // Apply (perspective projection & normalization) and camera projection
         copyalias /=
             TfMatrix::perspective2(95,(float)WIDTH/HEIGHT,10000,5)
             * TfMatrix::lookAt(vrp,vpn,vup);
-        // Change the homogenous co-ordinates to
-        // normalized co-ordinate and  to device co-ordinate
+        // Perspective divide : homogenous co-ordinates to normalized co-ordinate
         for (unsigned i=0; i<nVerts; i++) {
-            // Perspective divide
-            // NOTE: normalization is also done during the projection transformation
             copyalias(0,i) /= copyalias(3,i);
             copyalias(1,i) /= copyalias(3,i);
             copyalias(2,i) /= copyalias(3,i);
             copyalias(3,i) = 1.0;
-
-            // Converting normalized Z co-ordinate [-1,1] to depthmap [1,0]*depth
-            // Visible part is between n and f.
-            // The z map is shown below
-            // space:        0       n       f
-            // value: -ve   inf      1       0   -ve
-            // NOTE: n and f have negative values
-            // Normalized co-rodinate is in right hand system
-            // camera is towards negative Z axis
-
-            copyalias(2,i) = (-copyalias(2,i)*0.5 + 0.5)*ScreenPoint::maxDepth;
-            // Change the normalized X Y co-ordinates to device co-ordinate
-            copyalias(0,i) = copyalias(0,i)*WIDTH + WIDTH/2;
-            copyalias(1,i) = HEIGHT - (copyalias(1,i)*HEIGHT + HEIGHT/2);
         }
+        // Change Normalized co-ordinate system to device co-ordinate system
+        copyalias /= TfMatrix::toDevice(WIDTH,HEIGHT,ScreenPoint::maxDepth);
 
-        // TODO can be usable if perspective divide can be bypassed or done at last
-        //copyalias /= TfMatrix::toDevice(WIDTH,HEIGHT,ScreenPoint::maxDepth);
-
-
-
-        // Surface Shader
+        // SURFACE SHADER
         // Detect backfaces in normalized co-ordinates
         bool* show = new bool[nSurfs];
         if(BACKFACEDETECTION){
@@ -242,25 +247,10 @@ int main(int argc, char* argv[]) {
         }
 
         float real_fps = 1e6 / ti;
+        n++;
+        avg = (avg*(n-1)+real_fps)/n;
         std::cout << DELETE;
-        std::cout << "Nolimit FPS:\t" << real_fps << std::endl;
-
-        // Vertex Shader
-        // Apply object transformation
-        // Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
-        // obj.vmatrix() /= rotator;
-        // obj.nmatrix() /= rotator;
-
-        // For exit
-        if (SDL_PollEvent(&event))
-            if(event.type == SDL_QUIT) break;
-        // Get keystate for all keyboard keys
-        if (keys[SDL_GetScancodeFromKey(SDLK_w)]) vrp += vpn.normalized();
-        if (keys[SDL_GetScancodeFromKey(SDLK_s)]) vrp -= vpn.normalized();
-        if (keys[SDL_GetScancodeFromKey(SDLK_a)]) vrp -= (vpn * vup).normalized();
-        if (keys[SDL_GetScancodeFromKey(SDLK_d)]) vrp += (vpn * vup).normalized();
-        // To rotation
-        vpn = -vrp;
+        std::cout << "Nolimit FPS:\t" << avg << std::endl;
     }
     return 0;
 }
