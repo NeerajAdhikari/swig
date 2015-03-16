@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     Color badcolor = {255,0,255,255};
 
     // Gourad Shading
-    bool GOURAD = true;
+    bool GOURAD = false;
     // Enable two face
     bool TWOFACE = true;
     // Bacface detection
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         // View reference point
         // View plane normal
         // View up vector
-        Vector vrp(0,-4,10);
+        Vector vrp(0,5,20);
         Vector vpn = Vector(0,0,0) - vrp;
         Vector vup(0,1,-1);
 
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         // Intialize a transformation matrix to transform object
         // Apply transformation to object
         // Apply transformation to vertex normals (only rotation type)
-        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(0,1,0),Vector(0,0,0));
+        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
         obj.vmatrix() /= rotator;
         obj.nmatrix() /= rotator;
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 
 
         // Clear framebuffer, we're about to plot
-        drawer.clear(black);
+        drawer.clear(white);
 
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
@@ -210,18 +210,12 @@ int main(int argc, char* argv[]) {
 
             int index = obj.getSurface(i).x;
             ScreenPoint a(obj.getCopyVertex(index),colors[GOURAD?index:i]);
-            //if( !show[i])
-            //a.d -= 5;
 
             index = obj.getSurface(i).y;
             ScreenPoint b(obj.getCopyVertex(index),colors[GOURAD?index:i]);
-            //if( !show[i])
-            //a.d -= 5;
 
             index = obj.getSurface(i).z;
             ScreenPoint c(obj.getCopyVertex(index),colors[GOURAD?index:i]);
-            //if( !show[i])
-            //a.d -= 5;
 
             drawer.fillD(a,b,c,GOURAD,show[i]);
         }

@@ -11,6 +11,5 @@ TODO
 (A) Manage object information (Point normals, Point color, Surface normals)
 (A) Shadow
 (C) May include directional light
-(D) Selection of clear color
 (D) Try removing Linspace and use float arithmetics instead
     Could use parallelization

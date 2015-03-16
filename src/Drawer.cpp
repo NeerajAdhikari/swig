@@ -301,8 +301,10 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     ScreenPoint start, mid, end;
     initAscending(start,mid,end,pt1,pt2,pt3);
 
+    /*
     if(start.y == end.y)
         return;
+        */
     // A triangle with zero height is discarded
     if( start.y >= (int)plotter->height() || end.y < 0)
         return;
