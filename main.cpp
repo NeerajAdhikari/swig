@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstring>
 
+#include <SDL2/SDL.h>
+
 #include "mathematics/Vector.h"
 #include "mathematics/Matrix.h"
 #include "TfMatrix.h"
@@ -33,7 +35,7 @@ int main(int argc, char* argv[]) {
     // Gourad Shading
     bool GOURAD = false;
     // Enable two face
-    bool TWOFACE = true;
+    bool TWOFACE = false;
     // Bacface detection
     bool BACKFACEDETECTION = true;
 
@@ -70,26 +72,59 @@ int main(int argc, char* argv[]) {
 
     std::cout << "FPS limit:\t" << FPS << "\n" << std::endl;
 
-    while (!fb.checkTerm()) {
+
+    // Initialize camera
+    // View reference point
+    // View plane normal
+    // View up vector
+    Vector vrp(0,5,10);
+    Vector vpn = Vector(0,0,0) - vrp;
+    Vector vup(0,1,0);
+
+    SDL_Event event;
+    const Uint8* keys = SDL_GetKeyboardState(NULL);
+
+    while (true) {
 
         // Start benchmark time
         timekeeper.start();
 
-        // Initialize camera
-        // View reference point
-        // View plane normal
-        // View up vector
-        Vector vrp(0,5,20);
-        Vector vpn = Vector(0,0,0) - vrp;
-        Vector vup(0,1,-1);
+        // VERTEX SHADER
+        // Get the vertex copy matrix which is
+        Matrix<float>& copyalias = obj.vcmatrix();
+        // Apply perspective projection and camera projection on copy
+        copyalias /=
+            TfMatrix::perspective2(95,(float)WIDTH/HEIGHT,10000,5)
+            * TfMatrix::lookAt(vrp,vpn,vup);
+        // Change the homogenous co-ordinates to
+        // normalized co-ordinate and  to device co-ordinate
+        for (unsigned i=0; i<nVerts; i++) {
+            // Perspective divide
+            // NOTE: normalization is also done during the projection transformation
+            copyalias(0,i) /= copyalias(3,i);
+            copyalias(1,i) /= copyalias(3,i);
+            copyalias(2,i) /= copyalias(3,i);
+            copyalias(3,i) = 1.0;
 
-        // Vertex Shader
-        // Intialize a transformation matrix to transform object
-        // Apply transformation to object
-        // Apply transformation to vertex normals (only rotation type)
-        Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
-        obj.vmatrix() /= rotator;
-        obj.nmatrix() /= rotator;
+            // Converting normalized Z co-ordinate [-1,1] to depthmap [1,0]*depth
+            // Visible part is between n and f.
+            // The z map is shown below
+            // space:        0       n       f
+            // value: -ve   inf      1       0   -ve
+            // NOTE: n and f have negative values
+            // Normalized co-rodinate is in right hand system
+            // camera is towards negative Z axis
+
+            copyalias(2,i) = (-copyalias(2,i)*0.5 + 0.5)*ScreenPoint::maxDepth;
+            // Change the normalized X Y co-ordinates to device co-ordinate
+            copyalias(0,i) = copyalias(0,i)*WIDTH + WIDTH/2;
+            copyalias(1,i) = HEIGHT - (copyalias(1,i)*HEIGHT + HEIGHT/2);
+        }
+
+        // TODO can be usable if perspective divide can be bypassed or done at last
+        //copyalias /= TfMatrix::toDevice(WIDTH,HEIGHT,ScreenPoint::maxDepth);
+
+
 
         // Surface Shader
         // Detect backfaces in normalized co-ordinates
@@ -97,21 +132,13 @@ int main(int argc, char* argv[]) {
         if(BACKFACEDETECTION){
             memset(show,1,nSurfs*sizeof(bool));
             // Required for backface detection
-            // When backface is off, still can be useful for TWOFACE objects
+            // When backface detection is diasabled, still can be useful for TWOFACE objects
             // to reverse the direction
-
             for(int i=0;i<nSurfs;i++) {
-            Vector normal = obj.getSurfaceNormal(obj.getSurface(i));
-            Vector position = obj.getSurfaceCentroid(i);
-            if( Vector::cosine((position-vrp),normal) > 0)
-                show[i] = false;
-            // TODO validate the previous method, may be buggy in
-            // perspective projection
-            /*
-                Vector normal = copy.getSurfaceNormal(i);
-                if( normal.z >= 0)
+                Vector normal = obj.getSurfaceNormal(obj.getSurface(i));
+                Vector position = obj.getSurfaceCentroid(i);
+                if( Vector::cosine((position-vrp),normal) > 0)
                     show[i] = false;
-                    */
             }
         }
 
@@ -133,14 +160,19 @@ int main(int argc, char* argv[]) {
                 obj.getSurfaceCentroid(i);
 
 
-            // TODO some bad pixels seen on the boundaries
-            // Still better than previous alternative
-            // Good for flat shading than gourad
-            // May improve when using vertex normals from loaded file
-            //   if(show[i]==false)
-            //   normal = -normal;
-            if( TWOFACE && Vector::cosine((position-vrp),normal) > 0)
-                normal = normal * -1;
+            if(GOURAD){
+                // In gourad, we can't use show[i] because it signifies surface
+                // and not vertices, there is no thing as hidden vertex
+                // A vertex may be discarded if it isn't used in any visible
+                // surface which is harder to determine
+                if( TWOFACE && Vector::cosine((position-vrp),normal) > 0)
+                    normal = normal * -1;
+            } else {
+                if( TWOFACE && !show[i])
+                    normal = normal * -1;
+                if ( BACKFACEDETECTION && !TWOFACE && !show[i])
+                    continue;
+            }
 
             // Ambient lighting
             Coeffecient intensity = ambient.intensity * obj.material.ka;
@@ -156,7 +188,7 @@ int main(int argc, char* argv[]) {
                 }
                 // Specular ligting
                 {
-                    Vector half = (decdirection + (position-vrp).normalized())*(-1);
+                    Vector half = (decdirection.normalized() + (position-vrp).normalized()).normalized()*(-1);
                     float cosine = Vector::cosine(half,normal);
                     if(cosine <= 0)
                         continue;
@@ -168,35 +200,11 @@ int main(int argc, char* argv[]) {
         }
 
 
-        // Vertex Shader
-        // Get the vertex copy matrix which is
-        Matrix<float>& copyalias = obj.vcmatrix();
-        // Apply perspective projection and camera projection on copy
-        copyalias /=
-            TfMatrix::perspective2(95,(float)WIDTH/HEIGHT,10000,5)
-            * TfMatrix::lookAt(vrp,vpn,vup);
-        // Change the homogenous co-ordinates to
-        // normalized co-ordinate and  to device co-ordinate
-        for (unsigned i=0; i<nVerts; i++) {
-            // Perspective divide
-            // NOTE: normalization is also done during the projection transformation
-            copyalias(0,i) /= copyalias(3,i);
-            copyalias(1,i) /= copyalias(3,i);
-            copyalias(2,i) /= copyalias(3,i);
 
-            // Converting normalized Z co-ordinate [-1,1] to depthmap [1,0]*depth
-            // Visible part is between n and f.
-            // The z map is shown below
-            // space:        0       n       f
-            // value: -ve   inf      1       0   -ve
-            // NOTE: n and f have negative values
-            // Normalized co-rodinate is in right hand system
-            // camera is towards negative Z axis
-            copyalias(2,i) = (-copyalias(2,i)*0.5 + 0.5)*ScreenPoint::maxDepth;
-            // Change the normalized X Y co-ordinates to device co-ordinate
-            copyalias(0,i) = copyalias(0,i)*WIDTH + WIDTH/2;
-            copyalias(1,i) = HEIGHT - (copyalias(1,i)*HEIGHT + HEIGHT/2);
-        }
+
+
+
+
 
 
         // Clear framebuffer, we're about to plot
@@ -236,6 +244,23 @@ int main(int argc, char* argv[]) {
         float real_fps = 1e6 / ti;
         std::cout << DELETE;
         std::cout << "Nolimit FPS:\t" << real_fps << std::endl;
+
+        // Vertex Shader
+        // Apply object transformation
+        // Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+        // obj.vmatrix() /= rotator;
+        // obj.nmatrix() /= rotator;
+
+        // For exit
+        if (SDL_PollEvent(&event))
+            if(event.type == SDL_QUIT) break;
+        // Get keystate for all keyboard keys
+        if (keys[SDL_GetScancodeFromKey(SDLK_w)]) vrp += vpn.normalized();
+        if (keys[SDL_GetScancodeFromKey(SDLK_s)]) vrp -= vpn.normalized();
+        if (keys[SDL_GetScancodeFromKey(SDLK_a)]) vrp -= (vpn * vup).normalized();
+        if (keys[SDL_GetScancodeFromKey(SDLK_d)]) vrp += (vpn * vup).normalized();
+        // To rotation
+        vpn = -vrp;
     }
     return 0;
 }

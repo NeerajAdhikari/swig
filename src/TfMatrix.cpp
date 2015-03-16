@@ -17,6 +17,17 @@ Matrix<float> TfMatrix::lookAt(const Vector& vrp, const Vector& vpn, const Vecto
     return transformation;
 }
 
+Matrix<float> TfMatrix::toDevice(float width, float height, float maxDepth){
+    Matrix<float> transformation({4,4});
+    transformation.initialize(
+            width,      0,          0,              width/2,
+            0,          -height,    0,              height/2,
+            0,          0,          -0.5*maxDepth,  0.5 * maxDepth,
+            0,          0,          1,              0.0
+            );
+    return transformation;
+}
+
 Matrix<float> TfMatrix::perspective(float r, float t, float f, float n){
     Matrix<float> transformation({4,4});
     transformation.initialize(

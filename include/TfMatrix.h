@@ -43,6 +43,10 @@ class TfMatrix: public Matrix<float> {
         // Returns a camera transformation
         // View reference point, view plane normal, view up vector
         static Matrix<float> lookAt(const Vector& vrp, const Vector& vpn, const Vector& vup);
+
+        // To device co-ordinate
+        static Matrix<float> toDevice(float width, float height, float maxDepth);
+
 };
 
 #endif

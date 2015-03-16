@@ -126,6 +126,8 @@ class Object{
 
         Vector getSurfaceNormal(const Surface& p);
 
+        Vector getSurfaceNormalDistorted(const Surface& p);
+
         Vector getSurfaceNormal(unsigned point) ;
 
         Vector getSurfaceCentroid(unsigned point) ;
@@ -212,6 +214,7 @@ inline Vector Object::getVertex(unsigned point) const {
     return Vector(m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point));
 }
 
+
 inline Vector Object::getCopyVertex(unsigned point) const {
     if(point >= vertexCount())
         throw ex::OutOfBounds();
@@ -240,6 +243,17 @@ inline Vector Object::getSurfaceNormal(const Surface& p){
     Vector v1=getVertex(p.x);
     Vector v2=getVertex(p.y);
     Vector v3=getVertex(p.z);
+
+    Vector sidea=v2-v1;
+    Vector sideb=v3-v2;
+
+    return (sidea*sideb).normalized();
+}
+
+inline Vector Object::getSurfaceNormalDistorted(const Surface& p){
+    Vector v1=getCopyVertex(p.x);
+    Vector v2=getCopyVertex(p.y);
+    Vector v3=getCopyVertex(p.z);
 
     Vector sidea=v2-v1;
     Vector sideb=v3-v2;
