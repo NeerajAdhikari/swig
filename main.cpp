@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     obj.material.kd = {0.5,0.5,0.5};
     obj.material.ks = {0.5,0.5,0.5};
     obj.material.ns = 140;
-    //obj.vmatrix() /= TfMatrix::translation({0,0,-2});
+    //obj.vmatrix() /= TfMatrix::translation({0,4,0});
     unsigned nSurfs = obj.surfaceCount();
     unsigned nVerts = obj.vertexCount();
 

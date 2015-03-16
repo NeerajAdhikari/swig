@@ -15,10 +15,16 @@ class Linspace {
         // get you the current position
         int pos;
 
+        // start position
+        int xs;
+        int ds;
     public:
 
         // Start depth, End depth, no. of elements
         Linspace(int dss,int dee,int dxx);
+
+        // Start depth, End depth, Start pos, End pos
+        Linspace(int dss, int dee, int xss, int xee);
 
         // Get the value of the Linspace
         operator int() const;
@@ -28,7 +34,25 @@ class Linspace {
 
         // Increment the Linspace by 1
         inline void operator++();
+
+        inline int at(int a) const;
 };
+
+
+inline int Linspace::at(int i) const {
+    if(dx==0)
+        return ds;
+    return ds + (i-xs)*dd/dx;
+}
+
+
+// Start depth, End depth, no. of elements
+inline Linspace::Linspace(int dss,int dee,int xss, int xee):
+    dx(xee-xss),d(dss),dd(dee-dss),ctr(0),pos(0),xs(xss),ds(dss)
+{
+    if(dx<-1)
+        throw ex::InitFailure();
+}
 
 // Start depth, End depth, no. of elements
 inline Linspace::Linspace(int dss,int dee,int dxx):

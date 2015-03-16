@@ -124,29 +124,25 @@ void Drawer::hLineD(int y, int xStart, int dStart,
     if( xStart >= (int)plotter->width() || xEnd < 0)
         return;
 
-
-    Linspace d(dStart,dEnd,xEnd-xStart+1);
+    Linspace d(dStart,dEnd,xStart,xEnd);
 
     // Clipping
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
     // Clipping
-    int low = Math::max(0,xStart);
-    if(low-xStart > 0)
-        d += (low-xStart);
-    xStart = low;
+    xStart = Math::max(0,xStart);
 
     while(xStart <= xEnd){
         // Depth clipping, checking with zero isn't necessary
         // as depth(xStart,y) is always greater than or equal to 0
         // checking with far value must be done however
         // 0xffffff value because it is the maximum value it should attain
-        if ( (overwrite && d <= ScreenPoint::maxDepth && d>=depth(xStart,y)) ||
-            (!overwrite &&  d <= ScreenPoint::maxDepth && d>depth(xStart,y)) ) {
+        int de = d.at(xStart);
+        if ( (overwrite && de <= ScreenPoint::maxDepth && de>=depth(xStart,y)) ||
+            (!overwrite &&  de <= ScreenPoint::maxDepth && de>depth(xStart,y)) ) {
                 plotter->plot(xStart,y,cl,false);
-                depth(xStart,y)=d;
+                depth(xStart,y)=de;
             }
         ++xStart;
-        ++d;
     }
 
 }
@@ -172,34 +168,25 @@ void Drawer::hLineD(int y, int xStart,
     if( xStart >= (int)plotter->width() || xEnd < 0)
         return;
 
-    Linspace d(dStart,dEnd,xEnd-xStart+1);
-    Lincolor c(cStart,cEnd,xEnd-xStart+1);
+    Linspace d(dStart,dEnd,xStart,xEnd);
+    Lincolor c(cStart,cEnd,xStart,xEnd);
 
     // Clipping
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
-    // Clipping
-    int low = Math::max(0,xStart);
-    if(low-xStart > 0){
-        c += (low-xStart);
-        d += (low-xStart);
-    }
-    xStart = low;
+    xStart = Math::max(0,xStart);
 
     while(xStart <= xEnd){
         // Depth clipping, checking with zero isn't necessary
         // as depth(xStart,y) is always greater than or equal to 0
         // checking with far value must be done however
         // 0xffffff value because it is the maximum value it should attain
-        if ( (overwrite && d <= ScreenPoint::maxDepth && d>=depth(xStart,y)) ||
-            (!overwrite &&  d <= ScreenPoint::maxDepth && d>depth(xStart,y)) ) {
-            //Color cl = c;
-            //cl.alpha = 100 + 155/(INT32_MAX-d+1);
-            plotter->plot(xStart,y,c,false);
-            depth(xStart,y)=d;
+        int de = d.at(xStart);
+        if ( (overwrite && de <= ScreenPoint::maxDepth && de>=depth(xStart,y)) ||
+            (!overwrite &&  de <= ScreenPoint::maxDepth && de>depth(xStart,y)) ) {
+            plotter->plot(xStart,y,c.at(xStart),false);
+            depth(xStart,y)=de;
         }
         ++xStart;
-        ++d;
-        ++c;
     }
 
 }
@@ -374,75 +361,33 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3, bool inter
     if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
         return;
 
-    Linspace x1(start.x,mid.x, mid.y-start.y+1);
-    Linspace x2(start.x,end.x, end.y-start.y+1);
-    Linspace x3(mid.x,end.x, end.y-mid.y+1);
+    Linspace x1(start.x,mid.x, start.y, mid.y);
+    Linspace x2(start.x,end.x, start.y, end.y);
+    Linspace x3(mid.x,end.x, mid.y, end.y);
 
-    Linspace d1(start.d,mid.d, mid.y-start.y+1);
-    Linspace d2(start.d,end.d, end.y-start.y+1);
-    Linspace d3(mid.d,end.d, end.y-mid.y+1);
+    Linspace d1(start.d,mid.d, start.y , mid.y);
+    Linspace d2(start.d,end.d, start.y, end.y);
+    Linspace d3(mid.d,end.d, mid.y, end.y);
 
-    Lincolor c1(start.color,mid.color,mid.y-start.y+1);
-    Lincolor c2(start.color,end.color,end.y-start.y+1);
-    Lincolor c3(mid.color,end.color,end.y-mid.y+1);
+    Lincolor c1(start.color,mid.color,start.y,mid.y);
+    Lincolor c2(start.color,end.color,start.y,end.y);
+    Lincolor c3(mid.color,end.color,mid.y,end.y);
 
     // Clipping
-    {
-        int low = Math::min(mid.y,Math::max(start.y,0));
-        int delta = low-start.y;
-        if(delta>0){
-            x1 += delta;
-            x2 += delta;
-            d1 += delta;
-            d2 += delta;
-            if( interpolate ){
-                c1 += delta;
-                c2 += delta;
-            }
-            start.y += delta;
-        }
-    }
+    start.y = Math::min(mid.y,Math::max(start.y,0));
     for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++){
-        if(interpolate){
-            hLineD(i,x1,d1,x2,d2,c1,c2,overwrite);
-            ++c1;
-            ++c2;
-        } else {
-            hLineD(i,x1,d1,x2,d2,start.color,overwrite);
-        }
-        ++x1;
-        ++x2;
-        ++d1;
-        ++d2;
+        if(interpolate)
+            hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),c1.at(i),c2.at(i),overwrite);
+        else
+            hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),start.color,overwrite);
     }
 
     // Clipping
-    {
-        int low = Math::max(mid.y,0);
-        int delta = low-mid.y;
-        if(delta>0){
-            x2 += delta;
-            x3 += delta;
-            d2 += delta;
-            d3 += delta;
-            if( interpolate ){
-                c2 += delta;
-                c3 += delta;
-            }
-            mid.y += delta;
-        }
-    }
+    mid.y = Math::max(mid.y,0);
     for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++){
-        if(interpolate){
-            hLineD(i, x2, d2, x3, d3, c2, c3, overwrite);
-            ++c2;
-            ++c3;
-        } else {
-            hLineD(i, x2, d2, x3, d3, start.color, overwrite);
-        }
-        ++x2;
-        ++x3;
-        ++d2;
-        ++d3;
+        if(interpolate)
+            hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i), c2.at(i), c3.at(i), overwrite);
+        else
+            hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i), start.color, overwrite);
     }
 }
