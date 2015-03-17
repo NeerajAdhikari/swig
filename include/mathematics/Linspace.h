@@ -39,7 +39,9 @@ class Linspace {
 inline int Linspace::at(int i) const {
     if(dx==0)
         return ds;
-    return ds + (i-xs)*dd/dx;
+    // Because the multiplication (i-xs)*dd exceeded int, I had a pretty bad time
+    // Although the output will never exceed int
+    return (long long)(i-xs)*dd/dx+ds;
 }
 
 
