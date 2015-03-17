@@ -28,10 +28,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    Color black = {0,0,0,255};
-    Color white = {255,255,255,255};
-    Color badcolor = {255,0,255,255};
-
     // Gourad Shading
     bool GOURAD = false;
     if( argc > 2 && std::strcmp(argv[2],"gourad")==0 )
@@ -52,13 +48,13 @@ int main(int argc, char* argv[]) {
     if(TWOFACE)
         BACKFACEDETECTION = true;
 
-
-    // Intialize the benchmark
-    Time timekeeper;
-
     // Initialize the plotter interface
     Plotter_ fb(WIDTH,HEIGHT);
     Drawer drawer(&fb);
+
+    Color black = {0,0,0,255};
+    Color white = {255,255,255,255};
+    Color badcolor = {255,0,255,255};
 
     // Intialize the ambient light sources
     AmbientLight ambient = {{100,100,100}};
@@ -88,11 +84,14 @@ int main(int argc, char* argv[]) {
     Vector vpn = Vector(0,0,0) - vrp;
     Vector vup(0,1,0);
 
-    float n = 0;
-    float avg = 0;
-
     SDL_Event event;
     const Uint8* keys = SDL_GetKeyboardState(NULL);
+
+    // Intialize the benchmark
+    Time timekeeper;
+    // For fps
+    float n = 0, avg = 0;
+
     while (true) {
 
         // Start benchmark time
@@ -133,25 +132,26 @@ int main(int argc, char* argv[]) {
 
         // SURFACE SHADER
         // Detect backfaces in normalized co-ordinates
-        bool* show = new bool[nSurfs];
+        //bool* surfaceVisibililty = new bool[nSurfs];
         if(BACKFACEDETECTION){
-            memset(show,1,nSurfs*sizeof(bool));
+            //memset(surfaceVisibililty,1,nSurfs*sizeof(bool));
+
             // Required for backface detection
             // When backface detection is diasabled, still can be useful for TWOFACE objects
             // to reverse the direction
             for(int i=0;i<nSurfs;i++) {
                 // This normal is a special kind of normal, it uses x and y of
                 // the projected matrix so as to get orthogonal projection system
-                // but original z value for depth better depth calculation
+                // but original z value for better depth calculation
                 Vector normal = obj.getSurfaceNormalDistorted(obj.getSurface(i));
                 if( normal.z >= 0)
-                    show[i] = false;
+                    surfaceVisibililty[i] = false;
 
                 // OLD WAY
                 //Vector normal = obj.getSurfaceNormal(obj.getSurface(i));
                 //Vector position = obj.getSurfaceCentroid(i);
                 //if( Vector::cosine((position-vrp),normal) > 0)
-                //    show[i] = true;
+                //    surfaceVisibililty[i] = true;
             }
         }
 
@@ -159,60 +159,47 @@ int main(int argc, char* argv[]) {
         // Gourad or Flat shading
         unsigned iteration = GOURAD?nVerts:nSurfs;
         // Stores Color for each vertices
-        Color* colors = new Color[iteration];
+        Color* surfaceColor = new Color[iteration];
 
         // Calcualte Shading
         for(auto i=0;i<iteration;i++) {
 
+            // An object may have surfaces of different materials
+            Material& material = obj.material;
+
+            // Normal for lighting calculation
             Vector normal = GOURAD?
                 obj.getVertexNormal(i):
                 obj.getSurfaceNormal(obj.getSurface(i));
 
+            // Position for lighting calculation
             Vector position = GOURAD?
                 obj.getVertex(i):
                 obj.getSurfaceCentroid(i);
 
+            // NOTE
+            // surfaceVisibililty[i] is false if a surface is not visible,
+            // this cannot be used for vertices visibility
 
-            // In gourad, we can't use show[i] because it signifies surface
-            // and not vertices, there is no thing as hidden vertex
-            // A vertex may be discarded if it isn't used in any visible
-            // surface which is harder to determine so using such condition
-            if(GOURAD){
-                // Inverting the back surfaces for unbounded objects
-                if( TWOFACE && Vector::cosine((position-vrp),normal) > 0)
-                    normal = normal * -1;
-            } else {
-                if( TWOFACE && !show[i])
-                    normal = normal * -1;
-                if ( BACKFACEDETECTION && !TWOFACE && !show[i])
-                    continue;
-            }
+            // Inverting the back surfaces for unbounded objects
+            if( TWOFACE && GOURAD && Vector::cosine((position-vrp),normal) > 0)
+                normal = normal * -1;
+            if( TWOFACE && !GOURAD && !surfaceVisibililty[i])
+                normal = normal * -1;
+            // If backfacedetection then continue if suitable
+            if ( !TWOFACE && !GOURAD && BACKFACEDETECTION && !surfaceVisibililty[i])
+                continue;
 
             // Ambient lighting
             Coeffecient intensity = ambient.intensity * obj.material.ka;
-            for(int i=0; i<light.size(); i++){
-                Coeffecient decintensity= light[i].intensityAt(position);
-                Vector decdirection = light[i].directionAt(position);
-                // Diffused lighting
-                {
-                    float cosine = Vector::cosine((decdirection*(-1)),normal);
-                    // Check to remove symmetric lighting
-                    if(cosine <= 0)
-                        continue;
-                    intensity += (decintensity * obj.material.kd) * cosine;
-                }
-                // Specular ligting
-                {
-                    Vector half = (decdirection.normalized() + (position-vrp).normalized())*(-1);
-                    float cosine = Vector::cosine(half,normal);
-                    // Check to remove symmetric lighting
-                    if(cosine <= 0)
-                        continue;
-                    intensity += (decintensity * obj.material.ks) * std::pow(cosine, obj.material.ns);
-                }
-            }
+
+            // Diffused and Specular lighting
+            for(int i=0; i<light.size(); i++)
+                intensity += light[i].lightingAt(position, normal, material, vrp);
+
+            // Automatic conversion from Coeffecient to Color
             // The reflection surface can be seen as a light source to camera
-            colors[i] = PointLight({position,intensity}).intensityAt(vrp);
+            surfaceColor[i] = PointLight({position,intensity}).intensityAt(vrp);
         }
 
         // Clear framebuffer, we're about to plot
@@ -221,43 +208,39 @@ int main(int argc, char* argv[]) {
         // Fill the surfaces
         for (int i=0; i<nSurfs; i++) {
 
-            if( !TWOFACE && BACKFACEDETECTION && !show[i])
+            if( !TWOFACE && BACKFACEDETECTION && !surfaceVisibililty[i])
                 continue;
 
             int index = obj.getSurface(i).x;
-            ScreenPoint a(obj.getCopyVertex(index),colors[GOURAD?index:i]);
+            ScreenPoint a(obj.getCopyVertex(index),surfaceColor[GOURAD?index:i]);
 
             index = obj.getSurface(i).y;
-            ScreenPoint b(obj.getCopyVertex(index),colors[GOURAD?index:i]);
+            ScreenPoint b(obj.getCopyVertex(index),surfaceColor[GOURAD?index:i]);
 
             index = obj.getSurface(i).z;
-            ScreenPoint c(obj.getCopyVertex(index),colors[GOURAD?index:i]);
+            ScreenPoint c(obj.getCopyVertex(index),surfaceColor[GOURAD?index:i]);
 
-            // show[i] signifies backface detection
-            // for unbounded objects, overwrite must be diable for
-            // backface surfaces
-            drawer.fillD(a,b,c,GOURAD,show[i]);
+            // overwrite is enabled for non backface surfaces
+            drawer.fillD(a,b,c,GOURAD,surfaceVisibililty[i]);
         }
 
         // Update framebuffer
         drawer.update();
 
         // delete temporaries
-        delete []show;
-        delete []colors;
+        delete []surfaceVisibililty;
+        delete []surfaceColor;
 
-        // Stop benchmark time
+        // Stop benchmark time and calculate time
+        n++;
         uintmax_t ti = timekeeper.time();
         float real_fps = 1e6 / ti;
-        n++;
         avg = (avg*(n-1)+real_fps)/n;
+        // Display fps
         std::cout << DELETE << FPS << " : " << avg << " fps"<< std::endl;
-
-
-        if( ti < DELAY){
-            // Convert us to ms and delay
+        // Limit the fps
+        if( ti < DELAY)
             SDL_Delay((DELAY-ti)/1000);
-        }
     }
     return 0;
 }

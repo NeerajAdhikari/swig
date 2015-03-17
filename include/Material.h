@@ -1,3 +1,5 @@
+#ifndef __MATERIAL__
+#define __MATERIAL__
 #include "Coeffecient.h"
 
 struct Material {
@@ -18,3 +20,4 @@ struct Material {
     {
     }
 };
+#endif
