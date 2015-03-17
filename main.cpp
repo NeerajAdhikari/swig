@@ -52,19 +52,19 @@ int main(int argc, char* argv[]) {
     Plotter_ fb(WIDTH,HEIGHT);
     Drawer drawer(&fb);
 
+    // Initialize some good colors
     Color black = {0,0,0,255};
     Color white = {255,255,255,255};
     Color badcolor = {255,0,255,255};
 
-    // Intialize the ambient light sources
+    // Intialize the ambient light
     AmbientLight ambient = {{100,100,100}};
 
-    // Intialize the point light sources
+    // Intialize point light sources
     std::vector<PointLight> light;
     light.push_back({{-1000,1000,1000,0},  {200000,0,0}});
     light.push_back({{0,1000,1000,0},     {0,150000,0}});
     light.push_back({{0,0,1000,0},       {0,0,200000}});
-    // light.push_back({{0,0,100,0},    {100000,100000,10000}});
 
     // Initialize the object
     Object obj(argv[1]);
@@ -77,22 +77,34 @@ int main(int argc, char* argv[]) {
     unsigned nVerts = obj.vertexCount();
 
     // Initialize camera
-    // View reference point
-    // View plane normal
-    // View up vector
+    // view-reference point, view-plane normal, view-up vector
     Vector vrp(0,5,10);
     Vector vpn = Vector(0,0,0) - vrp;
     Vector vup(0,1,0);
 
+    // Initialize SDL events
     SDL_Event event;
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
-    // Intialize the benchmark
+    // Intialize the benchmark for fps
     Time timekeeper;
-    // For fps
     float n = 0, avg = 0;
 
     while (true) {
+
+        // SDL EVENTS
+        if (SDL_PollEvent(&event))
+            if(event.type == SDL_QUIT) break;
+        if (keys[SDL_GetScancodeFromKey(SDLK_w)])
+            vrp += vpn.normalized()/5;
+        if (keys[SDL_GetScancodeFromKey(SDLK_s)])
+            vrp -= vpn.normalized()/5;
+        if (keys[SDL_GetScancodeFromKey(SDLK_a)])
+            vrp -= (vpn * vup).normalized()/5;
+        if (keys[SDL_GetScancodeFromKey(SDLK_d)])
+            vrp += (vpn * vup).normalized()/5;
+        // For cirualar camera movement due to direction repositioning
+        vpn = -vrp;
 
         // Start benchmark time
         timekeeper.start();
@@ -102,16 +114,6 @@ int main(int argc, char* argv[]) {
         // Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
         // obj.vmatrix() /= rotator;
         // obj.nmatrix() /= rotator;
-
-        // SDL EVENTS
-        if (SDL_PollEvent(&event))
-            if(event.type == SDL_QUIT) break;
-        if (keys[SDL_GetScancodeFromKey(SDLK_w)]) vrp += vpn.normalized()/5;
-        if (keys[SDL_GetScancodeFromKey(SDLK_s)]) vrp -= vpn.normalized()/5;
-        if (keys[SDL_GetScancodeFromKey(SDLK_a)]) vrp -= (vpn * vup).normalized()/5;
-        if (keys[SDL_GetScancodeFromKey(SDLK_d)]) vrp += (vpn * vup).normalized()/5;
-        // To rotation
-        vpn = -vrp;
 
         // VERTEX SHADER
         // Get the vertex copy matrix
@@ -132,13 +134,11 @@ int main(int argc, char* argv[]) {
 
         // SURFACE SHADER
         // Detect backfaces in normalized co-ordinates
-        //bool* surfaceVisibililty = new bool[nSurfs];
+        bool* surfaceVisibililty;
         if(BACKFACEDETECTION){
-            //memset(surfaceVisibililty,1,nSurfs*sizeof(bool));
+            surfaceVisibililty= new bool[nSurfs];
+            memset(surfaceVisibililty,1,nSurfs*sizeof(bool));
 
-            // Required for backface detection
-            // When backface detection is diasabled, still can be useful for TWOFACE objects
-            // to reverse the direction
             for(int i=0;i<nSurfs;i++) {
                 // This normal is a special kind of normal, it uses x and y of
                 // the projected matrix so as to get orthogonal projection system
@@ -146,12 +146,6 @@ int main(int argc, char* argv[]) {
                 Vector normal = obj.getSurfaceNormalDistorted(obj.getSurface(i));
                 if( normal.z >= 0)
                     surfaceVisibililty[i] = false;
-
-                // OLD WAY
-                //Vector normal = obj.getSurfaceNormal(obj.getSurface(i));
-                //Vector position = obj.getSurfaceCentroid(i);
-                //if( Vector::cosine((position-vrp),normal) > 0)
-                //    surfaceVisibililty[i] = true;
             }
         }
 
@@ -228,7 +222,8 @@ int main(int argc, char* argv[]) {
         drawer.update();
 
         // delete temporaries
-        delete []surfaceVisibililty;
+        if(BACKFACEDETECTION)
+            delete []surfaceVisibililty;
         delete []surfaceColor;
 
         // Stop benchmark time and calculate time
