@@ -27,6 +27,7 @@ struct Surface : public Triplet<unsigned> {
     // A normal vector
     Vector normal;
 
+    // For backface detection
     bool visible;
 
     // Constructor
@@ -46,9 +47,10 @@ class Object{
         // A matrix is (4 x count) matrix is used to represent m_vertex
         // A homogeneous vertex matrix
         Matrix<float> m_vertex;
-        Matrix<float> m_cpyvertex;
-
-        // TODO added here
+        // TODO we are requiring two copy vertex for shadow
+        // A copy of the homogeneous matrix for manipulation
+        Matrix<float> m_copy_vertex;
+        // TODO no idea what to do here
         Matrix<float> m_vertex_normal;
 
         // A vector of pair of indexes to represent edges
@@ -57,84 +59,59 @@ class Object{
         std::vector<Surface> m_surface;
 
         // Defines the color and surface properties
+        // TODO put it in better place
         Material m_material;
 
-    public:
-        const Material& material() const;
+        // Reset and initialize the value of copy_vertex
+        void resetCopy();
 
+        // TODO load normals not calculate
         void initNormal();
-
-        Object (unsigned vertex_count, const Material& m);
-
-        // Load an object from an .obj file
-        Object(const std::string& filename, const Material& m);
 
         // Tesselate a polygon to triangles
         std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned> face);
 
-        // get total no. of vertices in the matrix
-        unsigned vertexCount() const ;
+    public:
 
-        // get total no. of edge in the matrix
-        unsigned edgeCount() const ;
+        // Load an object from an .obj file
+        Object(const std::string& filename, const Material& m);
+        Object (unsigned vertex_count, const Material& m);
 
-        // get total no. of surface in the matrix
-        unsigned surfaceCount() const ;
+        // Return the material of the object
+        const Material& material() const;
 
-        // Retuns the vertex matrix
+        // Retuns matrix
         Matrix<float>& vmatrix() ;
-
-        // Retuns the copy of vertex matrix
         Matrix<float>& vcmatrix() ;
+        Matrix<float>& vnmatrix() ;
 
-        // Reset and initialize the value of copy
-        // matrix to vertex matrix
-        // TODO should be private
-        void resetCopy();
-
-        // Retuns the vertex matrix
-        Matrix<float>& nmatrix() ;
-
-        // Getter in form matrix(x,y)
-        float& operator()(unsigned row, unsigned col);
-
-        // Setter in form matrix(x,y)
-        const float& operator()(unsigned row, unsigned col) const ;
-
-        // Getter in the form matrix(p)
-        const float& operator()(unsigned place) const ;
-
-        // Setter in the form matrix(p)
-        float& operator()(unsigned place);
+        // Get total counts
+        unsigned vertexCount() const ;
+        unsigned edgeCount() const ;
+        unsigned surfaceCount() const ;
 
         // setVertex overwrites, others append
         void setVertex(unsigned point,const Vector& p);
-
         void setEdge(const Pair<unsigned>& p) ;
-
         void setSurface(const Triplet<unsigned>& p) ;
 
-        Vector getVertex(unsigned point) const ;
-
-        Vector getCopyVertex(unsigned point) const ;
-
-        Vector getVertexDistorted(unsigned point) const ;
-
+        // Get Edge
         Edge& getEdge(unsigned point) ;
 
+        // Get Surface
         Surface& getSurface(unsigned point) ;
 
-        // TODO for now vertex count and vertex normal count is equal
-        // and vertexNormal isn't calculated when required
-        // it is already saved in a matrix unlike surface normal
+        // Get Vertex
+        Vector getVertex(unsigned point) const ;
+        Vector getCopyVertex(unsigned point) const ;
+        Vector getDistortedVertex(unsigned point) const ;
+
+        // Get Normal
         Vector getVertexNormal(unsigned i) const ;
-
-        Vector getSurfaceNormal(const Surface& p);
-
-        Vector getSurfaceNormalDistorted(const Surface& p);
-
         Vector getSurfaceNormal(unsigned point) ;
+        Vector getDistortedSurfaceNormal(unsigned point);
 
+        // Get Centroid
         Vector getSurfaceCentroid(unsigned point) ;
 
         void showVx() const;
@@ -160,35 +137,19 @@ inline Matrix<float>& Object::vmatrix() {
     return m_vertex;
 }
 
-// Don't call this function time and again
-// instead use a reference to store it
-inline Matrix<float>& Object::vcmatrix() {
-    resetCopy();
-    return m_cpyvertex;
-}
-
-inline void Object::resetCopy() {
-    m_cpyvertex = m_vertex;
-}
-
-inline Matrix<float>& Object::nmatrix() {
+inline Matrix<float>& Object::vnmatrix() {
     return m_vertex_normal;
 }
 
-inline float& Object::operator()(unsigned row, unsigned col){
-    return m_vertex(row,col);
+inline Matrix<float>& Object::vcmatrix() {
+    // Don't call this function time and again
+    // instead use a reference to store it
+    resetCopy();
+    return m_copy_vertex;
 }
 
-inline const float& Object::operator()(unsigned row, unsigned col) const {
-    return m_vertex(row,col);
-}
-
-inline const float& Object::operator()(unsigned place) const {
-    return m_vertex(place);
-}
-
-inline float& Object::operator()(unsigned place){
-    return m_vertex(place);
+inline void Object::resetCopy() {
+    m_copy_vertex = m_vertex;
 }
 
 void inline Object::setVertex(unsigned point,const Vector& p){
@@ -212,7 +173,6 @@ inline void Object::setSurface(const Triplet<unsigned>& p) {
         throw ex::OutOfBounds();
 
     Surface surf(p.x,p.y,p.z);
-    //surf.normal = getSurfaceNormal(surf);
     m_surface.push_back(surf);
 }
 
@@ -225,22 +185,22 @@ inline Vector Object::getVertex(unsigned point) const {
             m_vertex(3,point));
 }
 
-inline Vector Object::getVertexDistorted(unsigned point) const {
-    if(point >= vertexCount())
-        throw ex::OutOfBounds();
-    return Vector(m_cpyvertex(0,point),
-            m_cpyvertex(1,point),
-            m_cpyvertex(2,point),
-            m_vertex(3,point));
-}
-
 inline Vector Object::getCopyVertex(unsigned point) const {
     if(point >= vertexCount())
         throw ex::OutOfBounds();
-    return Vector(m_cpyvertex(0,point),
-            m_cpyvertex(1,point),
-            m_cpyvertex(2,point),
-            m_cpyvertex(3,point));
+    return Vector(m_copy_vertex(0,point),
+            m_copy_vertex(1,point),
+            m_copy_vertex(2,point),
+            m_copy_vertex(3,point));
+}
+
+inline Vector Object::getDistortedVertex(unsigned point) const {
+    if(point >= vertexCount())
+        throw ex::OutOfBounds();
+    return Vector(m_copy_vertex(0,point),
+            m_copy_vertex(1,point),
+            m_copy_vertex(2,point),
+            m_vertex(3,point));
 }
 
 inline Edge& Object::getEdge(unsigned point) {
@@ -258,41 +218,43 @@ inline Surface& Object::getSurface(unsigned point) {
 inline Vector Object::getVertexNormal(unsigned i) const {
     if(i >= vertexCount())
         throw ex::OutOfBounds();
-    return Vector(m_vertex_normal(0,i),m_vertex_normal(1,i),m_vertex_normal(2,i),m_vertex_normal(3,i));
+    return Vector(m_vertex_normal(0,i),
+            m_vertex_normal(1,i),
+            m_vertex_normal(2,i),
+            m_vertex_normal(3,i));
 }
 
-inline Vector Object::getSurfaceNormal(const Surface& p){
+inline Vector Object::getSurfaceNormal(unsigned point) {
+    Surface& p = getSurface(point);
     Vector v1=getVertex(p.x);
     Vector v2=getVertex(p.y);
     Vector v3=getVertex(p.z);
 
-    Vector sidea=v2-v1;
-    Vector sideb=v3-v2;
+    Vector sidea= v2-v1;
+    Vector sideb= v3-v2;
+    return (sidea*sideb).normalized();
+}
+
+inline Vector Object::getDistortedSurfaceNormal(unsigned point){
+    Surface& p = getSurface(point);
+    Vector v1=getDistortedVertex(p.x);
+    Vector v2=getDistortedVertex(p.y);
+    Vector v3=getDistortedVertex(p.z);
+
+    Vector sidea = v2-v1;
+    Vector sideb = v3-v2;
 
     return (sidea*sideb).normalized();
 }
 
-inline Vector Object::getSurfaceNormalDistorted(const Surface& p){
-    Vector v1=getVertexDistorted(p.x);
-    Vector v2=getVertexDistorted(p.y);
-    Vector v3=getVertexDistorted(p.z);
-
-    Vector sidea=v2-v1;
-    Vector sideb=v3-v2;
-
-    return (sidea*sideb).normalized();
-}
-
-inline Vector Object::getSurfaceNormal(unsigned point) {
-    return getSurfaceNormal(getSurface(point));
-}
 
 inline Vector Object::getSurfaceCentroid(unsigned point) {
     Surface p = getSurface(point);
     Vector v1=getVertex(p.x);
     Vector v2=getVertex(p.y);
     Vector v3=getVertex(p.z);
-    return Vector((v1.x+v2.x+v3.x)/3,(v1.y+v2.y+v3.y)/3,(v1.z+v2.z+v3.z)/3,1);
+    return (v1+v2+v3)/3;
+    //return Vector((v1.x+v2.x+v3.x)/3,(v1.y+v2.y+v3.y)/3,(v1.z+v2.z+v3.z)/3,1);
 }
 
 #endif

@@ -3,7 +3,7 @@
 Object::Object (unsigned vertex_count, const Material& m):
     m_vertex({4,vertex_count}),
     m_vertex_normal({4,vertex_count}),
-    m_cpyvertex({4,vertex_count}),
+    m_copy_vertex({4,vertex_count}),
     m_material(m)
 {
     // Initialize the points
@@ -16,7 +16,7 @@ Object::Object (unsigned vertex_count, const Material& m):
 Object::Object(const std::string& filename,const Material& m) :
     m_vertex({4,1}),
     m_vertex_normal({4,1}),
-    m_cpyvertex({4,1}),
+    m_copy_vertex({4,1}),
     m_material(m)
 {
     // throw exception if bad bit or fail bit

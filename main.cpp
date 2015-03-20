@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
-    Vector vrp(0,5,20);
+    Vector vrp(0,5,10);
     Vector vpn = Vector(0,0,0) - vrp;
     Vector vup(0,1,0);
 
@@ -110,12 +110,10 @@ int main(int argc, char* argv[]) {
 
         // VERTEX SHADER
 
-        /*
         // Apply object transformation
-         Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+         Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(0,1,0),Vector(0,0,0));
          obj.vmatrix() /= rotator;
-         obj.nmatrix() /= rotator;
-         */
+         obj.vnmatrix() /= rotator;
 
         // Get the vertex copy matrix
         // NOTE: getting a vertex matrix will reset the
@@ -145,60 +143,75 @@ int main(int argc, char* argv[]) {
                 // This normal is a special kind of normal, it uses x and y of
                 // the projected matrix so as to get orthogonal projection system
                 // but original Z value for better depth calculation
-                Vector normal = obj.getSurfaceNormalDistorted(obj.getSurface(i));
+                Vector normal = obj.getDistortedSurfaceNormal(i);
                 obj.getSurface(i).visible = (normal.z < 0);
             }
         }
 
 
-        // VERTEX / SURFACE Shader
-        // Gourad or Flat shading
-        unsigned iteration = GOURAD?obj.vertexCount():obj.surfaceCount();
-        // Stores Color for each vertices
-        Color* surfaceColor = new Color[iteration];
+        Color* colors;
+        if(GOURAD){
+            // VERTEX shader
+            colors =  new Color[obj.vertexCount()];
+            for(auto i=0;i<obj.vertexCount();i++) {
 
+                // An object may have surfaces of different materials
+                const Material& material = obj.material();
+                // Normal for lighting calculation
+                Vector normal = obj.getVertexNormal(i);
+                // Position for lighting calculation
+                Vector position = obj.getVertex(i);
 
-        // Calcualte Lighting
-        for(auto i=0;i<iteration;i++) {
+                // Inverting the back surfaces for unbounded objects
+                if( UNBOUNDED && Vector::cosine((position-vrp),normal) > 0)
+                    normal *= -1;
 
-            // An object may have surfaces of different materials
-            const Material& material = obj.material();
+                // Ambient lighting
+                Coeffecient intensity = ambient.intensity * material.ka;
 
-            // Normal for lighting calculation
-            Vector normal = GOURAD?
-                obj.getVertexNormal(i):
-                obj.getSurfaceNormal(obj.getSurface(i));
+                // Diffused and Specular lighting
+                for(int i=0; i<light.size(); i++)
+                    intensity += light[i].lightingAt(position, normal, material, vrp);
 
-            // Position for lighting calculation
-            Vector position = GOURAD?
-                obj.getVertex(i):
-                obj.getSurfaceCentroid(i);
+                // Automatic conversion from Coeffecient to Color
+                // The reflection surface can be seen as a light source to camera
+                colors[i] = PointLight({position,intensity}).intensityAt(vrp);
+            }
+        } else {
+            // SURFACE shader
+            colors =  new Color[obj.surfaceCount()];
+            for(auto i=0;i<obj.surfaceCount();i++) {
 
-            // Inverting the back surfaces for unbounded objects
-            if( UNBOUNDED && GOURAD && Vector::cosine((position-vrp),normal) > 0)
-                normal = normal * -1;
-            if( UNBOUNDED && !GOURAD && !obj.getSurface(i).visible)
-                normal = normal * -1;
-            // If backfacedetection then continue if suitable
-            if ( !UNBOUNDED && !GOURAD && BACKFACEDETECTION && !obj.getSurface(i).visible)
-                continue;
+                // An object may have surfaces of different materials
+                const Material& material = obj.material();
+                // Normal for lighting calculation
+                Vector normal =  obj.getSurfaceNormal(i);
+                // Position for lighting calculation
+                Vector position =  obj.getSurfaceCentroid(i);
 
-            // Ambient lighting
-            Coeffecient intensity = ambient.intensity * material.ka;
+                // If backfacedetection then continue if suitable
+                if ( !UNBOUNDED && BACKFACEDETECTION && !obj.getSurface(i).visible)
+                    continue;
+                // Inverting the back surfaces for unbounded objects
+                else if( UNBOUNDED && !obj.getSurface(i).visible)
+                    normal *=  -1;
 
-            // Diffused and Specular lighting
-            for(int i=0; i<light.size(); i++)
-                intensity += light[i].lightingAt(position, normal, material, vrp);
+                // Ambient lighting
+                Coeffecient intensity = ambient.intensity * material.ka;
 
-            // Automatic conversion from Coeffecient to Color
-            // The reflection surface can be seen as a light source to camera
-            surfaceColor[i] = PointLight({position,intensity}).intensityAt(vrp);
+                // Diffused and Specular lighting
+                for(int i=0; i<light.size(); i++)
+                    intensity += light[i].lightingAt(position, normal, material, vrp);
+
+                // Automatic conversion from Coeffecient to Color
+                // The reflection surface can be seen as a light source to camera
+                colors[i] = PointLight({position,intensity}).intensityAt(vrp);
+
+            }
         }
-
 
         // Clear framebuffer, we're about to plot
         drawer.clear(badcolor);
-
         // Fill the surfaces
         for (int i=0; i<obj.surfaceCount(); i++) {
 
@@ -206,23 +219,22 @@ int main(int argc, char* argv[]) {
                 continue;
 
             int index = obj.getSurface(i).x;
-            ScreenPoint a(obj.getCopyVertex(index),surfaceColor[GOURAD?index:i]);
+            ScreenPoint a(obj.getCopyVertex(index),colors[GOURAD?index:i]);
 
             index = obj.getSurface(i).y;
-            ScreenPoint b(obj.getCopyVertex(index),surfaceColor[GOURAD?index:i]);
+            ScreenPoint b(obj.getCopyVertex(index),colors[GOURAD?index:i]);
 
             index = obj.getSurface(i).z;
-            ScreenPoint c(obj.getCopyVertex(index),surfaceColor[GOURAD?index:i]);
+            ScreenPoint c(obj.getCopyVertex(index),colors[GOURAD?index:i]);
 
             // overwrite is enabled for non backface surfaces
             drawer.fillD(a,b,c,GOURAD, obj.getSurface(i).visible);
         }
-
         // Update framebuffer
         drawer.update();
 
         // delete temporaries
-        delete []surfaceColor;
+        delete []colors;
 
         // Stop benchmark time and calculate time
         n++;
