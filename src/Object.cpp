@@ -1,9 +1,10 @@
 #include "Object.h"
 
-Object::Object (unsigned vertex_count):
+Object::Object (unsigned vertex_count, const Material& m):
     m_vertex({4,vertex_count}),
     m_vertex_normal({4,vertex_count}),
-    m_cpyvertex({4,vertex_count})
+    m_cpyvertex({4,vertex_count}),
+    m_material(m)
 {
     // Initialize the points
     for(int i=0;i < vertexCount();i++)
@@ -12,10 +13,11 @@ Object::Object (unsigned vertex_count):
 }
 
 // Load an object from an .obj file
-Object::Object(const std::string& filename) :
+Object::Object(const std::string& filename,const Material& m) :
     m_vertex({4,1}),
     m_vertex_normal({4,1}),
-    m_cpyvertex({4,1})
+    m_cpyvertex({4,1}),
+    m_material(m)
 {
     // throw exception if bad bit or fail bit
     std::ifstream objfile(filename,std::ios::in);

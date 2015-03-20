@@ -10,6 +10,12 @@ struct Coeffecient {
     public:
         float b,g,r;
 
+    Coeffecient():b(0),g(0),r(0){
+    }
+
+    Coeffecient(float bb,float gg, float rr):b(bb),g(gg),r(rr){
+    }
+
     Coeffecient operator*(const Coeffecient& c){
         return {b*c.b,g*c.g,r*c.r};
     }
@@ -45,6 +51,10 @@ struct Coeffecient {
         return  {Math::min( b ,1.0f) * 255,
             Math::min( g ,1.0f) * 255,
             Math::min( r ,1.0f) * 255};
+    }
+
+    void print(){
+        std::cout << b << " " << r << " " << g << std::endl;
     }
 };
 

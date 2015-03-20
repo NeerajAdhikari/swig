@@ -33,20 +33,19 @@ class TfMatrix: public Matrix<float> {
         // Returns a perspective projection
         // where right and top denotes the right and top boundaries of the projection plane
         // where far and near denotes the near farplane and nearplane positions along Z
-        static Matrix<float> perspective(float right, float top, float far, float near);
+        static Matrix<float> perspectivex(float right, float top, float far, float near);
 
         // Returns a perspective projection
         // FOV angle in degree, width to height ratio of projection plane
-        static Matrix<float> perspective2(float POV, float ratio, float far, float near);
-
+        static Matrix<float> perspective(float POV, float ratio, float far, float near);
 
         // Returns a camera transformation
         // View reference point, view plane normal, view up vector
         static Matrix<float> lookAt(const Vector& vrp, const Vector& vpn, const Vector& vup);
 
-        // To device co-ordinate
+        // Returns a transformation from homogenous co-ordinate system
+        // to the device co-ordinate system
         static Matrix<float> toDevice(float width, float height, float maxDepth);
-
 };
 
 #endif

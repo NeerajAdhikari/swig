@@ -27,9 +27,11 @@ struct Surface : public Triplet<unsigned> {
     // A normal vector
     Vector normal;
 
+    bool visible;
+
     // Constructor
     Surface(unsigned xx, unsigned yy, unsigned zz)
-        : Triplet<unsigned>(xx,yy,zz)
+        : Triplet<unsigned>(xx,yy,zz), visible(true)
     {}
 
     // like color, luminosity, texture
@@ -54,17 +56,18 @@ class Object{
         // A vector of triplet of indexes to represent surfaces (triangles)
         std::vector<Surface> m_surface;
 
-    public:
-
         // Defines the color and surface properties
-        Material material;
+        Material m_material;
 
-        Object (unsigned vertex_count);
-
-        // Load an object from an .obj file
-        Object(const std::string& filename);
+    public:
+        const Material& material() const;
 
         void initNormal();
+
+        Object (unsigned vertex_count, const Material& m);
+
+        // Load an object from an .obj file
+        Object(const std::string& filename, const Material& m);
 
         // Tesselate a polygon to triangles
         std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned> face);
@@ -117,10 +120,9 @@ class Object{
 
         Vector getVertexDistorted(unsigned point) const ;
 
+        Edge& getEdge(unsigned point) ;
 
-        Edge getEdge(unsigned point) ;
-
-        Surface getSurface(unsigned point) ;
+        Surface& getSurface(unsigned point) ;
 
         // TODO for now vertex count and vertex normal count is equal
         // and vertexNormal isn't calculated when required
@@ -138,6 +140,9 @@ class Object{
         void showVx() const;
 };
 
+inline const Material& Object::material() const {
+    return m_material;
+}
 
 inline unsigned Object::vertexCount() const {
     return m_vertex.col();
@@ -214,28 +219,37 @@ inline void Object::setSurface(const Triplet<unsigned>& p) {
 inline Vector Object::getVertex(unsigned point) const {
     if(point >= vertexCount())
         throw ex::OutOfBounds();
-    return Vector(m_vertex(0,point),m_vertex(1,point),m_vertex(2,point),m_vertex(3,point));
+    return Vector(m_vertex(0,point),
+            m_vertex(1,point),
+            m_vertex(2,point),
+            m_vertex(3,point));
 }
 
 inline Vector Object::getVertexDistorted(unsigned point) const {
     if(point >= vertexCount())
         throw ex::OutOfBounds();
-    return Vector(m_cpyvertex(0,point),m_cpyvertex(1,point),m_cpyvertex(2,point),m_vertex(3,point));
+    return Vector(m_cpyvertex(0,point),
+            m_cpyvertex(1,point),
+            m_cpyvertex(2,point),
+            m_vertex(3,point));
 }
 
 inline Vector Object::getCopyVertex(unsigned point) const {
     if(point >= vertexCount())
         throw ex::OutOfBounds();
-    return Vector(m_cpyvertex(0,point),m_cpyvertex(1,point),m_cpyvertex(2,point),m_cpyvertex(3,point));
+    return Vector(m_cpyvertex(0,point),
+            m_cpyvertex(1,point),
+            m_cpyvertex(2,point),
+            m_cpyvertex(3,point));
 }
 
-inline Edge Object::getEdge(unsigned point) {
+inline Edge& Object::getEdge(unsigned point) {
     if(point>=edgeCount())
         throw ex::OutOfBounds();
     return m_edge[point];
 }
 
-inline Surface Object::getSurface(unsigned point) {
+inline Surface& Object::getSurface(unsigned point) {
     if(point>=surfaceCount())
         throw ex::OutOfBounds();
     return m_surface[point];

@@ -12,12 +12,20 @@ struct Material {
     // specular-reflection parameter (smaller values for dull surfaces)
     float ns;
 
-    Material():
-        ka({0.01,0.01,0.01}),
-        kd({0.05,0.05,0.05}),
-        ks({0.05,0.05,0.05}),
-        ns(10)
+    Material(const Coeffecient& a, const Coeffecient& d, const Coeffecient& s,float n):
+        ka(a),
+        kd(d),
+        ks(s),
+        ns(n)
     {
     }
+
+    void print(){
+        ka.print();
+        kd.print();
+        ks.print();
+        std::cout << ns << std::endl;
+    }
+
 };
 #endif

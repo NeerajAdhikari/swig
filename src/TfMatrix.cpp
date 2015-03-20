@@ -18,25 +18,24 @@ Matrix<float> TfMatrix::lookAt(const Vector& vrp, const Vector& vpn, const Vecto
 }
 
 Matrix<float> TfMatrix::toDevice(float width, float height, float maxDepth){
-    // Converting normalized Z co-ordinate [-1,1] to depthmap [maxDepth,0]
-    // Visible part is between n and f.
-    // The Z map is shown below
-    // space:        0       n       f
+    // Z map:        0       n       f
     // value: -ve   inf      1       0   -ve
+    // Visible part is between n and f.
     // NOTE: n and f have negative values
-    // Normalized co-rodinate is in RHS
-    // camera pointing towards negative Z axis
+    // Converting homogeneous Z co-ordinate,after normalization [-1,1] to [maxDepth,0]
+    // Converting homozenous X,Y co-ordintate to device co-ordinates
     Matrix<float> transformation({4,4});
     transformation.initialize(
             width,      0,          0,              width/2,
             0,          -height,    0,              height/2,
             0,          0,          -0.5*maxDepth,  0.5 * maxDepth,
-            0,          0,          1,              0.0
+            0,          0,          0,              1.0
             );
+
     return transformation;
 }
 
-Matrix<float> TfMatrix::perspective(float r, float t, float f, float n){
+Matrix<float> TfMatrix::perspectivex(float r, float t, float f, float n){
     Matrix<float> transformation({4,4});
     transformation.initialize(
             r/n,    0,      0,              0,
@@ -47,8 +46,9 @@ Matrix<float> TfMatrix::perspective(float r, float t, float f, float n){
     return transformation;
 }
 
-Matrix<float> TfMatrix::perspective2(float ang, float ratio, float f, float n){
-    // this matrix transfers world co-ordinates to homogenous coordinate and then normal-coordinates
+Matrix<float> TfMatrix::perspective(float ang, float ratio, float f, float n){
+    // this matrix transfers world co-ordinates to homogenous coordinate and
+    // then to normal-coordinates ie, a unit cube, after perspective divide
     // NOTE: for near plane Z=-1 and far plane Z=1 after normalization LHS
     float tangent = std::tan( Math::toRadian(ang/2) );
     Matrix<float> transformation({4,4});
@@ -98,7 +98,6 @@ Matrix<float> TfMatrix::rotation(float radian, const Vector& r, const Vector& po
 
     Vector axis = r.normalized();
 
-    //degree = std::fmod(degree,360);
     float sine = std::sin(radian);
     float cosine = std::cos(radian);
 

@@ -34,9 +34,9 @@ int main(int argc, char* argv[]) {
         GOURAD = true;
 
     // Enable two face
-    bool TWOFACE = false;
+    bool UNBOUNDED = false;
     if( argc > 3 && std::strcmp(argv[3],"unbounded")==0 )
-        TWOFACE = true;
+        UNBOUNDED = true;
 
     // Bacface detection
     bool BACKFACEDETECTION = false;
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
     // Twoface or unbounded requires backfacedetection
     // for enabling overwrite which helps remove bad pixels
-    if(TWOFACE)
+    if(UNBOUNDED)
         BACKFACEDETECTION = true;
 
     // Initialize the plotter interface
@@ -66,19 +66,18 @@ int main(int argc, char* argv[]) {
     light.push_back({{0,1000,1000,0},     {0,150000,0}});
     light.push_back({{0,0,1000,0},       {0,0,200000}});
 
+    // Initialize the material of object
+    Coeffecient ka = Coeffecient(0.1,0.1,0.1);
+    Coeffecient kd = Coeffecient(0.5,0.5,0.5);
+    Coeffecient ks = Coeffecient(0.5,0.5,0.5);
+    Material m(ka,kd,ks,140);
+
     // Initialize the object
-    Object obj(argv[1]);
-    obj.material.ka = {0.1,0.1,0.1};
-    obj.material.kd = {0.5,0.5,0.5};
-    obj.material.ks = {0.5,0.5,0.5};
-    obj.material.ns = 140;
-    //obj.vmatrix() /= TfMatrix::translation({0,4,0});
-    unsigned nSurfs = obj.surfaceCount();
-    unsigned nVerts = obj.vertexCount();
+    Object obj(argv[1], m );
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
-    Vector vrp(0,5,10);
+    Vector vrp(0,5,20);
     Vector vpn = Vector(0,0,0) - vrp;
     Vector vup(0,1,0);
 
@@ -110,56 +109,60 @@ int main(int argc, char* argv[]) {
         timekeeper.start();
 
         // VERTEX SHADER
-        // Apply object transformation
-        // Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
-        // obj.vmatrix() /= rotator;
-        // obj.nmatrix() /= rotator;
 
-        // VERTEX SHADER
+        /*
+        // Apply object transformation
+         Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(2),Vector(1,1,0),Vector(0,0,0));
+         obj.vmatrix() /= rotator;
+         obj.nmatrix() /= rotator;
+         */
+
         // Get the vertex copy matrix
+        // NOTE: getting a vertex matrix will reset the
+        // previous content of the copy vertex matrix
         Matrix<float>& copyalias = obj.vcmatrix();
-        // Apply (perspective projection & normalization) and camera projection
+        // Apply camera projection and perspective projection transformation
+        // Change homogeneous co-ordinate system to device co-ordinate system
         copyalias /=
-            TfMatrix::perspective2(95,(float)WIDTH/HEIGHT,10000,5)
+            TfMatrix::toDevice(WIDTH,HEIGHT,ScreenPoint::maxDepth)
+            * TfMatrix::perspective(95,(float)WIDTH/HEIGHT,10000,5)
             * TfMatrix::lookAt(vrp,vpn,vup);
-        // Perspective divide : homogenous co-ordinates to normalized co-ordinate
-        for (unsigned i=0; i<nVerts; i++) {
+
+        // Perspective divide, homogenous co-ordinates to normalized co-ordinate
+        // NOTE: this can be done later in life
+        for (unsigned i=0; i<obj.vertexCount(); i++) {
             copyalias(0,i) /= copyalias(3,i);
             copyalias(1,i) /= copyalias(3,i);
             copyalias(2,i) /= copyalias(3,i);
             copyalias(3,i) = 1.0;
         }
-        // Change Normalized co-ordinate system to device co-ordinate system
-        copyalias /= TfMatrix::toDevice(WIDTH,HEIGHT,ScreenPoint::maxDepth);
 
         // SURFACE SHADER
-        // Detect backfaces in normalized co-ordinates
-        bool* surfaceVisibililty;
-        if(BACKFACEDETECTION){
-            surfaceVisibililty= new bool[nSurfs];
-            memset(surfaceVisibililty,1,nSurfs*sizeof(bool));
 
-            for(int i=0;i<nSurfs;i++) {
+        // Detect backfaces in normalized co-ordinates
+        if(BACKFACEDETECTION) {
+            for(int i=0;i<obj.surfaceCount();i++) {
                 // This normal is a special kind of normal, it uses x and y of
                 // the projected matrix so as to get orthogonal projection system
-                // but original z value for better depth calculation
+                // but original Z value for better depth calculation
                 Vector normal = obj.getSurfaceNormalDistorted(obj.getSurface(i));
-                if( normal.z >= 0)
-                    surfaceVisibililty[i] = false;
+                obj.getSurface(i).visible = (normal.z < 0);
             }
         }
 
-        // Vertex / Surface Shader
+
+        // VERTEX / SURFACE Shader
         // Gourad or Flat shading
-        unsigned iteration = GOURAD?nVerts:nSurfs;
+        unsigned iteration = GOURAD?obj.vertexCount():obj.surfaceCount();
         // Stores Color for each vertices
         Color* surfaceColor = new Color[iteration];
 
-        // Calcualte Shading
+
+        // Calcualte Lighting
         for(auto i=0;i<iteration;i++) {
 
             // An object may have surfaces of different materials
-            Material& material = obj.material;
+            const Material& material = obj.material();
 
             // Normal for lighting calculation
             Vector normal = GOURAD?
@@ -171,21 +174,17 @@ int main(int argc, char* argv[]) {
                 obj.getVertex(i):
                 obj.getSurfaceCentroid(i);
 
-            // NOTE
-            // surfaceVisibililty[i] is false if a surface is not visible,
-            // this cannot be used for vertices visibility
-
             // Inverting the back surfaces for unbounded objects
-            if( TWOFACE && GOURAD && Vector::cosine((position-vrp),normal) > 0)
+            if( UNBOUNDED && GOURAD && Vector::cosine((position-vrp),normal) > 0)
                 normal = normal * -1;
-            if( TWOFACE && !GOURAD && !surfaceVisibililty[i])
+            if( UNBOUNDED && !GOURAD && !obj.getSurface(i).visible)
                 normal = normal * -1;
             // If backfacedetection then continue if suitable
-            if ( !TWOFACE && !GOURAD && BACKFACEDETECTION && !surfaceVisibililty[i])
+            if ( !UNBOUNDED && !GOURAD && BACKFACEDETECTION && !obj.getSurface(i).visible)
                 continue;
 
             // Ambient lighting
-            Coeffecient intensity = ambient.intensity * obj.material.ka;
+            Coeffecient intensity = ambient.intensity * material.ka;
 
             // Diffused and Specular lighting
             for(int i=0; i<light.size(); i++)
@@ -196,13 +195,14 @@ int main(int argc, char* argv[]) {
             surfaceColor[i] = PointLight({position,intensity}).intensityAt(vrp);
         }
 
+
         // Clear framebuffer, we're about to plot
         drawer.clear(badcolor);
 
         // Fill the surfaces
-        for (int i=0; i<nSurfs; i++) {
+        for (int i=0; i<obj.surfaceCount(); i++) {
 
-            if( !TWOFACE && BACKFACEDETECTION && !surfaceVisibililty[i])
+            if( !UNBOUNDED && BACKFACEDETECTION && !obj.getSurface(i).visible)
                 continue;
 
             int index = obj.getSurface(i).x;
@@ -215,15 +215,13 @@ int main(int argc, char* argv[]) {
             ScreenPoint c(obj.getCopyVertex(index),surfaceColor[GOURAD?index:i]);
 
             // overwrite is enabled for non backface surfaces
-            drawer.fillD(a,b,c,GOURAD,surfaceVisibililty[i]);
+            drawer.fillD(a,b,c,GOURAD, obj.getSurface(i).visible);
         }
 
         // Update framebuffer
         drawer.update();
 
         // delete temporaries
-        if(BACKFACEDETECTION)
-            delete []surfaceVisibililty;
         delete []surfaceColor;
 
         // Stop benchmark time and calculate time
