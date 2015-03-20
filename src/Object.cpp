@@ -4,7 +4,9 @@ Object::Object (unsigned vertex_count, const Material& m):
     m_vertex({4,vertex_count}),
     m_vertex_normal({4,vertex_count}),
     m_copy_vertex({4,vertex_count}),
-    m_material(m)
+    m_material(m),
+    m_colors(NULL),
+    m_colors_count(0)
 {
     // Initialize the points
     for(int i=0;i < vertexCount();i++)
@@ -17,7 +19,8 @@ Object::Object(const std::string& filename,const Material& m) :
     m_vertex({4,1}),
     m_vertex_normal({4,1}),
     m_copy_vertex({4,1}),
-    m_material(m)
+    m_material(m),
+    m_colors(NULL)
 {
     // throw exception if bad bit or fail bit
     std::ifstream objfile(filename,std::ios::in);
@@ -161,3 +164,7 @@ void Object::initNormal() {
     }
 
 }
+
+
+
+

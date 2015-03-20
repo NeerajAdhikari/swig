@@ -62,6 +62,11 @@ class Object{
         // TODO put it in better place
         Material m_material;
 
+        // Store color information for lighting
+        Color* m_colors;
+
+        int m_colors_count;
+
         // Reset and initialize the value of copy_vertex
         void resetCopy();
 
@@ -76,6 +81,29 @@ class Object{
         // Load an object from an .obj file
         Object(const std::string& filename, const Material& m);
         Object (unsigned vertex_count, const Material& m);
+        ~Object();
+
+        void initColors(unsigned size){
+            if(size!=m_colors_count){
+                if( m_colors != NULL)
+                    delete []m_colors;
+                m_colors = new Color[size];
+                m_colors_count = size;
+            }
+        }
+
+        void deleteColors(){
+                if( m_colors != NULL)
+                    delete []m_colors;
+                m_colors = NULL;
+                m_colors_count = 0;
+        }
+
+        Color& getColor(unsigned size){
+            if(size >= m_colors_count)
+                throw ex::OutOfBounds();
+            return m_colors[size];
+        }
 
         // Return the material of the object
         const Material& material() const;
@@ -116,6 +144,10 @@ class Object{
 
         void showVx() const;
 };
+ inline Object::~Object(){
+        if( m_colors != NULL)
+            delete []m_colors;
+ }
 
 inline const Material& Object::material() const {
     return m_material;
