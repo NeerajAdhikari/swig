@@ -2,3 +2,4 @@
 .*.swp
 resources
 bin
+.vim_session_

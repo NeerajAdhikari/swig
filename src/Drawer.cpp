@@ -133,12 +133,16 @@ void Drawer::hLineD(int y, int xStart, int dStart,
 
     while(xStart <= xEnd){
         // Depth clipping, checking with zero isn't necessary
-        // as depth(xStart,y) is always greater than or equal to 0
+        // as depth(xStart,y) is always greater than or equal
+        // to 0
         // checking with far value must be done however
-        // 0xffffff value because it is the maximum value it should attain
+        // 0xffffff value because it is the maximum value it
+        // should attain
         int de = d.at(xStart);
-        if ( (overwrite && de <= ScreenPoint::maxDepth && de>=depth(xStart,y)) ||
-            (!overwrite &&  de <= ScreenPoint::maxDepth && de>depth(xStart,y)) ) {
+        if ((overwrite && de<=ScreenPoint::maxDepth &&
+                    de>=depth(xStart,y)) ||
+            (!overwrite &&  de<=ScreenPoint::maxDepth &&
+             de>depth(xStart,y)) ) {
                 plotter->plot(xStart,y,cl,false);
                 depth(xStart,y)=de;
             }
@@ -153,8 +157,8 @@ void Drawer::hLineD(int y, int xStart, int dStart,
 // The parameters are : y-coordinate, starting x-coordinate,
 // starting depth value, ending x-coordinate and ending depth
 // value
-void Drawer::hLineD(int y, int xStart,
-        int dStart, int xEnd, int dEnd, Color cStart,Color cEnd, bool overwrite) {
+void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
+        int dEnd, Color cStart,Color cEnd, bool overwrite) {
     // Sort the start end end values if they are not in order
     if (xStart>xEnd) {
         swap(xStart,xEnd);
@@ -177,12 +181,16 @@ void Drawer::hLineD(int y, int xStart,
 
     while(xStart <= xEnd){
         // Depth clipping, checking with zero isn't necessary
-        // as depth(xStart,y) is always greater than or equal to 0
+        // as depth(xStart,y) is always greater than or
+        // equal to 0
         // checking with far value must be done however
-        // 0xffffff value because it is the maximum value it should attain
+        // 0xffffff value because it is the maximum value it
+        // should attain
         int de = d.at(xStart);
-        if ( (overwrite && de <= ScreenPoint::maxDepth && de>=depth(xStart,y)) ||
-            (!overwrite &&  de <= ScreenPoint::maxDepth && de>depth(xStart,y)) ) {
+        if ((overwrite && de<=ScreenPoint::maxDepth &&
+                    de>=depth(xStart,y)) ||
+            (!overwrite && de<=ScreenPoint::maxDepth &&
+             de>depth(xStart,y)) ) {
             plotter->plot(xStart,y,c.at(xStart),false);
             depth(xStart,y)=de;
         }
@@ -233,7 +241,8 @@ void Drawer::initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& en
 // scan-line filling which works only for triangles.
 // considering depth buffer
 // overwrite when true will enable overwrite to same depth
-void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3, bool interpolate, bool overwrite){
+void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
+        ScreenPoint pt3, bool interpolate, bool overwrite){
 
     ScreenPoint start, mid, end;
     initAscending(start,mid,end,pt1,pt2,pt3);
@@ -262,20 +271,28 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3, bool inter
     // Clipping
     if(interpolate){
         start.y = Math::min(mid.y,Math::max(start.y,0));
-        for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++)
-            hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),c1.at(i),c2.at(i),overwrite);
+        for(int i=start.y;i<Math::min((int)plotter->height(),
+                    mid.y);i++)
+            hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),
+                    c1.at(i),c2.at(i),overwrite);
         // Clipping
         mid.y = Math::max(mid.y,0);
-        for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++)
-            hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i), c2.at(i), c3.at(i), overwrite);
+        for(int i=mid.y;i<=Math::min((int)plotter->
+                    height()-1,end.y);i++)
+            hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i),
+                    c2.at(i), c3.at(i), overwrite);
 
     } else {
         start.y = Math::min(mid.y,Math::max(start.y,0));
-        for(int i=start.y;i<Math::min((int)plotter->height(),mid.y);i++)
-            hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),start.color,overwrite);
+        for(int i=start.y;i<Math::min((int)plotter->height(),
+                    mid.y);i++)
+            hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),
+                    start.color,overwrite);
         // Clipping
         mid.y = Math::max(mid.y,0);
-        for(int i=mid.y;i<=Math::min((int)plotter->height()-1,end.y);i++)
-            hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i), start.color, overwrite);
+        for(int i=mid.y;i<=Math::min((int)plotter->height()-1,
+                    end.y);i++)
+            hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i),
+                    start.color, overwrite);
     }
 }

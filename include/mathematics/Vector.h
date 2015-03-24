@@ -182,7 +182,7 @@ inline Vector Vector::operator+() const {
 
 // Display for debugging
 inline void Vector::display() const {
-    std::cout << "(" << x << ", " << y << ", " << z << "," << w << ")" << std::endl;
+    std::cout<<"("<<x<<", "<<y<<", "<<z<<","<<w<<")"<<std::endl;
 }
 
 #endif

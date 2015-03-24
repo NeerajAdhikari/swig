@@ -10,8 +10,8 @@
 #define Plotter_ SDLPlotter
 #include SSTR(Plotter_.h)
 
-// The drawer class is an abstraction that handles the drawing of
-// primitives. Drawing lines, filling polygons, etc are done
+// The drawer class is an abstraction that handles the drawing
+// of primitives. Drawing lines, filling polygons, etc are done
 // through Drawer.
 class Drawer {
 
