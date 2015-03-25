@@ -1,27 +1,43 @@
 #include "Object.h"
 
-Object::Object (unsigned vertex_count, const Material& m):
+Object::Object (unsigned vertex_count, const Material& m,
+        Shading sh = Shading::flat, bool backface = true, bool bothside = false):
     m_vertex({4,vertex_count}),
     m_vertex_normal({4,vertex_count}),
     m_copy_vertex({4,vertex_count}),
     m_material(m),
     m_colors(NULL),
-    m_colors_count(0)
+    m_colors_count(0),
+    m_shading(sh),
+    m_backface(backface),
+    m_bothsides(bothside)
 {
     // Initialize the points
     for(int i=0;i < vertexCount();i++)
         m_vertex(3,i) = 1;
     // Initialize edges and surfaces
+
+    // If both sides need to be shaded, turn of backface detection
+    if (m_bothsides)
+        m_backface = false;
 }
 
 // Load an object from an .obj file
-Object::Object(const std::string& filename,const Material& m) :
+Object::Object(const std::string& filename,const Material& m,
+        Shading sh = Shading::flat, bool backface = true, bool bothside = false) :
     m_vertex({4,1}),
     m_vertex_normal({4,1}),
     m_copy_vertex({4,1}),
     m_material(m),
-    m_colors(NULL)
+    m_colors(NULL),
+    m_shading(sh),
+    m_backface(backface),
+    m_bothsides(bothside)
 {
+    // Turn off backface detection if both sides need to be shaded
+    if (m_bothsides)
+        m_backface = false;
+
     // throw exception if bad bit or fail bit
     std::ifstream objfile(filename,std::ios::in);
     // TODO if enabled doesn't work for "gourd.obj"

@@ -11,6 +11,8 @@
 #include "mathematics/Matrix.h"
 #include "mathematics/Vector.h"
 
+enum class Shading { flat, gouraud, phong };
+
 // A edge contains 2 index points
 struct Edge :public Pair<unsigned> {
 
@@ -36,7 +38,6 @@ struct Surface : public Triplet<unsigned> {
     {}
 
     // like color, luminosity, texture
-
 };
 
 // Work on progress
@@ -59,8 +60,16 @@ class Object{
         std::vector<Surface> m_surface;
 
         // Defines the color and surface properties
-        // TODO put it in better place
         Material m_material;
+
+        // The type of shading
+        Shading m_shading;
+
+        // Whether to do backface culling on the object
+        bool m_backface;
+
+        // Whether the object's surfaces need to be shaded both sides
+        bool m_bothsides;
 
         // Store color information for lighting
         Color* m_colors;
@@ -79,8 +88,10 @@ class Object{
     public:
 
         // Load an object from an .obj file
-        Object(const std::string& filename, const Material& m);
-        Object (unsigned vertex_count, const Material& m);
+        Object(const std::string& filename, const Material& m, Shading sh,
+                bool backface = true, bool bothside = false);
+        Object (unsigned vertex_count, const Material& m, Shading sh,
+                bool backface = true, bool bothside = false);
         ~Object();
 
         void initColors(unsigned size){
@@ -143,11 +154,19 @@ class Object{
         Vector getSurfaceCentroid(unsigned point) ;
 
         void showVx() const;
+
+        Shading getShading() const;
+        void setShading(Shading sh);
+        bool backface() const;
+        void backface(bool bf);
+        bool bothsides() const;
+        void bothsides(bool bs);
 };
- inline Object::~Object(){
-        if( m_colors != NULL)
-            delete []m_colors;
- }
+
+inline Object::~Object(){
+    if( m_colors != NULL)
+        delete []m_colors;
+}
 
 inline const Material& Object::material() const {
     return m_material;
@@ -279,7 +298,6 @@ inline Vector Object::getDistortedSurfaceNormal(unsigned point){
     return (sidea*sideb).normalized();
 }
 
-
 inline Vector Object::getSurfaceCentroid(unsigned point) {
     Surface p = getSurface(point);
     Vector v1=getVertex(p.x);
@@ -287,6 +305,30 @@ inline Vector Object::getSurfaceCentroid(unsigned point) {
     Vector v3=getVertex(p.z);
     return (v1+v2+v3)/3;
     //return Vector((v1.x+v2.x+v3.x)/3,(v1.y+v2.y+v3.y)/3,(v1.z+v2.z+v3.z)/3,1);
+}
+
+inline Shading Object::getShading() const {
+    return m_shading;
+}
+
+inline void Object::setShading(Shading sh) {
+    m_shading = sh;
+}
+
+inline bool Object::backface() const {
+    return m_backface;
+}
+
+inline void Object::backface(bool bf) {
+    m_backface = bf;
+}
+
+inline bool Object::bothsides() const {
+    return m_bothsides;
+}
+
+inline void Object::bothsides(bool bs) {
+    m_bothsides = bs;
 }
 
 #endif

@@ -9,11 +9,6 @@ Shader::~Shader() {
 
 /* Draw a frame on the screen */
 void Shader::draw() {
-    bool GOURAUD = false;
-    bool UNBOUNDED = false;
-    bool BACKFACEDETECTION = false;
-    if (UNBOUNDED)
-        BACKFACEDETECTION = true;
 
     // Initialize some good colors
     Color black = {0,0,0,255};
@@ -30,6 +25,7 @@ void Shader::draw() {
         *TfMatrix::perspective(95,(float)mp_drawer->getWidth()
                 /mp_drawer->getHeight(),10000,5)
         *TfMatrix::lookAt(m_camera.vrp,m_camera.vpn,m_camera.vup);
+    bool BACKFACEDETECTION, UNBOUNDED, GOURAUD;
 
     for (int k=0; k<m_objects.size(); k++) {
         //m_objects[k]->vmatrix() /= rotator;
@@ -52,6 +48,9 @@ void Shader::draw() {
         }
 
         // SURFACE SHADER
+        BACKFACEDETECTION = m_objects[k]->backface();
+        UNBOUNDED = m_objects[k]->bothsides();
+        GOURAUD = m_objects[k]->getShading()==Shading::gouraud;
 
         // Detect backfaces in normalized co-ordinates
         if(BACKFACEDETECTION) {
@@ -157,6 +156,11 @@ void Shader::draw() {
 
     // Fill the surfaces
     for(int k=0;k<m_objects.size(); k++){
+
+        BACKFACEDETECTION = m_objects[k]->backface();
+        UNBOUNDED = m_objects[k]->bothsides();
+        GOURAUD = m_objects[k]->getShading()==Shading::gouraud;
+
         for (int i=0; i<m_objects[k]->surfaceCount(); i++) {
 
             if (!UNBOUNDED && BACKFACEDETECTION &&
