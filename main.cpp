@@ -31,7 +31,7 @@ int main(int argc, char*argv[]) {
 
     // Gourad Shading
     bool GOURAD = false;
-    if (argc>2 && std::strcmp(argv[2],"gourad")==0 )
+    if (argc>2 && std::strcmp(argv[2],"gourad")==0)
         GOURAD = true;
 
     // Enable two face

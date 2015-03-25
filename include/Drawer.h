@@ -22,8 +22,9 @@ class Drawer {
     // A depth buffer, a matrix of uint32_t
     Matrix<uint32_t> depth;
 
-    void initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& end,
-            const ScreenPoint& pt1, const ScreenPoint& pt2, const ScreenPoint& pt3);
+    void initAscending(ScreenPoint& start, ScreenPoint& mid,
+            ScreenPoint& end, const ScreenPoint& pt1,
+            const ScreenPoint& pt2, const ScreenPoint& pt3);
 
     public:
     Drawer(Plotter_ *pltr);
@@ -48,14 +49,14 @@ class Drawer {
 
     // Draw a horizontal line considering the depth buffer
     // and color gradient
-    void hLineD(int y, int xs, int hs,
-            int xe, int he, Color cStart, Color cEnd, bool overwrite=true);
+    void hLineD(int y, int xs, int hs, int xe, int he, Color cStart,
+            Color cEnd, bool overwrite=true);
 
     // Fill the triangle bounded by pt1, pt2 and pt3
     // considering depth buffer and color gradient
     // overwrite when true will enable overwrite to same depth
-    void fillD(ScreenPoint pt1, ScreenPoint pt2,
-            ScreenPoint pt3, bool interpolate=true,bool overwrite=true);
+    void fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3,
+            bool interpolate=true,bool overwrite=true);
 
 };
 

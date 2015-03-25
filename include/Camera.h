@@ -11,6 +11,9 @@ struct Camera  {
     Camera (Vector rp, Vector pn, Vector up) {
         vrp = rp; vpn = pn; vup = up;
     }
+
+    Camera() {
+    }
 };
 
 #endif // __COLOR_H__
