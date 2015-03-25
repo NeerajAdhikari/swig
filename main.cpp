@@ -13,6 +13,7 @@
 #include "AmbientLight.h"
 #include "Object.h"
 #include "Camera.h"
+#include "Shader.h"
 
 #include "misc/Time.h"
 
@@ -31,7 +32,7 @@ int main(int argc, char*argv[]) {
 
     // Gourad Shading
     bool GOURAD = false;
-    if (argc>2 && std::strcmp(argv[2],"gourad")==0)
+    if (argc>2 && std::strcmp(argv[2],"gourad")==0 )
         GOURAD = true;
 
     // Enable two face
@@ -52,6 +53,7 @@ int main(int argc, char*argv[]) {
     // Initialize the plotter interface
     Plotter_ fb(WIDTH,HEIGHT);
     Drawer drawer(&fb);
+    Shader shader(&drawer);
 
     // Initialize some good colors
     Color black = {0,0,0,255};
@@ -60,12 +62,14 @@ int main(int argc, char*argv[]) {
 
     // Intialize the ambient light
     AmbientLight ambient = {{100,100,100}};
+    shader.setAmbient(ambient);
 
     // Intialize point light sources
-    std::vector<PointLight>light;
-    light.push_back({{-1000,1000,1000,0},  {200000,0,0}});
-    light.push_back({{0,1000,1000,0},     {0,150000,0}});
-    light.push_back({{0,0,1000,0},       {0,0,200000}});
+    PointLight red = {{-1000,1000,1000,0},  {200000,0,0}};
+    PointLight green = {{0,1000,1000,0},     {0,150000,0}};
+    PointLight blue = {{0,0,1000,0},       {0,0,200000}};
+    shader.addLight(&red); shader.addLight(&green);
+    shader.addLight(&blue);
 
     // Initialize the material of object
     Coeffecient ka = Coeffecient(0.1,0.1,0.1);
@@ -77,10 +81,12 @@ int main(int argc, char*argv[]) {
     Object plane(argv[1], m );
     Object gourd("resources/cube.obj",m);
     gourd.vmatrix() /= TfMatrix::translation({0,-5,0,0});
+    shader.addObject(&gourd);
+    shader.addObject(&plane);
 
-    std::vector<Object*>obj;
+    /*std::vector<Object*>obj;
     obj.push_back(&plane);
-    obj.push_back(&gourd);
+    obj.push_back(&gourd);*/
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
@@ -88,6 +94,7 @@ int main(int argc, char*argv[]) {
     Vector vxpn = Vector(0,0,0)-cam.vrp;
     Vector vxup(0,1,0);*/
     Camera cam({0,5,10},{0,-5,-10},{0,1,0});
+    shader.setCamera(cam);
 
     // Initialize SDL events
     SDL_Event event;
@@ -127,14 +134,14 @@ int main(int argc, char*argv[]) {
         // projection transformation
         // Change homogeneous co-ordinate system
         // to device co-ordinate system
-        Matrix<float>transformation =
+        /*Matrix<float>transformation =
             TfMatrix::toDevice(WIDTH,HEIGHT,
                     ScreenPoint::maxDepth)
            *TfMatrix::perspective(
                    95,(float)WIDTH/HEIGHT,10000,5)
            *TfMatrix::lookAt(cam.vrp,cam.vpn,cam.vup);
-
-        for(int k=0;k<obj.size(); k++){
+        */
+        /*for(int k=0;k<obj.size(); k++){
             //obj[k]->vmatrix() /= rotator;
             //obj[k]->vnmatrix() /= rotator;
 
@@ -284,8 +291,9 @@ int main(int argc, char*argv[]) {
             }
         }
         // Update framebuffer
-        drawer.update();
-
+        drawer.update();*/
+        shader.setCamera(cam);
+        shader.draw();
         // Stop benchmark time and calculate time
         n++;
         uintmax_t ti = timekeeper.time();

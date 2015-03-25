@@ -58,6 +58,15 @@ class Drawer {
     void fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3,
             bool interpolate=true,bool overwrite=true);
 
+    // Get the screen width
+    int getWidth() const {
+        return plotter->width();
+    }
+
+    // Get the screen height
+    int getHeight() const {
+        return plotter->height();
+    }
 };
 
 #endif

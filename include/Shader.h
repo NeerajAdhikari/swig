@@ -14,7 +14,7 @@
 class Shader {
 
     // The drawer object used for drawing the pixels
-    Drawer m_drawer;
+    Drawer* mp_drawer;
 
     // List of pointers to objects to be drawn
     std::vector<Object*> m_objects;
@@ -26,8 +26,10 @@ class Shader {
     Camera m_camera;
 
     public:
+
+
     // Constructor
-    Shader(Drawer& drawer);
+    Shader(Drawer* drawer);
     // Destructor
     ~Shader();
 
