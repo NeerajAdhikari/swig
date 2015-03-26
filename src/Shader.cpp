@@ -13,7 +13,9 @@ void Shader::draw() {
     // Initialize some good colors
     Color black = {0,0,0,255};
     Color white = {255,255,255,255};
-    Color badcolor = {255,0,255,255};
+    //Color goodcolor = {0xff,0xbf,0x00,0xff};
+    //Color goodcolor = {0xeb,0xce,0x87,0xff};
+    Color goodcolor = {0xeb,0x00,0x87,0xff};
 
     // Apply camera projection and perspective
     // projection transformation
@@ -63,6 +65,7 @@ void Shader::draw() {
                 // calculation
                 Vector normal = m_objects[k]->
                     getDistortedSurfaceNormal(i);
+
                 m_objects[k]->getSurface(i).visible=(normal.z<0);
             }
         }
@@ -152,7 +155,7 @@ void Shader::draw() {
     }
 
     // Clear framebuffer, we're about to plot
-    mp_drawer->clear(badcolor);
+    mp_drawer->clear(goodcolor);
 
     // Fill the surfaces
     for(int k=0;k<m_objects.size(); k++){

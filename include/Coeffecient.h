@@ -50,7 +50,8 @@ struct Coeffecient {
     operator Color(){
         return  {Math::min( b ,1.0f) * 255,
             Math::min( g ,1.0f) * 255,
-            Math::min( r ,1.0f) * 255};
+            Math::min( r ,1.0f) * 255,
+            255};
     }
 
     void print(){

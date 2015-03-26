@@ -80,7 +80,7 @@ class Object{
         void resetCopy();
 
         // TODO load normals not calculate
-        void initNormal();
+        // void initNormal();
 
         // Tesselate a polygon to triangles
         std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned> face);
@@ -104,10 +104,10 @@ class Object{
         }
 
         void deleteColors(){
-                if( m_colors != NULL)
-                    delete []m_colors;
-                m_colors = NULL;
-                m_colors_count = 0;
+            if( m_colors != NULL)
+                delete []m_colors;
+            m_colors = NULL;
+            m_colors_count = 0;
         }
 
         Color& getColor(unsigned size){
@@ -161,6 +161,9 @@ class Object{
         void backface(bool bf);
         bool bothsides() const;
         void bothsides(bool bs);
+
+        // TODO load normals not calculate
+        void initNormal();
 };
 
 inline Object::~Object(){

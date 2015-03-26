@@ -1,7 +1,7 @@
 #include "Object.h"
 
 Object::Object (unsigned vertex_count, const Material& m,
-        Shading sh = Shading::flat, bool backface = true, bool bothside = false):
+        Shading sh, bool backface, bool bothside):
     m_vertex({4,vertex_count}),
     m_vertex_normal({4,vertex_count}),
     m_copy_vertex({4,vertex_count}),
@@ -20,11 +20,12 @@ Object::Object (unsigned vertex_count, const Material& m,
     // If both sides need to be shaded, turn of backface detection
     if (m_bothsides)
         m_backface = false;
+
 }
 
 // Load an object from an .obj file
 Object::Object(const std::string& filename,const Material& m,
-        Shading sh = Shading::flat, bool backface = true, bool bothside = false) :
+        Shading sh, bool backface, bool bothside) :
     m_vertex({4,1}),
     m_vertex_normal({4,1}),
     m_copy_vertex({4,1}),
@@ -180,7 +181,3 @@ void Object::initNormal() {
     }
 
 }
-
-
-
-

@@ -30,28 +30,10 @@ int main(int argc, char*argv[]) {
         return 1;
     }
 
-    // Gourad Shading
-    bool GOURAD = false;
-    if (argc > 2 && std::strcmp(argv[2], "gourad") == 0 )
-        GOURAD = true;
-    // Enable two face
-    bool UNBOUNDED = false;
-    if (argc > 3 && std::strcmp(argv[3], "unbounded") == 0 )
-        UNBOUNDED = true;
-    // Bacface detection
-    bool BACKFACEDETECTION = false;
-    if (argc > 4 && std::strcmp(argv[4], "backface") == 0 )
-        BACKFACEDETECTION = true;
-
     // Initialize the plotter interface
     Plotter_ fb(WIDTH, HEIGHT);
     Drawer drawer(&fb);
     Shader shader(&drawer);
-
-    // Initialize some good colors
-    Color black = {0, 0, 0, 255};
-    Color white = {255, 255, 255, 255};
-    Color badcolor = {255, 0, 255, 255};
 
     // Intialize the ambient light
     AmbientLight ambient = {{100, 100, 100}};
@@ -73,21 +55,28 @@ int main(int argc, char*argv[]) {
 
     // Initialize the object
     Object plane(argv[1], m, Shading::gouraud );
-    Object gourd("resources/cube.obj", m, Shading::flat);
-    gourd.vmatrix() /= TfMatrix::translation({0, -5, 0, 0});
-    shader.addObject(&gourd);
+    Object cube("resources/cube.obj", m, Shading::flat);
+    /*Object ground("resources/ground.obj",m,Shading::flat,
+            true,false);*/
+    cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
+    plane.vmatrix() /= TfMatrix::translation({0, 8, 0, 0});
+    Object ground(4,m,Shading::flat,true,false);
+    ground.setVertex(0,{10,0,-10,1});
+    ground.setVertex(1,{10,0,10,1});
+    ground.setVertex(2,{-10,0,10,1});
+    ground.setVertex(3,{-10,0,-10,1});
+    ground.setSurface({0,2,1});
+    ground.setSurface({0,3,2});
+    shader.addObject(&cube);
     shader.addObject(&plane);
-
-    /*std::vector<Object*>obj;
-    obj.push_back(&plane);
-    obj.push_back(&gourd);*/
+    shader.addObject(&ground);
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
     /*Vector vxrp(0,5,10);
     Vector vxpn = Vector(0,0,0)-cam.vrp;
     Vector vxup(0,1,0);*/
-    Camera cam({0, 5, 10}, {0, -5, -10}, {0, 1, 0});
+    Camera cam({0, 10, 5}, {0, -10, -5}, {0, 1, 0});
     shader.setCamera(cam);
 
     // Initialize SDL events
@@ -120,6 +109,7 @@ int main(int argc, char*argv[]) {
 
         shader.setCamera(cam);
         shader.draw();
+
         // Stop benchmark time and calculate time
         n++;
         uintmax_t ti = timekeeper.time();
