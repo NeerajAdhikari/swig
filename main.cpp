@@ -41,11 +41,11 @@ int main(int argc, char*argv[]) {
 
     // Intialize point light sources
     PointLight red = {{ -1000, 1000, 1000, 0},  {200000, 0, 0}};
-    PointLight green = {{0, 1000, 1000, 0},     {0, 150000, 0}};
+    PointLight green = {{0, 0, 1000, 0},     {0, 150000, 0}};
     PointLight blue = {{0, 0, 1000, 0},       {0, 0, 200000}};
-    shader.addLight(&red);
+    //shader.addLight(&red);
     shader.addLight(&green);
-    shader.addLight(&blue);
+    //shader.addLight(&blue);
 
     // Initialize the material of object
     Coeffecient ka = Coeffecient(0.1, 0.1, 0.1);
@@ -54,13 +54,13 @@ int main(int argc, char*argv[]) {
     Material m(ka, kd, ks, 140);
 
     // Initialize the object
-    Object plane(argv[1], m, Shading::gouraud );
+    Object plane(argv[1], m, Shading::flat );
     Object cube("resources/cube.obj", m, Shading::flat);
     /*Object ground("resources/ground.obj",m,Shading::flat,
             true,false);*/
     cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
     plane.vmatrix() /= TfMatrix::translation({0, 8, 0, 0});
-    Object ground(4,m,Shading::flat,true,false);
+    Object ground(4,m,Shading::gouraud,true,false);
     ground.setVertex(0,{10,0,-10,1});
     ground.setVertex(1,{10,0,10,1});
     ground.setVertex(2,{-10,0,10,1});
@@ -69,7 +69,7 @@ int main(int argc, char*argv[]) {
     ground.setSurface({0,3,2});
     shader.addObject(&cube);
     shader.addObject(&plane);
-    shader.addObject(&ground);
+    //shader.addObject(&ground);
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
@@ -87,7 +87,7 @@ int main(int argc, char*argv[]) {
     Time timekeeper;
     float n = 0, avg = 0;
 
-    while (true) {
+    while (!fb.checkTerm()) {
 
         // SDL EVENTS
         if (SDL_PollEvent(&event))
@@ -109,6 +109,7 @@ int main(int argc, char*argv[]) {
 
         shader.setCamera(cam);
         shader.draw();
+        break;
 
         // Stop benchmark time and calculate time
         n++;
