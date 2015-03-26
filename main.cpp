@@ -72,8 +72,8 @@ int main(int argc, char*argv[]) {
     Material m(ka, kd, ks, 140);
 
     // Initialize the object
-    Object plane(argv[1], m, Shading::gouraud );
-    Object gourd("resources/cube.obj", m, Shading::flat);
+    Object plane(argv[1], m, Shading::flat,true,true);
+    Object gourd("resources/gourd.obj", m, Shading::gouraud,true);
     gourd.vmatrix() /= TfMatrix::translation({0, -5, 0, 0});
     shader.addObject(&gourd);
     shader.addObject(&plane);
@@ -95,22 +95,22 @@ int main(int argc, char*argv[]) {
     const Uint8*keys = SDL_GetKeyboardState(NULL);
 
     // Intialize the benchmark for fps
-    Time timekeeper;
-    float n = 0, avg = 0;
-
+    Time timekeeper(DELAY);
     while (true) {
 
         // SDL EVENTS
         if (SDL_PollEvent(&event))
             if (event.type == SDL_QUIT) break;
+
         if (keys[SDL_GetScancodeFromKey(SDLK_w)])
             cam.vrp += cam.vpn.normalized() / 5;
-        if (keys[SDL_GetScancodeFromKey(SDLK_s)])
+        else if (keys[SDL_GetScancodeFromKey(SDLK_s)])
             cam.vrp -= cam.vpn.normalized() / 5;
-        if (keys[SDL_GetScancodeFromKey(SDLK_a)])
+        else if (keys[SDL_GetScancodeFromKey(SDLK_a)])
             cam.vrp -= (cam.vpn * cam.vup).normalized() / 5;
-        if (keys[SDL_GetScancodeFromKey(SDLK_d)])
+        else if (keys[SDL_GetScancodeFromKey(SDLK_d)])
             cam.vrp += (cam.vpn * cam.vup).normalized() / 5;
+
         // For cirualar camera movement due to direction
         // repositioning
         cam.vpn = -cam.vrp;
@@ -118,18 +118,12 @@ int main(int argc, char*argv[]) {
         // Start benchmark time
         timekeeper.start();
 
+        // Make shader do the magic
         shader.setCamera(cam);
         shader.draw();
-        // Stop benchmark time and calculate time
-        n++;
-        uintmax_t ti = timekeeper.time();
-        float real_fps = 1e6 / ti;
-        avg = (avg * (n - 1) + real_fps) / n;
-        // Display fps
-        std::cout<< DELETE<<FPS<<" : "<<avg<<" fps"<<std::endl;
-        // Limit the fps
-        if (ti < DELAY)
-            SDL_Delay((DELAY - ti) / 1000);
+
+        // wait for some time to maintain delay
+        timekeeper.wait();
     }
     return 0;
 }
