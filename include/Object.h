@@ -61,9 +61,6 @@ class Object {
         // surfaces (triangles)
         std::vector<Surface> m_surface;
 
-        // Does a certain light source illuminate a surface?
-        Matrix<int> m_bright;
-
         // Point Light sources
         std::vector<PointLight*> m_lights;
 
@@ -172,11 +169,6 @@ class Object {
 
         // TODO load normals not calculate
         void initNormal();
-
-        void initBright(std::vector<PointLight*> lights);
-
-        bool onShadow(const Vector& point, int lyt);
-        void showBright();
 };
 
 inline Object::~Object(){
