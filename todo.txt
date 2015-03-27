@@ -1,5 +1,4 @@
 TODO
-(*) Unform interface for the renderer - done
 (B) Separation to two levels:
     A viewport manager: handles windowing, framebuffer, etc
     A primitives manager: handles primitives like lines, filling, etc
@@ -8,8 +7,4 @@ TODO
 (B) Object clipping
 
 (A) Load vertex normal
-(A) Manage object information (Point normals, Point color, Surface normals)
 (A) Shadow
-(C) May include directional light
-(D) Try removing Linspace and use float arithmetics instead
-    Could use parallelization

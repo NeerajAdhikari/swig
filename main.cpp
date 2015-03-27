@@ -18,8 +18,8 @@
 #include "misc/Time.h"
 
 // Initialize constant parameters
-const uint16_t WIDTH = 800;
-const uint16_t HEIGHT = 600;
+const uint16_t WIDTH = 200;
+const uint16_t HEIGHT = 300;
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6 / FPS;
 
@@ -48,22 +48,21 @@ int main(int argc, char*argv[]) {
     shader.addLight(&blue);
 
     // Initialize the material of object
-    Coeffecient ka = Coeffecient(0.1, 0.1, 0.1);
-    Coeffecient kd = Coeffecient(0.5, 0.5, 0.5);
-    Coeffecient ks = Coeffecient(0.5, 0.5, 0.5);
-    Material m(ka, kd, ks, 140);
+    Material planeMat(Coeffecient(0.1, 0.1, 0.1),
+            Coeffecient(0.5, 0.5, 0.5),
+            Coeffecient(0.5, 0.5, 0.5), 140);
 
     Material groundMat(Coeffecient(0.1,0.2,0.05),
             Coeffecient(0.6,0.8,0.1),
             Coeffecient(0.6,0.8,0.1),20);
 
     // Initialize the object
-    Object plane(argv[1], m, Shading::flat, true, true);
-    Object cube("resources/cube.obj", m, Shading::flat);
-    /*Object ground("resources/ground.obj",m,Shading::flat,
-            true,false);*/
+    Object plane(argv[1], planeMat, Shading::flat, true, true);
+    plane.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
+
+    Object cube("resources/cube.obj", planeMat, Shading::flat);
     cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
-    plane.vmatrix() /= TfMatrix::translation({-4, 8, 0, 0});
+
     Object ground(4,groundMat,Shading::flat,true,false);
     ground.setVertex(0,{10,0,-10,1});
     ground.setVertex(1,{10,0,10,1});
@@ -71,20 +70,18 @@ int main(int argc, char*argv[]) {
     ground.setVertex(3,{-10,0,-10,1});
     ground.setSurface({0,2,1});
     ground.setSurface({0,3,2});
+
+    // Add objects to Shader
     shader.addObject(&cube);
     shader.addObject(&plane);
     shader.addObject(&ground);
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
-    /*Vector vxrp(0,5,10);
-    Vector vxpn = Vector(0,0,0)-cam.vrp;
-    Vector vxup(0,1,0);*/
     Camera cam({0, 5, 5}, {0, -5, -5}, {0, 1, 0});
     shader.setCamera(cam);
 
     // Initialize SDL events
-    SDL_Event event;
     const Uint8*keys = SDL_GetKeyboardState(NULL);
 
     // Intialize the benchmark for fps
