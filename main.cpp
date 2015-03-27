@@ -49,9 +49,6 @@ int main(int argc, char*argv[]) {
     Shader shader(&drawer);
 
     // Initialize some good colors
-    Color black = {0, 0, 0, 255};
-    Color white = {255, 255, 255, 255};
-    Color badcolor = {255, 0, 255, 255};
 
     // Intialize the ambient light
     AmbientLight ambient = {{100, 100, 100}};
@@ -73,7 +70,7 @@ int main(int argc, char*argv[]) {
 
     // Initialize the object
     Object plane(argv[1], m, Shading::flat,true,true);
-    Object gourd("resources/gourd.obj", m, Shading::gouraud,true);
+    Object gourd("resources/gourd.obj", m, Shading::gouraud,false,false);
     gourd.vmatrix() /= TfMatrix::translation({0, -5, 0, 0});
     shader.addObject(&gourd);
     shader.addObject(&plane);
@@ -96,12 +93,9 @@ int main(int argc, char*argv[]) {
 
     // Intialize the benchmark for fps
     Time timekeeper(DELAY);
-    while (true) {
+    while ( !fb.checkTerm() ) {
 
         // SDL EVENTS
-        if (SDL_PollEvent(&event))
-            if (event.type == SDL_QUIT) break;
-
         if (keys[SDL_GetScancodeFromKey(SDLK_w)])
             cam.vrp += cam.vpn.normalized() / 5;
         else if (keys[SDL_GetScancodeFromKey(SDLK_s)])

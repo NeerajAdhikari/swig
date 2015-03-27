@@ -24,6 +24,7 @@ public:
     Coeffecient lightingAt( const Vector& position,
             const Vector& normal, const Material& material,
             const Vector& vrp) {
+
         Coeffecient intensity;
 
         Coeffecient decintensity= intensityAt(position);

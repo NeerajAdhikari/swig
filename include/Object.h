@@ -37,6 +37,11 @@ struct Surface : public Triplet<unsigned> {
         : Triplet<unsigned>(xx,yy,zz), visible(true)
     {}
 
+
+    void setVisibility(bool val){
+        visible = val;
+    }
+
     // like color, luminosity, texture
 };
 

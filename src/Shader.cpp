@@ -10,10 +10,9 @@ Shader::~Shader() {
 /* Draw a frame on the screen */
 void Shader::draw() {
 
-    // Initialize some good colors
-    Color black = {0,0,0,255};
-    Color white = {255,255,255,255};
-    Color badcolor = {255,0,255,255};
+    // Clear framebuffer, we're about to plot
+    mp_drawer->clear(badcolor);
+
 
     // Apply camera projection and perspective
     // projection transformation
@@ -22,12 +21,11 @@ void Shader::draw() {
     Matrix<float>transformation =
         TfMatrix::toDevice(mp_drawer->getWidth(),
                 mp_drawer->getHeight(), ScreenPoint::maxDepth)
-        *TfMatrix::perspective(95,(float)mp_drawer->getWidth()
-                /mp_drawer->getHeight(),10000,5)
+        *TfMatrix::perspective(95,mp_drawer->getAspectRatio()
+                ,10000,5)
         *TfMatrix::lookAt(m_camera.vrp,m_camera.vpn,m_camera.vup);
-    bool BACKFACEDETECTION, UNBOUNDED, GOURAUD;
 
-    for (int k=0; k<m_objects.size(); k++) {
+    for (unsigned int k=0; k<m_objects.size(); k++) {
         //m_objects[k]->vmatrix() /= rotator;
         //m_objects[k]->vnmatrix() /= rotator;
 
@@ -47,6 +45,7 @@ void Shader::draw() {
             copyalias(3,i) = 1.0;
         }
 
+        bool BACKFACEDETECTION, UNBOUNDED, GOURAUD;
         // SURFACE SHADER
         BACKFACEDETECTION = m_objects[k]->backface();
         UNBOUNDED = m_objects[k]->bothsides();
@@ -150,9 +149,6 @@ void Shader::draw() {
             }
         }
     }
-
-    // Clear framebuffer, we're about to plot
-    mp_drawer->clear(badcolor);
 
     // Fill the surfaces
     for(int k=0;k<m_objects.size(); k++){

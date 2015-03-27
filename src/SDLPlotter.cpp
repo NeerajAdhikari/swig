@@ -2,8 +2,7 @@
 
 // Construct
 SDLPlotter::SDLPlotter(unsigned w, unsigned h)
-    : white({255,255,255,255}),black({0,0,0,255}),
-    m_width(w), m_height(h)
+    : m_width(w), m_height(h)
 {
     // Initialize the video subsystem
     if (SDL_Init(SDL_INIT_VIDEO)<0)

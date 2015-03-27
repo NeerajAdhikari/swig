@@ -67,6 +67,11 @@ class Drawer {
     int getHeight() const {
         return plotter->height();
     }
+
+    // Get the aspect ration of the screen
+    float getAspectRatio() const {
+        return plotter->aspectRatio();
+    }
 };
 
 #endif

@@ -92,6 +92,10 @@ class SDLPlotter {
         return m_height;
     }
 
+    // return aspect ratio of screen
+    inline float aspectRatio() const {
+        return (float)m_width / m_height;
+    }
 
     bool checkTerm();
 
@@ -99,8 +103,6 @@ class SDLPlotter {
     // Blur the framebuffer
     void blur();
 
-    Color black;
-    Color white;
 };
 
 #endif

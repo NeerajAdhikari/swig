@@ -11,4 +11,10 @@ struct Color {
     uint8_t alpha;
 };
 
+// Set of standard colors
+// I don't know why no extern is required here!
+const static Color black = {0,0,0,255};
+const static Color white = {255,255,255,255};
+const static Color badcolor = {255,0,255,255};
+
 #endif
