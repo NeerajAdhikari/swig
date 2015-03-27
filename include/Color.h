@@ -9,6 +9,11 @@ struct Color {
     uint8_t green;
     uint8_t red;
     uint8_t alpha;
+
+    void print() {
+        std::cout<<"(B"<<(int)blue<<"G"<<(int)green<<"R"<<(int)red
+            <<"A"<<(int)alpha<<')'<<std::endl;
+    }
 };
 
 // Set of standard colors

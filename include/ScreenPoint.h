@@ -25,6 +25,11 @@ struct ScreenPoint {
         d = Math::round(vec.z);
         color = col;
     }
+
+    void print() {
+        std::cout<<'('<<x<<','<<y<<','<<d<<')';
+        color.print();
+    }
 };
 
 #endif

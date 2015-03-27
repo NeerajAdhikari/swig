@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "ScreenPoint.h"
+#include "PointLight.h"
 #include "Material.h"
 #include "mathematics/Matrix.h"
 #include "mathematics/Vector.h"
@@ -47,7 +48,7 @@ struct Surface : public Triplet<unsigned> {
 
 // Work on progress
 // An Object is collection of Vertices, Edges and Surfaces
-class Object{
+class Object {
 
     private:
         // A matrix is (4 x count) matrix is used to represent m_vertex
@@ -61,8 +62,15 @@ class Object{
 
         // A vector of pair of indexes to represent edges
         std::vector<Edge> m_edge;
-        // A vector of triplet of indexes to represent surfaces (triangles)
+        // A vector of triplet of indexes to represent
+        // surfaces (triangles)
         std::vector<Surface> m_surface;
+
+        // Does a certain light source illuminate a surface?
+        Matrix<int> m_bright;
+
+        // Point Light sources
+        std::vector<PointLight*> m_lights;
 
         // Defines the color and surface properties
         Material m_material;
@@ -85,7 +93,7 @@ class Object{
         void resetCopy();
 
         // TODO load normals not calculate
-        void initNormal();
+        // void initNormal();
 
         // Tesselate a polygon to triangles
         std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned> face);
@@ -109,10 +117,10 @@ class Object{
         }
 
         void deleteColors(){
-                if( m_colors != NULL)
-                    delete []m_colors;
-                m_colors = NULL;
-                m_colors_count = 0;
+            if( m_colors != NULL)
+                delete []m_colors;
+            m_colors = NULL;
+            m_colors_count = 0;
         }
 
         Color& getColor(unsigned size){
@@ -166,6 +174,14 @@ class Object{
         void backface(bool bf);
         bool bothsides() const;
         void bothsides(bool bs);
+
+        // TODO load normals not calculate
+        void initNormal();
+
+        void initBright(std::vector<PointLight*> lights);
+
+        bool onShadow(const Vector& point, int lyt);
+        void showBright();
 };
 
 inline Object::~Object(){
