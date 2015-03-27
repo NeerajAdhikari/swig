@@ -51,6 +51,8 @@ Object::Object(const std::string& filename,const Material& m,
     // Preestimate the face_count
     unsigned vcount = 0;
     unsigned fcount = 0;
+    unsigned vncount = 0;
+
     while(!objfile.eof()){
         std::getline(objfile,line);
         rtrim(line);
@@ -58,25 +60,34 @@ Object::Object(const std::string& filename,const Material& m,
             continue;
         std::istringstream linestrm(line);
         linestrm>>keyword;
-        if(keyword=="v"){
+        if (keyword=="v")
             vcount++;
-        } else if(keyword=="f"){
+        else if (keyword=="f")
             fcount++;
-        }
+        else if (keyword=="vn")
+            vncount++;
     }
 
+    // Loading surfaces
+    m_surface.reserve(fcount);
+    // Loading vertex normals
+    m_vertex_normal.readjust({4,vncount});
+    // Loading vertex
     m_vertex.readjust({4,vcount});
     resetCopy();
-    m_vertex_normal.readjust({4,vcount});
-    m_surface.reserve(fcount);
+
+
+    unsigned vertex_count = 0;
+    unsigned vertex_normal_count = 0;
 
     // Read the file again
     objfile.clear();
     objfile.seekg(0 , std::ios::beg);
-
-    unsigned vertex_count = 0;
     while (!objfile.eof()) {
         std::getline(objfile,line);
+        std::cout << line << std::endl;
+
+
         rtrim(line);
         if (line.size()<3)
             continue;
@@ -88,11 +99,25 @@ Object::Object(const std::string& filename,const Material& m,
             linestrm >> vtxpoint.x >> vtxpoint.y >> vtxpoint.z;
             setVertex(vertex_count,vtxpoint);
             vertex_count++;
-        } else if (keyword=="f") {
+        }
+        else if (keyword=="vn") {
+            Vector vtxpoint(0,0,0,0);
+            linestrm >> vtxpoint.x >> vtxpoint.y >> vtxpoint.z;
+            setVertexNormal(vertex_normal_count,vtxpoint);
+            vertex_normal_count++;
+        }
+
+        else if (keyword=="f") {
+
             std::string facepoint;
             std::vector<unsigned> face;
+
+
+            // Trimming from the left
             size_t space=line.find(' ');
             line=line.substr(space+1,line.size()-space-1);
+
+
             while (space!=std::string::npos) {
                 space=line.find(' ');
                 if (space!=std::string::npos) {

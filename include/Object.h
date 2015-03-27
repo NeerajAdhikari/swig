@@ -27,21 +27,14 @@ struct Edge :public Pair<unsigned> {
 // A surface contains 3 index points
 struct Surface : public Triplet<unsigned> {
 
-    // A normal vector
-    Vector normal;
-
     // For backface detection
     bool visible;
 
     // Constructor
     Surface(unsigned xx, unsigned yy, unsigned zz)
-        : Triplet<unsigned>(xx,yy,zz), visible(true)
+        : Triplet<unsigned>(xx,yy,zz),
+        visible(true)
     {}
-
-
-    void setVisibility(bool val){
-        visible = val;
-    }
 
     // like color, luminosity, texture
 };
@@ -139,11 +132,13 @@ class Object {
 
         // Get total counts
         unsigned vertexCount() const ;
+        unsigned vertexNormalCount() const;
         unsigned edgeCount() const ;
         unsigned surfaceCount() const ;
 
         // setVertex overwrites, others append
         void setVertex(unsigned point,const Vector& p);
+        void setVertexNormal(unsigned point,const Vector& p);
         void setEdge(const Pair<unsigned>& p) ;
         void setSurface(const Triplet<unsigned>& p) ;
 
@@ -197,6 +192,10 @@ inline unsigned Object::vertexCount() const {
     return m_vertex.col();
 }
 
+inline unsigned Object::vertexNormalCount() const {
+    return m_vertex_normal.col();
+}
+
 inline unsigned Object::edgeCount() const {
     return m_edge.size();
 }
@@ -231,6 +230,15 @@ void inline Object::setVertex(unsigned point,const Vector& p){
     m_vertex(1,point) = p.y;
     m_vertex(2,point) = p.z;
     m_vertex(3,point) = p.w;
+}
+
+void inline Object::setVertexNormal(unsigned point,const Vector& p){
+    if(point >= vertexNormalCount())
+        throw ex::OutOfBounds();
+    m_vertex_normal(0,point) = p.x;
+    m_vertex_normal(1,point) = p.y;
+    m_vertex_normal(2,point) = p.z;
+    m_vertex_normal(3,point) = p.w;
 }
 
 inline void Object::setEdge(const Pair<unsigned>& p) {
