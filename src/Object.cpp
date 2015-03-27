@@ -20,8 +20,7 @@ Object::Object (unsigned vertex_count, const Material& m,
 
     // If both sides need to be shaded, turn of backface detection
     if (m_bothsides)
-        m_backface = false;
-
+        m_backface = true;
 }
 
 // Load an object from an .obj file
@@ -39,7 +38,7 @@ Object::Object(const std::string& filename,const Material& m,
 {
     // Turn off backface detection if both sides need to be shaded
     if (m_bothsides)
-        m_backface = false;
+        m_backface = true;
 
     // throw exception if bad bit or fail bit
     std::ifstream objfile(filename,std::ios::in);

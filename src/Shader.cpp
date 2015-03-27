@@ -158,13 +158,13 @@ void Shader::draw() {
     mp_drawer->clear(goodcolor);
     for (int k=0; k<m_objects.size(); k++) {
         m_objects[k]->initBright(m_pointLights);
-        m_objects[k]->showBright();
+        /*m_objects[k]->showBright();
         if (m_objects[k]->vertexCount()==8) {
             if (m_objects[k]->onShadow({0,3,0,1},0))
                 std::cout<<"onShadow";
             else
                 std::cout<<"noShadow";
-        }
+        }*/
     }
 
     // Fill the surfaces
