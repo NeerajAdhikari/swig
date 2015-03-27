@@ -10,8 +10,7 @@ Object::Object (unsigned vertex_count, const Material& m,
     m_colors_count(0),
     m_shading(sh),
     m_backface(backface),
-    m_bothsides(bothside),
-    m_bright({1,2})
+    m_bothsides(bothside)
 {
     // Initialize the points
     for(int i=0;i < vertexCount();i++)
@@ -33,8 +32,7 @@ Object::Object(const std::string& filename,const Material& m,
     m_colors(NULL),
     m_shading(sh),
     m_backface(backface),
-    m_bothsides(bothside),
-    m_bright({1,2})
+    m_bothsides(bothside)
 {
     // Turn off backface detection if both sides need to be shaded
     if (m_bothsides)
@@ -204,52 +202,5 @@ void Object::initNormal() {
         m_vertex_normal(0,i) /= mag;
         m_vertex_normal(1,i) /= mag;
         m_vertex_normal(2,i) /= mag;
-    }
-
-}
-
-void Object::initBright(std::vector<PointLight*> lights) {
-    if (m_bright.row()!=lights.size()
-            || m_bright.col()!=surfaceCount())
-        m_bright= Matrix<int>({lights.size(),surfaceCount()});
-    for (auto h=0; h<lights.size(); h++) {
-        PointLight* light = lights[h];
-        for (auto i=0; i<surfaceCount(); i++) {
-            Vector ray = light->position-getVertex(getSurface(i).x);
-            m_bright(h,i) = (ray%getSurfaceNormal(i)>0)?1:0;
-        }
-    }
-    m_lights = lights;
-}
-
-bool Object::onShadow(const Vector& point, int lyt) {
-    bool on = false, a,b,c,d;
-    for (auto i=0; i<surfaceCount(); i++) {
-        if (!m_bright(lyt,i))
-            continue;
-        Surface s = getSurface(i);
-        Vector x = getVertex(s.x);
-        Vector y = getVertex(s.y);
-        Vector z = getVertex(s.z);
-        a = (getSurfaceNormal(i)%(point-x))>0?false:true;
-        b = ((((y-x)*(m_lights[lyt]->position-y))%
-                (point-getVertex(s.x)))>0)?false:true;
-        c = ((((z-y)*(m_lights[lyt]->position-z))%
-                (point-y))>0)?false:true;
-        d = (((x-z)*(m_lights[lyt]->position-x))%
-                (point-z))>0?false:true;
-        if (a && b && c && d) {
-            on = true;
-            break;
-        }
-    }
-    return on;
-}
-
-void Object::showBright() {
-    for (auto i=0; i<m_bright.row(); i++) {
-        for (auto j=0; j<m_bright.col(); j++)
-            std::cout<<m_bright(i,j)<<" ";
-        std::cout<<std::endl;
     }
 }
