@@ -26,15 +26,25 @@ struct Edge :public Pair<unsigned> {
 
 // A surface contains 3 index points
 struct Surface : public Triplet<unsigned> {
-
     // For backface detection
     bool visible;
+    // If it contains vertex normals
+    bool vertexNormals;
+
+    // These are vertex normal indices
+    unsigned nx,ny,nz;
 
     // Constructor
     Surface(unsigned xx, unsigned yy, unsigned zz)
         : Triplet<unsigned>(xx,yy,zz),
-        visible(true)
+        visible(true), vertexNormals(false)
     {}
+
+    // Constructor with vertex normal indices
+    Surface(unsigned xx, unsigned yy, unsigned zz, unsigned nxx,
+            unsigned nyy, unsigned nzz)
+        : Triplet<unsigned>(xx,yy,zz), nx(nxx), ny(nyy), nz(nzz),
+        visible(true), vertexNormals(true) {}
 
     // like color, luminosity, texture
 };
@@ -86,13 +96,16 @@ class Object {
         // void initNormal();
 
         // Tesselate a polygon to triangles
-        std::vector<Triplet<unsigned> > tesselate(std::vector<unsigned> face);
+        std::vector<Pair<Triplet<unsigned> > > tesselate(
+                std::vector<unsigned> faceV, std::vector<unsigned>
+                faceVn = std::vector<unsigned>());
 
     public:
 
         // Load an object from an .obj file
-        Object(const std::string& filename, const Material& m, Shading sh,
-                bool backface = true, bool bothside = false);
+        Object(const std::string& filename, const Material& m,
+                Shading sh, bool backface = true,
+                bool bothside = false);
         Object (unsigned vertex_count, const Material& m, Shading sh,
                 bool backface = true, bool bothside = false);
         ~Object();
@@ -137,7 +150,8 @@ class Object {
         void setVertex(unsigned point,const Vector& p);
         void setVertexNormal(unsigned point,const Vector& p);
         void setEdge(const Pair<unsigned>& p) ;
-        void setSurface(const Triplet<unsigned>& p) ;
+        //void setSurface(const Triplet<unsigned>& p) ;
+        void setSurface(const Surface& p) ;
 
         // Get Edge
         Edge& getEdge(unsigned point) ;
@@ -225,8 +239,10 @@ void inline Object::setVertex(unsigned point,const Vector& p){
 }
 
 void inline Object::setVertexNormal(unsigned point,const Vector& p){
-    if(point >= vertexNormalCount())
+    if(point >= vertexNormalCount()) {
+        std::cout<<point<<std::endl;
         throw ex::OutOfBounds();
+    }
     m_vertex_normal(0,point) = p.x;
     m_vertex_normal(1,point) = p.y;
     m_vertex_normal(2,point) = p.z;
@@ -240,12 +256,11 @@ inline void Object::setEdge(const Pair<unsigned>& p) {
     m_edge.push_back({p.x,p.y});
 }
 
-inline void Object::setSurface(const Triplet<unsigned>& p) {
+inline void Object::setSurface(const Surface& p) {
     if(p.x>=vertexCount()||p.y>=vertexCount()||p.z>=vertexCount())
         throw ex::OutOfBounds();
 
-    Surface surf(p.x,p.y,p.z);
-    m_surface.push_back(surf);
+    m_surface.push_back(p);
 }
 
 inline Vector Object::getVertex(unsigned point) const {
@@ -288,7 +303,7 @@ inline Surface& Object::getSurface(unsigned point) {
 }
 
 inline Vector Object::getVertexNormal(unsigned i) const {
-    if(i >= vertexCount())
+    if(i >= vertexNormalCount())
         throw ex::OutOfBounds();
     return Vector(m_vertex_normal(0,i),
             m_vertex_normal(1,i),

@@ -18,8 +18,8 @@
 #include "misc/Time.h"
 
 // Initialize constant parameters
-const uint16_t WIDTH = 200;
-const uint16_t HEIGHT = 300;
+const uint16_t WIDTH = 800;
+const uint16_t HEIGHT = 600;
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6 / FPS;
 
@@ -41,7 +41,7 @@ int main(int argc, char*argv[]) {
 
     // Intialize point light sources
     PointLight red = {{ -1000, 1000, 1000, 0}, {200000, 0, 0}};
-    PointLight green = {{0, 1000, 1000, 0}, {150000,150000,150000}};
+    PointLight green = {{0, 1000, 1000, 0}, {0,150000,0}};
     PointLight blue = {{0, -1000, 1000, 0}, {0, 0, 200000}};
     shader.addLight(&red);
     shader.addLight(&green);
@@ -57,11 +57,13 @@ int main(int argc, char*argv[]) {
             Coeffecient(0.6,0.8,0.1),20);
 
     // Initialize the object
-    Object plane(argv[1], planeMat, Shading::flat, true, true);
+    Object plane(argv[1], planeMat, Shading::gouraud, false, false);
     plane.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
 
+    /*
     Object cube("resources/cube.obj", planeMat, Shading::flat);
     cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
+    */
 
     Object ground(4,groundMat,Shading::flat,true,false);
     ground.setVertex(0,{10,0,-10,1});
@@ -72,9 +74,9 @@ int main(int argc, char*argv[]) {
     ground.setSurface({0,3,2});
 
     // Add objects to Shader
-    shader.addObject(&cube);
     shader.addObject(&plane);
     shader.addObject(&ground);
+    // shader.addObject(&cube);
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
@@ -108,6 +110,7 @@ int main(int argc, char*argv[]) {
         // Make shader do the magic
         shader.setCamera(cam);
         shader.draw();
+
         //break;
 
         // wait for some time to maintain delay
