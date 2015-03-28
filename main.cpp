@@ -40,12 +40,16 @@ int main(int argc, char*argv[]) {
     shader.setAmbient(ambient);
 
     // Intialize point light sources
-    PointLight red = {{ -1000, 1000, 1000, 0}, {200000, 0, 0}};
-    PointLight green = {{0, 1000, 1000, 0}, {0,150000,0}};
-    PointLight blue = {{0, -1000, 1000, 0}, {0, 0, 200000}};
-    shader.addLight(&red);
-    shader.addLight(&green);
+    // PointLight red = {{ 0 , 1000, -1000, 0}, {200000, 0, 0}};
+    // PointLight green = {{0, 1000, 1000, 0}, {0,200000,0}};
+    // PointLight blue = {{0, -1000, 1000, 0}, {0, 0, 200000}};
+
+    PointLight blue = {{ 0 , 1000, 0, 0}, {200000, 0, 0}};
+     PointLight green = {{0, 1000, 1000, 0}, {0,200000,0}};
+
     shader.addLight(&blue);
+    shader.addLight(&green);
+    //shader.addLight(&blue);
 
     // Initialize the material of object
     Material planeMat(Coeffecient(0.1, 0.1, 0.1),
@@ -57,7 +61,12 @@ int main(int argc, char*argv[]) {
             Coeffecient(0.6,0.8,0.1),20);
 
     // Initialize the object
-    Object plane(argv[1], planeMat, Shading::gouraud, false, false);
+    Object plane(argv[1], planeMat, Shading::gouraud,false, false);
+    /*
+    Matrix<float> rotator = TfMatrix::rotation(Math::toRadian(30), Vector(1,1,1),Vector(0,0,0));
+    plane.vmatrix() /= rotator;
+    plane.vnmatrix() /= rotator;
+    */
     plane.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
 
     /*
@@ -99,6 +108,25 @@ int main(int argc, char*argv[]) {
             cam.vrp -= (cam.vpn * cam.vup).normalized() / 5;
         else if (keys[SDL_GetScancodeFromKey(SDLK_d)])
             cam.vrp += (cam.vpn * cam.vup).normalized() / 5;
+
+        else if (keys[SDL_GetScancodeFromKey(SDLK_g)])
+            plane.setShading(Shading::gouraud);
+        else if (keys[SDL_GetScancodeFromKey(SDLK_f)])
+            plane.setShading(Shading::flat);
+
+        else if (keys[SDL_GetScancodeFromKey(SDLK_1)]){
+            plane.backface(false);
+            plane.bothsides(false);
+            std::cout << "Mode1\n" << std::endl;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_2)]){
+            plane.backface(true);
+            plane.bothsides(false);
+            std::cout << "Mode2\n" << std::endl;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_3)]){
+            plane.backface(true);
+            plane.bothsides(true);
+            std::cout << "Mode3\n" << std::endl;
+        }
 
         // For cirualar camera movement due to direction
         // repositioning
