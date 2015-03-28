@@ -41,7 +41,7 @@ int main(int argc, char*argv[]) {
 
     // Intialize point light sources
     PointLight red = {{ -1000, 1000, 1000, 0}, {200000, 0, 0}};
-    PointLight green = {{0, 1000, 1000, 0}, {150000,150000,150000}};
+    PointLight green = {{0, 1000, 1000, 0}, {0,150000,0}};
     PointLight blue = {{0, -1000, 1000, 0}, {0, 0, 200000}};
     shader.addLight(&red);
     shader.addLight(&green);
@@ -58,11 +58,12 @@ int main(int argc, char*argv[]) {
             Coeffecient(0.6,0.8,0.1),20);
 
     // Initialize the object
-    Object plane(argv[1], m, Shading::flat, true, true);
-    Object cube("resources/cube.obj", m, Shading::flat);
+    Object plane(argv[1], m, Shading::gouraud, false, false);
+    plane.vmatrix() /= TfMatrix::scaling({0.05,0.05,0.05,1},{0,0,0,1});
+    //Object cube("resources/cube.obj", m, Shading::flat);
     /*Object ground("resources/ground.obj",m,Shading::flat,
             true,false);*/
-    cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
+    //cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
     plane.vmatrix() /= TfMatrix::translation({-4, 8, 0, 0});
     Object ground(4,groundMat,Shading::flat,true,false);
     ground.setVertex(0,{10,0,-10,1});
@@ -71,9 +72,27 @@ int main(int argc, char*argv[]) {
     ground.setVertex(3,{-10,0,-10,1});
     ground.setSurface({0,2,1});
     ground.setSurface({0,3,2});
-    shader.addObject(&cube);
+    //shader.addObject(&cube);
     shader.addObject(&plane);
-    shader.addObject(&ground);
+    //shader.addObject(&ground);
+    /* Bug check
+    for (int i=0; i<plane.surfaceCount(); i++) {
+        Surface s = plane.getSurface(i);
+        unsigned n = plane.vertexNormalCount();
+        if (!s.vertexNormals) {
+            std::cout<<"Vertex normals not on"<<std::endl;
+            break;
+        }
+        if (s.nx>=n || s.ny>=n || s.nz>=n) {
+            std::cout<<"Value overshoot"<<std::endl;
+            break;
+        }
+        std::cout<<"Surface "<<i<<std::endl;
+    }
+    std::cout<<plane.vertexCount()<<std::endl;
+    std::cout<<plane.vertexNormalCount()<<std::endl;
+    std::cout<<"check complete"<<std::endl;
+    return 0; */
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
@@ -111,6 +130,7 @@ int main(int argc, char*argv[]) {
         // Make shader do the magic
         shader.setCamera(cam);
         shader.draw();
+
         //break;
 
         // wait for some time to maintain delay

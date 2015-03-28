@@ -1,5 +1,6 @@
-#ifndef __HELPER__
-#define __HELPER__
+#ifndef __HELPER_H__
+#define __HELPER_H__
+
 // helper.h contains all the helper functions
 // related to mathematics, strings
 #include <algorithm>
@@ -8,6 +9,8 @@
 #include <locale>
 #include <iostream>
 #include <cmath>
+#include <string>
+#include <sstream>
 #include "ex.h"
 
 // For stringing the value of macros
@@ -84,6 +87,23 @@ inline void swap(T& a,T& b) {
 inline std::string &rtrim(std::string &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
     return s;
+}
+
+// split strings
+inline std::vector<std::string>& splitr(const std::string &s,
+        char delim, std::vector<std::string> &elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss,item,delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+inline std::vector<std::string> split(const std::string &s,char delim) {
+    std::vector<std::string> elems;
+    splitr(s,delim,elems);
+    return elems;
 }
 
 #endif

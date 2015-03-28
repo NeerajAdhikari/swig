@@ -66,39 +66,70 @@ void Shader::draw() {
 
         if (GOURAUD) {
             // VERTEX shader
-            m_objects[k]->initColors(m_objects[k]->vertexCount());
-            for(auto i=0;i<m_objects[k]->vertexCount();i++) {
+            unsigned vnn =0;
+            if (!m_objects[k]->getSurface(0).vertexNormals) {
+                m_objects[k]->initNormal();
+                /*std::cout<<m_objects[k]->vertexNormalCount()
+                    <<std::endl;
+                std::cout<<m_objects[k]->vertexCount()<<std::endl;*/
+                vnn = m_objects[k]->vcmatrix().col();
+                //std::cout<<vnn<<std::endl;
+            }
+            m_objects[k]->initColors(m_objects[k]->surfaceCount()*3);
+            for(auto i=0;i<m_objects[k]->surfaceCount();i++) {
 
                 // An object may have surfaces of
                 // different materials
                 const Material& material =
                     m_objects[k]->material();
-                // Normal for lighting calculation
-                Vector normal = m_objects[k]->getVertexNormal(i);
+
+                // The surface to be shaded
+                Surface surf = m_objects[k]->getSurface(i);
+                /*if (surf.nx>=vnn || surf.ny>=vnn || surf.nz>=vnn) {
+                    std::cout<<surf.nx<<std::endl;
+                    std::cout<<surf.ny<<std::endl;
+                    std::cout<<surf.nz<<std::endl;
+                    std::cout<<"DEgeneracy"<<i<<std::endl;
+                }
+                exit(0);*/
+
+                // Normals for lighting calculation
+                Vector nx = m_objects[k]->getVertexNormal(surf.nx);
+                Vector ny = m_objects[k]->getVertexNormal(surf.ny);
+                Vector nz = m_objects[k]->getVertexNormal(surf.nz);
+                Vector normals[] = {nx,ny,nz};
+
                 // Position for lighting calculation
-                Vector position = m_objects[k]->getVertex(i);
+                Vector positions[] = {
+                    m_objects[k]->getVertex(surf.x),
+                    m_objects[k]->getVertex(surf.y),
+                    m_objects[k]->getVertex(surf.z)};
 
-                // Inverting the back surfaces for
-                // unbounded objects
-                if (UNBOUNDED && Vector::cosine((
-                                position-m_camera.vrp),normal)>0)
-                    normal *=-1;
+                for (int h=0; h<3; h++) {
+                    // Inverting the back surfaces for
+                    // unbounded objects
+                    if (UNBOUNDED && Vector::cosine((positions[h]
+                                    -m_camera.vrp),normals[h])>0)
+                        normals[h] *=-1;
 
-                // Ambient lighting
-                Coeffecient intensity = m_ambientLight.intensity
-                    *material.ka;
+                    // Ambient lighting
+                    Coeffecient intensity = m_ambientLight.intensity
+                        *material.ka;
 
-                // Diffused and Specular lighting
-                for(int i=0; i<m_pointLights.size(); i++)
-                    intensity += m_pointLights[i]->lightingAt(
-                            position,normal,material,m_camera.vrp);
+                    // Diffused and Specular lighting
+                    for(int x=0; x<m_pointLights.size(); x++)
+                        intensity += m_pointLights[x]->lightingAt(
+                                positions[h],normals[h],
+                                material,m_camera.vrp);
 
-                // Automatic conversion from Coeffecient
-                // to Color
-                // The reflection surface can be seen as a
-                // light source to camera
-                m_objects[k]->getColor(i) = PointLight({position,
-                        intensity}).intensityAt(m_camera.vrp);
+                    // Automatic conversion from Coeffecient
+                    // to Color
+                    // The reflection surface can be seen as a
+                    // light source to camera
+                    m_objects[k]->getColor(i*3+h) = PointLight(
+                            {positions[h],intensity})
+                    .intensityAt(m_camera.vrp);
+                }
             }
         } else {
             // SURFACE shader
@@ -143,7 +174,6 @@ void Shader::draw() {
                 // light source to camera
                 m_objects[k]->getColor(i) = PointLight({position,
                         intensity}).intensityAt(m_camera.vrp);
-
             }
         }
     }
@@ -166,15 +196,15 @@ void Shader::draw() {
 
             int index = m_objects[k]->getSurface(i).x;
             ScreenPoint a(m_objects[k]->getCopyVertex(index),
-                    m_objects[k]->getColor(GOURAUD?index:i));
+                    m_objects[k]->getColor(GOURAUD?(i*3):i));
 
             index = m_objects[k]->getSurface(i).y;
             ScreenPoint b(m_objects[k]->getCopyVertex(index),
-                    m_objects[k]->getColor(GOURAUD?index:i));
+                    m_objects[k]->getColor(GOURAUD?(i*3+1):i));
 
             index = m_objects[k]->getSurface(i).z;
             ScreenPoint c(m_objects[k]->getCopyVertex(index),
-                    m_objects[k]->getColor(GOURAUD?index:i));
+                    m_objects[k]->getColor(GOURAUD?(i*3+2):i));
 
             // overwrite is enabled for
             // non backface surfaces

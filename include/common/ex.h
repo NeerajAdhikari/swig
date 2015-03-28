@@ -51,6 +51,13 @@ namespace ex {
             return "Fatal error while trying to plot!";
         }
     };
+
+    class BadFileFormat : public std::exception {
+        public:
+        const char* what() const throw() {
+            return "Bad file format.";
+        }
+    };
 };
 
 #endif

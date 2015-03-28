@@ -74,7 +74,6 @@ Object::Object(const std::string& filename,const Material& m,
     m_vertex.readjust({4,vcount});
     resetCopy();
 
-
     unsigned vertex_count = 0;
     unsigned vertex_normal_count = 0;
 
@@ -83,8 +82,6 @@ Object::Object(const std::string& filename,const Material& m,
     objfile.seekg(0 , std::ios::beg);
     while (!objfile.eof()) {
         std::getline(objfile,line);
-        std::cout << line << std::endl;
-
 
         rtrim(line);
         if (line.size()<3)
@@ -108,13 +105,15 @@ Object::Object(const std::string& filename,const Material& m,
         else if (keyword=="f") {
 
             std::string facepoint;
-            std::vector<unsigned> face;
-
+            std::vector<unsigned> faceV;
+            std::vector<unsigned> faceVt;
+            std::vector<unsigned> faceVn;
+            std::vector<std::string> indices;
+            bool noNormal = false;
 
             // Trimming from the left
             size_t space=line.find(' ');
             line=line.substr(space+1,line.size()-space-1);
-
 
             while (space!=std::string::npos) {
                 space=line.find(' ');
@@ -124,38 +123,86 @@ Object::Object(const std::string& filename,const Material& m,
                 } else {
                     facepoint=line; line="";
                 }
-                size_t slash=facepoint.find('/');
+                indices = split(facepoint,'/');
+                if (indices.size()>3)
+                    throw ex::BadFileFormat();
+                faceV.push_back(std::stoi(indices[0])-1);
+                if (indices.size()>2 && indices[2].size()!=0)
+                    faceVn.push_back(std::stoi(indices[2])-1);
+                else {
+                    noNormal = true;
+                }
+
+                /*size_t slash=facepoint.find('/');
                 if (slash!=std::string::npos) {
                     facepoint=facepoint.substr(0,slash);
                 }
-                face.push_back(std::stoi(facepoint)-1);
+                faceV.push_back(std::stoi(facepoint)-1);*/
             }
-            std::vector<Triplet<unsigned> > tlst = tesselate(face);
+
+            // Returns a list of Triplet-Pairs, of which the first
+            // is the vertex index triplet and the second is the
+            // vertext normal index triplet.
+            std::vector<Pair<Triplet<unsigned> > > tlst;
+            if (noNormal)
+                tlst = tesselate(faceV);
+            else
+                tlst = tesselate(faceV,faceVn);
             for (auto it=tlst.begin();it<tlst.end(); it++) {
-                setSurface(*it);
+                Surface* surf;
+                if (noNormal)
+                    surf = new Surface(it->x.x,it->x.y,it->x.z);
+                else
+                    surf = new Surface(it->x.x,it->x.y,it->x.z,
+                        it->y.x,it->y.y,it->y.z);
+                setSurface(*surf);
             }
         }
     }
     // TODO load vertex normals for the file
     // Initialize the normal to the surfaces
-    initNormal();
+    //initNormal();
 }
 
 // Tesselate a polygon to triangles
-std::vector<Triplet<unsigned> > Object::tesselate(
-        std::vector<unsigned> face) {
-    if (face.size()<3) {
+std::vector<Pair<Triplet<unsigned> > > Object::tesselate(
+        std::vector<unsigned> faceV, std::vector<unsigned> faceVn) {
+
+    bool normal = (faceVn!=std::vector<unsigned>());
+    std::vector<Pair<Triplet<unsigned> > > tesselated;
+
+    if (faceV.size()<3) {
         throw ex::InitFailure();
+    } else if (faceV.size()==3) {
+        Pair<Triplet<unsigned> >* pr;
+        if (normal)
+            pr = new Pair<Triplet<unsigned> >
+                ({faceV[0],faceV[1],faceV[2]},
+                {faceVn[0],faceVn[1],faceVn[2]});
+        else
+            pr = new Pair<Triplet<unsigned> >
+                ({faceV[0],faceV[1],faceV[2]},{0,0,0});
+        tesselated.push_back(*pr);
+        return tesselated;
     } else {
         unsigned v1,v2,v3;
-        std::vector<Triplet<unsigned> > tesselated;
-        while (face.size()) {
-            v1 = face.back(); face.pop_back();
-            v2 = face.back(); face.pop_back();
-            v3 = face.back(); face.pop_back();
-            tesselated.push_back({v3,v2,v1});
-            if (face.size()) {
-                face.push_back(v3); face.push_back(v1);
+        unsigned vn1,vn2,vn3;
+        while (faceV.size()) {
+            v1 = faceV.back(); faceV.pop_back();
+            v2 = faceV.back(); faceV.pop_back();
+            v3 = faceV.back(); faceV.pop_back();
+            if (normal) {
+                vn1 = faceVn.back(); faceVn.pop_back();
+                vn2 = faceVn.back(); faceVn.pop_back();
+                vn3 = faceVn.back(); faceVn.pop_back();
+                tesselated.push_back({{v3,v2,v1},{vn3,vn2,vn1}});
+            } else
+                tesselated.push_back({{v3,v2,v1},{0,0,0}});
+            if (faceV.size()) {
+                faceV.push_back(v3); faceV.push_back(v1);
+                if (normal) {
+                    faceVn.push_back(vn3); faceVn.push_back(vn1);
+                }
             }
         }
         return tesselated;
@@ -173,10 +220,13 @@ void Object::showVx() const {
 void Object::initNormal() {
 
     // Get normals
+    m_vertex_normal.readjust({4,vertexCount()});
     m_vertex_normal.clear();
     for(auto i=0;i<m_surface.size();i++) {
         Vector  normal = getSurfaceNormal(i);
-        Surface surf = getSurface(i);
+        Surface& surf = getSurface(i);
+        surf.vertexNormals = true;
+        surf.nx = surf.x; surf.ny = surf.y; surf.nz = surf.z;
         m_vertex_normal(0,surf.x) += normal.x;
         m_vertex_normal(1,surf.x) += normal.y;
         m_vertex_normal(2,surf.x) += normal.z;
