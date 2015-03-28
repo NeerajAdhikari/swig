@@ -37,8 +37,6 @@ void Shader::draw() {
         *TfMatrix::lookAt(m_camera.vrp,m_camera.vpn,m_camera.vup);
 
     for (unsigned int k=0; k<m_objects.size(); k++) {
-        //m_objects[k]->vmatrix() /= rotator;
-        //m_objects[k]->vnmatrix() /= rotator;
 
         // Get the vertex copy matrix
         // NOTE: getting a vertex matrix will reset the
@@ -65,11 +63,9 @@ void Shader::draw() {
         if(BACKFACEDETECTION) {
             for(int i=0;i<m_objects[k]->surfaceCount();i++) {
                 // This normal is a special kind of normal,
-                // it uses x and y of
-                // the projected matrix so as to get
-                // orthogonal projection system
-                // but original Z value for better depth
-                // calculation
+                // it uses x and y of the projected matrix so as
+                // to get orthogonal projection system but original
+                // Z value for better depth calculation
                 Vector normal = m_objects[k]->
                     getDistortedSurfaceNormal(i);
 
@@ -88,6 +84,7 @@ void Shader::draw() {
                 vnn = m_objects[k]->vcmatrix().col();
                 //std::cout<<vnn<<std::endl;
             }
+
             m_objects[k]->initColors(m_objects[k]->surfaceCount()*3);
             for(auto i=0;i<m_objects[k]->surfaceCount();i++) {
 
@@ -98,33 +95,34 @@ void Shader::draw() {
 
                 // The surface to be shaded
                 Surface surf = m_objects[k]->getSurface(i);
-                /*if (surf.nx>=vnn || surf.ny>=vnn || surf.nz>=vnn) {
-                    std::cout<<surf.nx<<std::endl;
-                    std::cout<<surf.ny<<std::endl;
-                    std::cout<<surf.nz<<std::endl;
-                    std::cout<<"DEgeneracy"<<i<<std::endl;
-                }
-                exit(0);*/
 
                 // Normals for lighting calculation
-                Vector nx = m_objects[k]->getVertexNormal(surf.nx);
-                Vector ny = m_objects[k]->getVertexNormal(surf.ny);
-                Vector nz = m_objects[k]->getVertexNormal(surf.nz);
-                Vector normals[] = {nx,ny,nz};
-
+                Vector normals[] = {
+                m_objects[k]->getVertexNormal(surf.nx),
+                m_objects[k]->getVertexNormal(surf.ny),
+                m_objects[k]->getVertexNormal(surf.nz)};
                 // Position for lighting calculation
                 Vector positions[] = {
                     m_objects[k]->getVertex(surf.x),
                     m_objects[k]->getVertex(surf.y),
                     m_objects[k]->getVertex(surf.z)};
 
-                for (int h=0; h<3; h++) {
-                    // Inverting the back surfaces for
-                    // unbounded objects
-                    if (UNBOUNDED && Vector::cosine((positions[h]
-                                    -m_camera.vrp),normals[h])>0)
-                        normals[h] *=-1;
+                // If backfacedetection then continue
+                // if suitable
+                if (!UNBOUNDED && BACKFACEDETECTION &&
+                        !m_objects[k]->getSurface(i).visible)
+                    continue;
 
+                // Inverting the back surfaces for
+                // unbounded objects
+                else if (UNBOUNDED && !m_objects[k]->
+                        getSurface(i).visible) {
+                    for (int h=0; h<3; h++)
+                        normals[h] *=-1;
+                }
+
+
+                for (int h=0; h<3; h++) {
                     // Ambient lighting
                     Coeffecient intensity = m_ambientLight.intensity
                         *material.ka;
@@ -166,6 +164,7 @@ void Shader::draw() {
                 if (!UNBOUNDED && BACKFACEDETECTION &&
                         !m_objects[k]->getSurface(i).visible)
                     continue;
+
                 // Inverting the back surfaces for
                 // unbounded objects
                 else if (UNBOUNDED && !m_objects[k]->

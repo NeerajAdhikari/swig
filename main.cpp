@@ -51,10 +51,9 @@ int main(int argc, char*argv[]) {
     //shader.addLight(&blue);
 
     // Initialize the material of object
-    Coeffecient ka = Coeffecient(0.1, 0.1, 0.1);
-    Coeffecient kd = Coeffecient(0.5, 0.5, 0.5);
-    Coeffecient ks = Coeffecient(0.5, 0.5, 0.5);
-    Material m(ka, kd, ks, 140);
+    Material planeMat(Coeffecient(0.1, 0.1, 0.1),
+            Coeffecient(0.5, 0.5, 0.5),
+            Coeffecient(0.5, 0.5, 0.5), 140);
 
     Material groundMat(Coeffecient(0.1,0.2,0.05),
             Coeffecient(0.6,0.8,0.1),
@@ -75,7 +74,8 @@ int main(int argc, char*argv[]) {
     ground.setVertex(3,{-10,0,-10,1});
     ground.setSurface({0,2,1});
     ground.setSurface({0,3,2});
-    //shader.addObject(&cube);
+
+    // Add objects to Shader
     shader.addObject(&plane);
     //shader.addObject(&ground);
     Object triangle(3,m,Shading::flat,false,true);
@@ -105,14 +105,10 @@ int main(int argc, char*argv[]) {
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
-    /*Vector vxrp(0,5,10);
-    Vector vxpn = Vector(0,0,0)-cam.vrp;
-    Vector vxup(0,1,0);*/
     Camera cam({0, 5, 5}, {0, -5, -5}, {0, 1, 0});
     shader.setCamera(cam);
 
     // Initialize SDL events
-    SDL_Event event;
     const Uint8*keys = SDL_GetKeyboardState(NULL);
 
     // Intialize the benchmark for fps
@@ -131,6 +127,25 @@ int main(int argc, char*argv[]) {
             cam.vrp -= (cam.vpn * cam.vup).normalized() / 5;
         else if (keys[SDL_GetScancodeFromKey(SDLK_d)])
             cam.vrp += (cam.vpn * cam.vup).normalized() / 5;
+
+        else if (keys[SDL_GetScancodeFromKey(SDLK_g)])
+            plane.setShading(Shading::gouraud);
+        else if (keys[SDL_GetScancodeFromKey(SDLK_f)])
+            plane.setShading(Shading::flat);
+
+        else if (keys[SDL_GetScancodeFromKey(SDLK_1)]){
+            plane.backface(false);
+            plane.bothsides(false);
+            std::cout << "Mode1\n" << std::endl;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_2)]){
+            plane.backface(true);
+            plane.bothsides(false);
+            std::cout << "Mode2\n" << std::endl;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_3)]){
+            plane.backface(true);
+            plane.bothsides(true);
+            std::cout << "Mode3\n" << std::endl;
+        }
 
         // For cirualar camera movement due to direction
         // repositioning

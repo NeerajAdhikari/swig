@@ -9,7 +9,7 @@ SDLPlotter::SDLPlotter(unsigned w, unsigned h)
         throw ex::InitFailure();
 
     // Create a window
-    window = SDL_CreateWindow("SWIG Test", SDL_WINDOWPOS_UNDEFINED,
+    window = SDL_CreateWindow("Code Paperplanes", SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED, m_width, m_height,
             SDL_WINDOW_SHOWN);
     if (window == NULL)
@@ -32,14 +32,12 @@ SDLPlotter::~SDLPlotter() {
 // Check if a TERM signal has been sent, i.e. for example
 // Alt+F4 has been pressed
 bool SDLPlotter::checkTerm() {
-    SDL_Event e;
-    if (SDL_PollEvent(&e)==0) {
-        return false;
-    } else if (e.type==SDL_QUIT) {
+    static SDL_Event e;
+    if (e.type==SDL_QUIT)
         return true;
-    } else {
+    else if (SDL_PollEvent(&e)==0)
         return false;
-    }
+    return false;
 }
 
 /*
