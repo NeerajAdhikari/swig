@@ -183,8 +183,8 @@ class Object {
 };
 
 inline Object::~Object(){
-    if( m_colors != NULL)
-        delete []m_colors;
+    /*if( m_colors != NULL)
+        delete []m_colors;*/
 }
 
 inline const Material& Object::material() const {

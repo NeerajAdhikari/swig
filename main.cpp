@@ -40,15 +40,15 @@ int main(int argc, char*argv[]) {
     shader.setAmbient(ambient);
 
     // Intialize point light sources
-    PointLight red ({{-1000,1000,1000,0},{1000,-1000,-1000,0},
-        {0,1,0}}, {200000, 0, 0});
+    PointLight red ({{0,20,0,1},{0,-20,0,0},
+        {0,0,1,0}}, {8000, 0, 0});
     PointLight green({{0, 1000, 1000, 0},{0,-1000,-1000,0},
-        {0,1,0}}, {0,150000,0});
+        {0,1,0,0}}, {0,150000,0});
     PointLight blue({{0, -1000, 1000, 0},{0,1000,-1000,0},
-        {0,1,0}}, {0, 0, 200000});
+        {0,1,0,0}}, {0, 0, 200000});
     shader.addLight(&red);
-    shader.addLight(&green);
-    shader.addLight(&blue);
+    //shader.addLight(&green);
+    //shader.addLight(&blue);
 
     // Initialize the material of object
     Coeffecient ka = Coeffecient(0.1, 0.1, 0.1);
@@ -67,7 +67,7 @@ int main(int argc, char*argv[]) {
     /*Object ground("resources/ground.obj",m,Shading::flat,
             true,false);*/
     //cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
-    plane.vmatrix() /= TfMatrix::translation({-4, 8, 0, 0});
+    //plane.vmatrix() /= TfMatrix::translation({0, 8, 0, 0});
     Object ground(4,groundMat,Shading::flat,true,false);
     ground.setVertex(0,{10,0,-10,1});
     ground.setVertex(1,{10,0,10,1});
@@ -77,7 +77,13 @@ int main(int argc, char*argv[]) {
     ground.setSurface({0,3,2});
     //shader.addObject(&cube);
     shader.addObject(&plane);
-    shader.addObject(&ground);
+    //shader.addObject(&ground);
+    Object triangle(3,m,Shading::flat,false,true);
+    triangle.setVertex(0,{5,5,5,1});
+    triangle.setVertex(1,{0,5,5,1});
+    triangle.setVertex(2,{0,5,0,1});
+    triangle.setSurface({0,1,2});
+    //shader.addObject(&triangle);
     /* Bug check
     for (int i=0; i<plane.surfaceCount(); i++) {
         Surface s = plane.getSurface(i);
@@ -111,6 +117,9 @@ int main(int argc, char*argv[]) {
 
     // Intialize the benchmark for fps
     Time timekeeper(DELAY);
+    if (red.shadow_buffer==NULL)
+        red.initShadowBuffer({1000,750});
+    red.updateShadowBuffer(&shader,&fb);
     while (!fb.checkTerm()) {
 
         // SDL EVENTS
@@ -132,9 +141,20 @@ int main(int argc, char*argv[]) {
 
         // Make shader do the magic
         shader.setCamera(cam);
+        /*for (int i=0; i<red.dim.y; i++) {
+        for (int j=0;j<red.dim.x;j++) {
+            int val = (((long double)red.depthAt(i,j))/INT32_MAX)*0xff;
+            fb.plot(i,j,{val,val,val,0xff},false);
+        }
+        }
+        if (red.onShadow({10,0,10,1}))
+            std::cout<<"OnShadow"<<std::endl;
+        else
+            std::cout<<"nOShadow"<<std::endl;*/
         shader.draw();
 
         //break;
+        //fb.update();
 
         // wait for some time to maintain delay
         timekeeper.wait();

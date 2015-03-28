@@ -12,6 +12,19 @@ void Shader::draw() {
 
     bool BACKFACEDETECTION, UNBOUNDED, GOURAUD;
 
+    /*for (int i=0; i<200; i++) {
+        for (int j=0; j<150; j++) {
+            std::cout<<m_pointLights[0]->depthAt(i,j)<<"\t";
+        }
+        std::cout<<std::endl;
+    }
+    if (m_pointLights[0]->onShadow({0,0,0,1}))
+        std::cout<<"On Shadow"<<std::endl;
+    else
+        std::cout<<"nO Shadow"<<std::endl;
+    exit(0);*/
+
+
     // Apply camera projection and perspective
     // projection transformation
     // Change homogeneous co-ordinate system
@@ -212,7 +225,7 @@ void Shader::draw() {
 
             // overwrite is enabled for
             // non backface surfaces
-            mp_drawer->fillD(a,b,c,GOURAUD, m_objects[k]->
+            mp_drawer->fillD(a,b,c,GOURAUD, this, m_objects[k]->
                     getSurface(i).visible);
         }
     }
@@ -220,4 +233,5 @@ void Shader::draw() {
     // Update framebuffer
     mp_drawer->update();
 }
+
 

@@ -1,4 +1,5 @@
 #include "Drawer.h"
+#include "Shader.h"
 
 // Construct.
 Drawer::Drawer(Plotter_ *pltr):
@@ -110,12 +111,14 @@ void Drawer::hLine(int y, int xStart, int xEnd, Color cl) {
 // value
 
 void Drawer::hLineD(int y, int xStart, int dStart,
-        int xEnd, int dEnd, Color cl, bool overwrite) {
+        int xEnd, int dEnd, Color cl, Pair<Vector> realvs, Shader* sh,
+        bool overwrite) {
     // Sort the start end end values if they are not in order
 
     if (xStart>xEnd) {
         swap(xStart,xEnd);
         swap(dStart,dEnd);
+        swap(realvs.x,realvs.y);
     }
     // If y lies outside then return
     if( y >= (int)plotter->height() || y < 0)
@@ -125,6 +128,10 @@ void Drawer::hLineD(int y, int xStart, int dStart,
         return;
 
     Linspace d(dStart,dEnd,xStart,xEnd);
+
+    LinspaceF rx(realvs.x.x,realvs.y.x,xStart,xEnd);
+    LinspaceF ry(realvs.x.y,realvs.y.y,xStart,xEnd);
+    LinspaceF rz(realvs.x.z,realvs.y.z,xStart,xEnd);
 
     // Clipping
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
@@ -143,7 +150,13 @@ void Drawer::hLineD(int y, int xStart, int dStart,
                     de>=depth(xStart,y)) ||
             (!overwrite &&  de<=ScreenPoint::maxDepth &&
              de>depth(xStart,y)) ) {
-                plotter->plot(xStart,y,cl,false);
+                if (sh->onShadow({rx.at(xStart),ry.at(xStart),
+                            rz.at(xStart),1})) {
+                    Color ncol = {cl.blue*0.5,cl.green*0.5,cl.red*0.5,
+                        0xff};
+                    plotter->plot(xStart,y,ncol,false);
+                } else
+                    plotter->plot(xStart,y,cl,false);
                 depth(xStart,y)=de;
             }
         ++xStart;
@@ -158,12 +171,14 @@ void Drawer::hLineD(int y, int xStart, int dStart,
 // starting depth value, ending x-coordinate and ending depth
 // value
 void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
-        int dEnd, Color cStart,Color cEnd, bool overwrite) {
+        int dEnd, Color cStart,Color cEnd, Pair<Vector> realvs,
+        Shader* sh, bool overwrite) {
     // Sort the start end end values if they are not in order
     if (xStart>xEnd) {
         swap(xStart,xEnd);
         swap(dStart,dEnd);
         swap(cStart,cEnd);
+        swap(realvs.x,realvs.y);
     }
     // If y lies outside then return
     if( y >= (int)plotter->height() || y < 0)
@@ -174,6 +189,10 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
 
     Linspace d(dStart,dEnd,xStart,xEnd);
     Lincolor c(cStart,cEnd,xStart,xEnd);
+
+    LinspaceF rx(realvs.x.x,realvs.y.x,xStart,xEnd);
+    LinspaceF ry(realvs.x.y,realvs.y.y,xStart,xEnd);
+    LinspaceF rz(realvs.x.z,realvs.y.z,xStart,xEnd);
 
     // Clipping
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
@@ -191,7 +210,13 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
                     de>=depth(xStart,y)) ||
             (!overwrite && de<=ScreenPoint::maxDepth &&
              de>depth(xStart,y)) ) {
-            plotter->plot(xStart,y,c.at(xStart),false);
+            Color cl = c.at(xStart);
+            if (sh->onShadow({rx.at(xStart),ry.at(xStart),
+                        rz.at(xStart),1})) {
+                Color ncol = {cl.blue*0.5,cl.green*0.5,cl.red*0.5,
+                    0xff};
+                plotter->plot(xStart,y,ncol,false);
+            } else plotter->plot(xStart,y,cl,false);
             depth(xStart,y)=de;
         }
         ++xStart;
@@ -243,7 +268,7 @@ void Drawer::initAscending(ScreenPoint& start,
 // considering depth buffer
 // overwrite when true will enable overwrite to same depth
 void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
-        ScreenPoint pt3, bool interpolate, bool overwrite){
+        ScreenPoint pt3, bool interpolate,Shader* sh,bool overwrite) {
 
     ScreenPoint start, mid, end;
     initAscending(start,mid,end,pt1,pt2,pt3);
@@ -254,7 +279,7 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
         return;
     // THe negative region is backside of the camera
     // or away from the far point
-    if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
+    if(start.d<=0 || end.d<=0 || mid.d<=0)
         return;
 
     Linspace x1(start.x,mid.x, start.y, mid.y);
@@ -265,6 +290,18 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     Linspace d2(start.d,end.d, start.y, end.y);
     Linspace d3(mid.d,end.d, mid.y, end.y);
 
+    LinspaceF ax(start.real.x,mid.real.x,start.y,mid.y);
+    LinspaceF ay(start.real.y,mid.real.y,start.y,mid.y);
+    LinspaceF az(start.real.z,mid.real.z,start.y,mid.y);
+
+    LinspaceF bx(start.real.x,end.real.x,start.y,end.y);
+    LinspaceF by(start.real.y,end.real.y,start.y,end.y);
+    LinspaceF bz(start.real.z,end.real.z,start.y,end.y);
+
+    LinspaceF cx(mid.real.x,end.real.x,mid.y,end.y);
+    LinspaceF cy(mid.real.y,end.real.y,mid.y,end.y);
+    LinspaceF cz(mid.real.z,end.real.z,mid.y,end.y);
+
     Lincolor c1(start.color,mid.color,start.y,mid.y);
     Lincolor c2(start.color,end.color,start.y,end.y);
     Lincolor c3(mid.color,end.color,mid.y,end.y);
@@ -273,27 +310,43 @@ void Drawer::fillD(ScreenPoint pt1, ScreenPoint pt2,
     if(interpolate){
         start.y = Math::min(mid.y,Math::max(start.y,0));
         for(int i=start.y;i<Math::min((int)plotter->height(),
-                    mid.y);i++)
+                    mid.y);i++) {
+            Vector rva = {ax.at(i),ay.at(i),az.at(i),1};
+            Vector rvb = {bx.at(i),by.at(i),bz.at(i),1};
+            Pair<Vector> realvs = {rva,rvb};
             hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),
-                    c1.at(i),c2.at(i),overwrite);
+                    c1.at(i),c2.at(i),realvs,sh,overwrite);
+        }
         // Clipping
         mid.y = Math::max(mid.y,0);
         for(int i=mid.y;i<=Math::min((int)plotter->
-                    height()-1,end.y);i++)
+                    height()-1,end.y);i++) {
+            Vector rvb = {bx.at(i),by.at(i),bz.at(i),1};
+            Vector rvc = {cx.at(i),cy.at(i),cz.at(i),1};
+            Pair<Vector> realvs = {rvb,rvc};
             hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i),
-                    c2.at(i), c3.at(i), overwrite);
+                    c2.at(i), c3.at(i), realvs,sh, overwrite);
+        }
 
     } else {
         start.y = Math::min(mid.y,Math::max(start.y,0));
         for(int i=start.y;i<Math::min((int)plotter->height(),
-                    mid.y);i++)
+                    mid.y);i++) {
+            Vector rva = {ax.at(i),ay.at(i),az.at(i),1};
+            Vector rvb = {bx.at(i),by.at(i),bz.at(i),1};
+            Pair<Vector> realvs = {rva,rvb};
             hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i),
-                    start.color,overwrite);
+                    start.color,realvs,sh,overwrite);
+        }
         // Clipping
         mid.y = Math::max(mid.y,0);
         for(int i=mid.y;i<=Math::min((int)plotter->height()-1,
-                    end.y);i++)
+                    end.y);i++) {
+            Vector rvb = {bx.at(i),by.at(i),bz.at(i),1};
+            Vector rvc = {cx.at(i),cy.at(i),cz.at(i),1};
+            Pair<Vector> realvs = {rvb,rvc};
             hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i),
-                    start.color, overwrite);
+                    start.color, realvs,sh, overwrite);
+        }
     }
 }

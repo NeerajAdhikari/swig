@@ -3,12 +3,15 @@
 
 #include "mathematics/Matrix.h"
 #include "mathematics/Linspace.h"
+#include "mathematics/LinspaceF.h"
 
 #include "ScreenPoint.h"
 #include "Lincolor.h"
 
 #define Plotter_ SDLPlotter
 #include SSTR(Plotter_.h)
+
+class Shader;
 
 // The drawer class is an abstraction that handles the drawing
 // of primitives. Drawing lines, filling polygons, etc are done
@@ -45,18 +48,21 @@ class Drawer {
 
     // Draw a horizontal line considering the depth buffer
     void hLineD(int y, int xs, int hs,
-            int xe, int he, Color cl, bool overwrite=true);
+            int xe, int he, Color cl, Pair<Vector> realvs,
+            Shader* sh, bool overwrite=true);
 
     // Draw a horizontal line considering the depth buffer
     // and color gradient
     void hLineD(int y, int xs, int hs, int xe, int he, Color cStart,
-            Color cEnd, bool overwrite=true);
+            Color cEnd, Pair<Vector> realvs,
+            Shader* sh, bool overwrite=true);
 
     // Fill the triangle bounded by pt1, pt2 and pt3
     // considering depth buffer and color gradient
     // overwrite when true will enable overwrite to same depth
     void fillD(ScreenPoint pt1, ScreenPoint pt2, ScreenPoint pt3,
-            bool interpolate=true,bool overwrite=true);
+            bool interpolate=true,Shader* sh=NULL,
+            bool overwrite=true);
 
     // Get the screen width
     int getWidth() const {

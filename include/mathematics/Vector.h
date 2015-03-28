@@ -64,6 +64,8 @@ class Vector: public Quadruple<float> {
         static float sine(const Vector& a, const Vector& b){
             return (a * b).magnitude()/(a.magnitude() * b.magnitude());
         }
+
+        void projectionNormalize();
 };
 
 inline Vector::Vector():
@@ -91,6 +93,12 @@ inline void Vector::normalize() {
     float M = magnitude();
     if(!Math::equal(M,0.0))
         (*this) /= M;
+}
+
+inline void Vector::projectionNormalize() {
+    if (!Math::equal(w,0)) {
+        x /= w; y /= w; z /= w; w = 1;
+    }
 }
 
 inline float Vector::magnitude() const {

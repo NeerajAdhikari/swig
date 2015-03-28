@@ -8,20 +8,21 @@
 
 void PointLight::initShadowBuffer(Pair<unsigned> dm) {
     dim = dm;
-    shadow_buffer = new int[dim.x*dim.y];
+    shadow_buffer = new double[dim.x*dim.y];
+    memset((void*)shadow_buffer,0,(sizeof (double))*(dim.x*dim.y));
 }
 
-void PointLight::updateShadowBuffer(Shader* sh) {
-    Matrix<float> shTxform =
+void PointLight::updateShadowBuffer(Shader* sh, Plotter_* fb) {
+    shadow_xForm =
         TfMatrix::toDevice(dim.x,dim.y,ScreenPoint::maxDepth)
-        *TfMatrix::perspective(135,((float)dim.y)/(float)dim.x
-                ,10000,5)
+        *TfMatrix::perspective(95,((float)dim.y)/(float)dim.x
+                ,500,5)
         *TfMatrix::lookAt(cam.vrp,cam.vpn,cam.vup);
 
     for (int k=0; k<sh->objectCount(); k++) {
         Object obj = *(sh->getObjectP(k));
         Matrix<float>& vAlias = obj.vmatrix();
-        vAlias /= shTxform;
+        vAlias /= shadow_xForm;
 
         // Perspective divide, homogenous co-ordinates
         // to normalized co-ordinate
@@ -119,19 +120,4 @@ void PointLight::hLineD(int y, int xStart, int dStart,
     }
 }
 
-int PointLight::depthAt(unsigned x, unsigned y) {
-    return shadow_buffer[y*dim.x+x];
-}
 
-bool PointLight::onShadow(const Vector& pt) {
-    Matrix<float> shTxform =
-        TfMatrix::toDevice(dim.x,dim.y,ScreenPoint::maxDepth)
-        *TfMatrix::perspective(135,((float)dim.y)/(float)dim.x
-                ,10000,5)
-        *TfMatrix::lookAt(cam.vrp,cam.vpn,cam.vup);
-    Matrix<float> shPt({4,1}); shPt(0,0)=pt.x; shPt(1,0)=pt.y;
-    shPt(2,0)=pt.z; shPt(3,0)=pt.w;
-    shPt /= shTxform;
-    Vector v = {shPt(0,0),shPt(1,0),shPt(2,0),shPt(3,0)};
-    return depthAt(v.x,v.y)<v.z;
-}

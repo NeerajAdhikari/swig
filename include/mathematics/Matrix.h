@@ -280,7 +280,6 @@ T Matrix<T>::determinant() const {
     return det;
 }
 
-
 template<class T>
 Matrix<T> Matrix<T>::identity(unsigned n) {
     Matrix<T> inst({n,n});
@@ -440,5 +439,27 @@ void Matrix<T>::print() const {
     }
     std::cout << std::setw(8*col()+1) << std::right << row() << "x" << col() << "\n";
 }
+
+/*template<class T>
+Matrix<T> Matrix<T>::inverse() {
+    double det = determinant();
+    if (Math::equal(det,0))
+        throw "No inverse";
+    Matrix<T> res(4,4);
+    res(0,0) = (*this)(1,1)*(*this)(2,2)-(*this)(1,2)*(*this)(2,1);
+    res(0,1) = -(*this)(1,0)*(*this)(2,2)+(*this)(1,2)*(*this)(2,0);
+    res(0,2) = (*this)(1,0)*(*this)(2,1)-(*this)(1,1)*(*this)(2,0);
+
+    res(1,0) = -(*this)(0,1)*(*this)(2,2)+(*this)(0,2)*(*this)(2,1);
+    res(1,1) = (*this)(0,0)*(*this)(2,2)-(*this)(0,2)*(*this)(2,0);
+    res(1,2) = -(*this)(0,0)*(*this)(2,1)+(*this)(0,1)*(*this)(2,0);
+
+    res(2,0) = (*this)(0,1)*(*this)(1,2)-(*this)(0,2)*(*this)(1,1);
+    res(2,1) = -(*this)(0,0)*(*this)(1,2)+(*this)(0,2)*(*this)(1,0);
+    res(2,2) = (*this)(0,0)*(*this)(1,1)-(*this)(0,1)*(*this)(1,0);
+    res /= det;
+    res(3,3) = 1;
+    return res;
+}*/
 
 #endif

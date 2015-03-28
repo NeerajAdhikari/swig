@@ -85,6 +85,16 @@ class Shader {
     int objectCount() const {
         return m_objects.size();
     }
+
+    inline bool onShadow(Vector pt) {
+        for (auto ls : m_pointLights) {
+            if (ls->shadow_buffer!=NULL) {
+                if (ls->onShadow(pt))
+                    return true;
+            }
+        }
+        return false;
+    }
 };
 
 #endif  // __SHADER_H__
