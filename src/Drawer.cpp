@@ -201,8 +201,9 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
 
 // We need to sort the points according to their
 // y-coordinates
-void Drawer::initAscending(ScreenPoint& start, ScreenPoint& mid, ScreenPoint& end,
-        const ScreenPoint& pt1, const ScreenPoint& pt2, const ScreenPoint& pt3){
+void Drawer::initAscending(ScreenPoint& start,
+        ScreenPoint& mid, ScreenPoint& end, const ScreenPoint& pt1,
+        const ScreenPoint& pt2, const ScreenPoint& pt3) {
     if (pt1.y<=pt2.y && pt1.y<=pt3.y) {
         start = pt1;
         if (pt2.y<=pt3.y) {

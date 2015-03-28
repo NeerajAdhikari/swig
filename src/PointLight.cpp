@@ -1,0 +1,137 @@
+#include "PointLight.h"
+#include "Shader.h"
+#include "Drawer.h"
+#include "common/containers.h"
+#include "TfMatrix.h"
+#include "ScreenPoint.h"
+
+
+void PointLight::initShadowBuffer(Pair<unsigned> dm) {
+    dim = dm;
+    shadow_buffer = new int[dim.x*dim.y];
+}
+
+void PointLight::updateShadowBuffer(Shader* sh) {
+    Matrix<float> shTxform =
+        TfMatrix::toDevice(dim.x,dim.y,ScreenPoint::maxDepth)
+        *TfMatrix::perspective(135,((float)dim.y)/(float)dim.x
+                ,10000,5)
+        *TfMatrix::lookAt(cam.vrp,cam.vpn,cam.vup);
+
+    for (int k=0; k<sh->objectCount(); k++) {
+        Object obj = *(sh->getObjectP(k));
+        Matrix<float>& vAlias = obj.vmatrix();
+        vAlias /= shTxform;
+
+        // Perspective divide, homogenous co-ordinates
+        // to normalized co-ordinate
+        // NOTE: this can be done later in life
+        for (unsigned i=0; i<obj.vertexCount(); i++) {
+            vAlias(0,i) /= vAlias(3,i);
+            vAlias(1,i) /= vAlias(3,i);
+            vAlias(2,i) /= vAlias(3,i);
+            vAlias(3,i) = 1.0;
+        }
+
+        for (auto i=0; i<obj.surfaceCount(); i++) {
+            int index = obj.getSurface(i).x;
+            ScreenPoint a(obj.getVertex(index),black);
+            index = obj.getSurface(i).y;
+            ScreenPoint b(obj.getVertex(index),black);
+            index = obj.getSurface(i).z;
+            ScreenPoint c(obj.getVertex(index),black);
+            shFill(a,b,c);
+        }
+    }
+}
+
+void PointLight::shFill(ScreenPoint a, ScreenPoint b, ScreenPoint c) {
+
+    ScreenPoint start, mid, end;
+    Drawer::initAscending(start,mid,end,a,b,c);
+
+    if(start.y == end.y)
+        return;
+    if( start.y >= (int)dim.y || end.y < 0)
+        return;
+    // THe negative region is backside of the camera
+    // or away from the far point
+    if(start.d <= 0 || end.d <= 0 || mid.d <= 0)
+        return;
+
+    Linspace x1(start.x,mid.x, start.y, mid.y);
+    Linspace x2(start.x,end.x, start.y, end.y);
+    Linspace x3(mid.x,end.x, mid.y, end.y);
+
+    Linspace d1(start.d,mid.d, start.y , mid.y);
+    Linspace d2(start.d,end.d, start.y, end.y);
+    Linspace d3(mid.d,end.d, mid.y, end.y);
+
+    start.y = Math::min(mid.y,Math::max(start.y,0));
+    for(int i=start.y;i<Math::min((int)dim.y,mid.y);i++)
+        hLineD(i,x1.at(i),d1.at(i),x2.at(i),d2.at(i));
+
+    // Clipping
+    mid.y = Math::max(mid.y,0);
+    for(int i=mid.y;i<=Math::min((int)dim.y-1,end.y);i++)
+        hLineD(i, x2.at(i), d2.at(i), x3.at(i), d3.at(i));
+}
+
+void PointLight::hLineD(int y, int xStart, int dStart,
+        int xEnd, int dEnd, bool overwrite) {
+
+    // Sort the start end end values if they are not in order
+
+    if (xStart>xEnd) {
+        swap(xStart,xEnd);
+        swap(dStart,dEnd);
+    }
+
+    // If y lies outside then return
+    if( y >= (int)dim.y || y < 0)
+        return;
+    // If x lies outside then return
+    if( xStart >= (int)dim.x || xEnd < 0)
+        return;
+
+    Linspace d(dStart,dEnd,xStart,xEnd);
+
+    // Clipping
+    xEnd = Math::min(xEnd,(int)dim.x-1);
+    // Clipping
+    xStart = Math::max(0,xStart);
+
+    while(xStart <= xEnd){
+        // Depth clipping, checking with zero isn't necessary
+        // as depth(xStart,y) is always greater than or equal
+        // to 0
+        // checking with far value must be done however
+        // 0xffffff value because it is the maximum value it
+        // should attain
+        int de = d.at(xStart);
+        if ((overwrite && de<=ScreenPoint::maxDepth &&
+                    de>=depthAt(xStart,y)) ||
+            (!overwrite &&  de<=ScreenPoint::maxDepth &&
+             de>depthAt(xStart,y)) ) {
+            shadow_buffer[y*dim.x+xStart] = de;
+        }
+        ++xStart;
+    }
+}
+
+int PointLight::depthAt(unsigned x, unsigned y) {
+    return shadow_buffer[y*dim.x+x];
+}
+
+bool PointLight::onShadow(const Vector& pt) {
+    Matrix<float> shTxform =
+        TfMatrix::toDevice(dim.x,dim.y,ScreenPoint::maxDepth)
+        *TfMatrix::perspective(135,((float)dim.y)/(float)dim.x
+                ,10000,5)
+        *TfMatrix::lookAt(cam.vrp,cam.vpn,cam.vup);
+    Matrix<float> shPt({4,1}); shPt(0,0)=pt.x; shPt(1,0)=pt.y;
+    shPt(2,0)=pt.z; shPt(3,0)=pt.w;
+    shPt /= shTxform;
+    Vector v = {shPt(0,0),shPt(1,0),shPt(2,0),shPt(3,0)};
+    return depthAt(v.x,v.y)<v.z;
+}

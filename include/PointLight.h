@@ -4,21 +4,32 @@
 #include "Coeffecient.h"
 #include "mathematics/Vector.h"
 #include "Material.h"
+#include "Camera.h"
+#include "ScreenPoint.h"
+
+class Shader;
 
 struct PointLight {
+
 public:
-    Vector position;
+    Camera cam;
     Coeffecient intensity;
+    int* shadow_buffer;
+    Pair<unsigned> dim;
+
+    PointLight(Camera c, Coeffecient in) : cam(c), intensity(in),
+        dim({0,0})
+    {}
 
     Coeffecient intensityAt(const Vector& pos) {
-        float ratio = (0.001*std::pow((pos-position)
+        float ratio = (0.001*std::pow((pos-cam.vrp)
                     .magnitude(),2) + 100);
         return {intensity.b/ratio, intensity.g/ratio,
             intensity.r/ratio};
     }
 
     Vector directionAt(const Vector& vec) {
-        return vec - position;
+        return vec - cam.vrp;
     }
 
     Coeffecient lightingAt( const Vector& position,
@@ -50,6 +61,14 @@ public:
 
         return intensity;
     }
+
+    void initShadowBuffer(Pair<unsigned> dim);
+    void updateShadowBuffer(Shader* sh);
+    void shFill(ScreenPoint a, ScreenPoint b, ScreenPoint c);
+    void hLineD(int y, int xStart, int dStart, int xEnd, int dEnd,
+            bool overwrite=false);
+    int depthAt(unsigned x, unsigned y);
+    bool onShadow(const Vector& pt);
 };
 
 #endif

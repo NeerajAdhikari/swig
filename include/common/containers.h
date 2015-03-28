@@ -7,9 +7,8 @@ template <typename T>
 struct Pair{
     T x,y;
 
-    // Constructor
+    // Constructors
     Pair(T xx,T yy): x(xx), y(yy) {}
-
 };
 
 template<typename T>

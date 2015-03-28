@@ -329,7 +329,8 @@ void Matrix<T>::operator=(const Matrix& m){
     if( this == &m )
         return;
 
-    // If the space is equivalent // then things can be easily overwritten
+    // If the space is equivalent
+    // then things can be easily overwritten
     if(space() != m.space()){
         delete []m_matrix;
         m_matrix = new T[m.space()];

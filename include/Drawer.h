@@ -22,11 +22,11 @@ class Drawer {
     // A depth buffer, a matrix of uint32_t
     Matrix<uint32_t> depth;
 
-    void initAscending(ScreenPoint& start, ScreenPoint& mid,
+    public:
+    static void initAscending(ScreenPoint& start, ScreenPoint& mid,
             ScreenPoint& end, const ScreenPoint& pt1,
             const ScreenPoint& pt2, const ScreenPoint& pt3);
 
-    public:
     Drawer(Plotter_ *pltr);
 
     // Update screen.

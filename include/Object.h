@@ -69,9 +69,6 @@ class Object {
         // surfaces (triangles)
         std::vector<Surface> m_surface;
 
-        // Point Light sources
-        std::vector<PointLight*> m_lights;
-
         // Defines the color and surface properties
         Material m_material;
 

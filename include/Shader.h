@@ -71,6 +71,20 @@ class Shader {
     Camera getCamera() const {
         return m_camera;
     }
+
+    Drawer* getDrawerP() {
+        return mp_drawer;
+    }
+
+    Object* getObjectP(int i) {
+        if (i>=m_objects.size())
+            throw ex::OutOfBounds();
+        return m_objects[i];
+    }
+
+    int objectCount() const {
+        return m_objects.size();
+    }
 };
 
 #endif  // __SHADER_H__

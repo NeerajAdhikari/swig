@@ -40,9 +40,12 @@ int main(int argc, char*argv[]) {
     shader.setAmbient(ambient);
 
     // Intialize point light sources
-    PointLight red = {{ -1000, 1000, 1000, 0}, {200000, 0, 0}};
-    PointLight green = {{0, 1000, 1000, 0}, {0,150000,0}};
-    PointLight blue = {{0, -1000, 1000, 0}, {0, 0, 200000}};
+    PointLight red ({{-1000,1000,1000,0},{1000,-1000,-1000,0},
+        {0,1,0}}, {200000, 0, 0});
+    PointLight green({{0, 1000, 1000, 0},{0,-1000,-1000,0},
+        {0,1,0}}, {0,150000,0});
+    PointLight blue({{0, -1000, 1000, 0},{0,1000,-1000,0},
+        {0,1,0}}, {0, 0, 200000});
     shader.addLight(&red);
     shader.addLight(&green);
     shader.addLight(&blue);
@@ -58,8 +61,8 @@ int main(int argc, char*argv[]) {
             Coeffecient(0.6,0.8,0.1),20);
 
     // Initialize the object
-    Object plane(argv[1], m, Shading::gouraud, false, false);
-    plane.vmatrix() /= TfMatrix::scaling({0.05,0.05,0.05,1},{0,0,0,1});
+    Object plane(argv[1], m, Shading::gouraud, false, true);
+    //plane.vmatrix()/=TfMatrix::scaling({0.05,0.05,0.05,1},{0,0,0,1});
     //Object cube("resources/cube.obj", m, Shading::flat);
     /*Object ground("resources/ground.obj",m,Shading::flat,
             true,false);*/
@@ -74,7 +77,7 @@ int main(int argc, char*argv[]) {
     ground.setSurface({0,3,2});
     //shader.addObject(&cube);
     shader.addObject(&plane);
-    //shader.addObject(&ground);
+    shader.addObject(&ground);
     /* Bug check
     for (int i=0; i<plane.surfaceCount(); i++) {
         Surface s = plane.getSurface(i);

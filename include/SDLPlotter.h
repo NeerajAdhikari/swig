@@ -29,8 +29,8 @@ class SDLPlotter {
     ~SDLPlotter();
 
     // Plot at the given x,y position.
-    // This is the most speed-critical part of the code, as it is called
-    // so many times for each frame
+    // This is the most speed-critical part of the code,
+    // as it is called so many times for each frame
     inline void plot(unsigned x, unsigned y, Color pt, bool
             composite=false) {
         // Return if values out of range

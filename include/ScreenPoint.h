@@ -15,6 +15,7 @@ struct ScreenPoint {
     int32_t y;
     int32_t d;
     Color color;
+    Vector real;
 
     ScreenPoint(){
     }

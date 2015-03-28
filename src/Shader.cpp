@@ -127,8 +127,8 @@ void Shader::draw() {
                     // The reflection surface can be seen as a
                     // light source to camera
                     m_objects[k]->getColor(i*3+h) = PointLight(
-                            {positions[h],intensity})
-                    .intensityAt(m_camera.vrp);
+                            {positions[h],{0,0,0,0},{0,0,0,0}},
+                            intensity).intensityAt(m_camera.vrp);
                 }
             }
         } else {
@@ -173,7 +173,8 @@ void Shader::draw() {
                 // The reflection surface can be seen as a
                 // light source to camera
                 m_objects[k]->getColor(i) = PointLight({position,
-                        intensity}).intensityAt(m_camera.vrp);
+                        {0,0,0,0},{0,0,0,0}},
+                        intensity).intensityAt(m_camera.vrp);
             }
         }
     }
@@ -197,14 +198,17 @@ void Shader::draw() {
             int index = m_objects[k]->getSurface(i).x;
             ScreenPoint a(m_objects[k]->getCopyVertex(index),
                     m_objects[k]->getColor(GOURAUD?(i*3):i));
+            a.real = m_objects[k]->getVertex(index);
 
             index = m_objects[k]->getSurface(i).y;
             ScreenPoint b(m_objects[k]->getCopyVertex(index),
                     m_objects[k]->getColor(GOURAUD?(i*3+1):i));
+            b.real = m_objects[k]->getVertex(index);
 
             index = m_objects[k]->getSurface(i).z;
             ScreenPoint c(m_objects[k]->getCopyVertex(index),
                     m_objects[k]->getColor(GOURAUD?(i*3+2):i));
+            c.real = m_objects[k]->getVertex(index);
 
             // overwrite is enabled for
             // non backface surfaces
