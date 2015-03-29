@@ -40,33 +40,43 @@ int main(int argc, char*argv[]) {
     shader.setAmbient(ambient);
 
     // Intialize point light sources
-    PointLight red ({{0,20,0,1},{0,-20,0,0},
-        {0,0,1,0}}, {8000, 0, 0});
+    PointLight red ({{0,20,8,1},{0,-20,-8,0},
+        {0,0,1,0}}, {8000, 8000, 8000});
     PointLight green({{0, 1000, 1000, 0},{0,-1000,-1000,0},
         {0,1,0,0}}, {0,150000,0});
     PointLight blue({{0, -1000, 1000, 0},{0,1000,-1000,0},
         {0,1,0,0}}, {0, 0, 200000});
     shader.addLight(&red);
-    //shader.addLight(&green);
-    //shader.addLight(&blue);
+    shader.addLight(&green);
+    shader.addLight(&blue);
 
     // Initialize the material of object
     Material planeMat(Coeffecient(0.1, 0.1, 0.1),
-            Coeffecient(0.5, 0.5, 0.5),
-            Coeffecient(0.5, 0.5, 0.5), 140);
+            Coeffecient(0.6, 0.1, 0.2),
+            Coeffecient(0.6, 0.1, 0.2), 140);
 
     Material groundMat(Coeffecient(0.1,0.2,0.05),
             Coeffecient(0.6,0.8,0.1),
             Coeffecient(0.6,0.8,0.1),20);
 
+    Material treeMat(Coeffecient(0.1,0.1,0.1),
+            Coeffecient(0.2,0.4,0.0),
+            Coeffecient(0.2,0.4,0.0),80);
+
+
     // Initialize the object
-    Object plane(argv[1], m, Shading::gouraud, false, true);
-    //plane.vmatrix()/=TfMatrix::scaling({0.05,0.05,0.05,1},{0,0,0,1});
-    //Object cube("resources/cube.obj", m, Shading::flat);
-    /*Object ground("resources/ground.obj",m,Shading::flat,
-            true,false);*/
-    //cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
-    //plane.vmatrix() /= TfMatrix::translation({0, 8, 0, 0});
+    Object plane(argv[1], planeMat, Shading::gouraud, true, true);
+    // plane.vmatrix()/=TfMatrix::scaling({5,5,5,1},{0,0,0,1});
+    plane.vmatrix() /= TfMatrix::translation({0, 8, 0, 0});
+
+    Object ground("resources/terrain.obj",groundMat,Shading::flat,
+            true,false);
+
+    Object tree("resources/tree.obj",treeMat, Shading::gouraud,
+            true,false);
+    tree.vmatrix() /= TfMatrix::translation({6, 1, 2, 0});
+
+    /*
     Object ground(4,groundMat,Shading::flat,true,false);
     ground.setVertex(0,{10,0,-10,1});
     ground.setVertex(1,{10,0,10,1});
@@ -74,38 +84,18 @@ int main(int argc, char*argv[]) {
     ground.setVertex(3,{-10,0,-10,1});
     ground.setSurface({0,2,1});
     ground.setSurface({0,3,2});
+    */
 
     // Add objects to Shader
     shader.addObject(&plane);
-    //shader.addObject(&ground);
-    Object triangle(3,m,Shading::flat,false,true);
-    triangle.setVertex(0,{5,5,5,1});
-    triangle.setVertex(1,{0,5,5,1});
-    triangle.setVertex(2,{0,5,0,1});
-    triangle.setSurface({0,1,2});
-    //shader.addObject(&triangle);
-    /* Bug check
-    for (int i=0; i<plane.surfaceCount(); i++) {
-        Surface s = plane.getSurface(i);
-        unsigned n = plane.vertexNormalCount();
-        if (!s.vertexNormals) {
-            std::cout<<"Vertex normals not on"<<std::endl;
-            break;
-        }
-        if (s.nx>=n || s.ny>=n || s.nz>=n) {
-            std::cout<<"Value overshoot"<<std::endl;
-            break;
-        }
-        std::cout<<"Surface "<<i<<std::endl;
-    }
-    std::cout<<plane.vertexCount()<<std::endl;
-    std::cout<<plane.vertexNormalCount()<<std::endl;
-    std::cout<<"check complete"<<std::endl;
-    return 0; */
+    shader.addObject(&tree);
+    shader.addObject(&ground);
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
-    Camera cam({0, 5, 5}, {0, -5, -5}, {0, 1, 0});
+    Camera cam({27.8404,37.8099,25.767}, {-27.8404,-37.8099,-25.767}, {0, 1, 0});
+
+
     shader.setCamera(cam);
 
     // Initialize SDL events
@@ -123,9 +113,11 @@ int main(int argc, char*argv[]) {
             cam.vrp += cam.vpn.normalized() / 5;
         else if (keys[SDL_GetScancodeFromKey(SDLK_s)])
             cam.vrp -= cam.vpn.normalized() / 5;
-        else if (keys[SDL_GetScancodeFromKey(SDLK_a)])
+        else if (keys[SDL_GetScancodeFromKey(SDLK_a)]){
             cam.vrp -= (cam.vpn * cam.vup).normalized() / 5;
-        else if (keys[SDL_GetScancodeFromKey(SDLK_d)])
+            std::cout << cam.vrp.x << " "<< cam.vrp.y << " "<< cam.vrp.z << "\n" << std::endl;
+
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_d)])
             cam.vrp += (cam.vpn * cam.vup).normalized() / 5;
 
         else if (keys[SDL_GetScancodeFromKey(SDLK_g)])
@@ -136,15 +128,15 @@ int main(int argc, char*argv[]) {
         else if (keys[SDL_GetScancodeFromKey(SDLK_1)]){
             plane.backface(false);
             plane.bothsides(false);
-            std::cout << "Mode1\n" << std::endl;
+            std::cout << "Bounded\n" << std::endl;
         } else if (keys[SDL_GetScancodeFromKey(SDLK_2)]){
             plane.backface(true);
             plane.bothsides(false);
-            std::cout << "Mode2\n" << std::endl;
+            std::cout << "Bounded Backface\n" << std::endl;
         } else if (keys[SDL_GetScancodeFromKey(SDLK_3)]){
             plane.backface(true);
             plane.bothsides(true);
-            std::cout << "Mode3\n" << std::endl;
+            std::cout << "Unbounded\n" << std::endl;
         }
 
         // For cirualar camera movement due to direction
