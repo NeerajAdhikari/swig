@@ -117,6 +117,7 @@ int main(int argc, char*argv[]) {
     Time timekeeper(DELAY);
     if (red.shadow_buffer==NULL)
         red.initShadowBuffer({500,500});
+    red.magic = 0.0004;
     while (!fb.checkTerm()) {
         //plane.vmatrix() /= translator;
 
@@ -147,6 +148,10 @@ int main(int argc, char*argv[]) {
             plane.backface(true);
             plane.bothsides(true);
             std::cout << "Mode3\n" << std::endl;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_n)]) {
+            red.magic /= 2.0;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_m)]) {
+            red.magic *= 2.0;
         }
 
         // For cirualar camera movement due to direction
