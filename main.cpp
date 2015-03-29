@@ -18,8 +18,8 @@
 #include "misc/Time.h"
 
 // Initialize constant parameters
-const uint16_t WIDTH = 800;
-const uint16_t HEIGHT = 600;
+const uint16_t WIDTH = 600;
+const uint16_t HEIGHT = 400;
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6 / FPS;
 
@@ -97,6 +97,8 @@ int main(int argc, char*argv[]) {
 
 
     shader.setCamera(cam);
+    Matrix<float> translator = TfMatrix::translation(
+            {0.05,0,0.05,0});
 
     // Initialize SDL events
     const Uint8*keys = SDL_GetKeyboardState(NULL);
@@ -104,9 +106,9 @@ int main(int argc, char*argv[]) {
     // Intialize the benchmark for fps
     Time timekeeper(DELAY);
     if (red.shadow_buffer==NULL)
-        red.initShadowBuffer({1000,750});
-    red.updateShadowBuffer(&shader,&fb);
+        red.initShadowBuffer({500,500});
     while (!fb.checkTerm()) {
+        //plane.vmatrix() /= translator;
 
         // SDL EVENTS
         if (keys[SDL_GetScancodeFromKey(SDLK_w)])
@@ -158,6 +160,7 @@ int main(int argc, char*argv[]) {
             std::cout<<"OnShadow"<<std::endl;
         else
             std::cout<<"nOShadow"<<std::endl;*/
+        red.updateShadowBuffer(&shader,&fb);
         shader.draw();
 
         //break;
