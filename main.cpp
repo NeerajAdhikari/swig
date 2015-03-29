@@ -18,8 +18,8 @@
 #include "misc/Time.h"
 
 // Initialize constant parameters
-const uint16_t WIDTH = 800;
-const uint16_t HEIGHT = 600;
+const uint16_t WIDTH = 600;
+const uint16_t HEIGHT = 400;
 const uintmax_t FPS = 100;
 const uintmax_t DELAY = 1e6 / FPS;
 
@@ -47,8 +47,8 @@ int main(int argc, char*argv[]) {
     PointLight blue({{0, -1000, 1000, 0},{0,1000,-1000,0},
         {0,1,0,0}}, {0, 0, 200000});
     shader.addLight(&red);
-    //shader.addLight(&green);
-    //shader.addLight(&blue);
+    shader.addLight(&green);
+    shader.addLight(&blue);
 
     // Initialize the material of object
     Material planeMat(Coeffecient(0.1, 0.1, 0.1),
@@ -60,13 +60,13 @@ int main(int argc, char*argv[]) {
             Coeffecient(0.6,0.8,0.1),20);
 
     // Initialize the object
-    Object plane(argv[1], m, Shading::gouraud, false, true);
+    Object plane(argv[1], planeMat, Shading::gouraud, false, true);
     //plane.vmatrix()/=TfMatrix::scaling({0.05,0.05,0.05,1},{0,0,0,1});
     //Object cube("resources/cube.obj", m, Shading::flat);
     /*Object ground("resources/ground.obj",m,Shading::flat,
             true,false);*/
     //cube.vmatrix() /= TfMatrix::translation({0, 3, 0, 0});
-    //plane.vmatrix() /= TfMatrix::translation({0, 8, 0, 0});
+    plane.vmatrix() /= TfMatrix::translation({0, 4, 0, 0});
     Object ground(4,groundMat,Shading::flat,true,false);
     ground.setVertex(0,{10,0,-10,1});
     ground.setVertex(1,{10,0,10,1});
@@ -77,8 +77,8 @@ int main(int argc, char*argv[]) {
 
     // Add objects to Shader
     shader.addObject(&plane);
-    //shader.addObject(&ground);
-    Object triangle(3,m,Shading::flat,false,true);
+    shader.addObject(&ground);
+    Object triangle(3,planeMat,Shading::flat,false,true);
     triangle.setVertex(0,{5,5,5,1});
     triangle.setVertex(1,{0,5,5,1});
     triangle.setVertex(2,{0,5,0,1});
@@ -107,6 +107,8 @@ int main(int argc, char*argv[]) {
     // view-reference point, view-plane normal, view-up vector
     Camera cam({0, 5, 5}, {0, -5, -5}, {0, 1, 0});
     shader.setCamera(cam);
+    Matrix<float> translator = TfMatrix::translation(
+            {0.05,0,0.05,0});
 
     // Initialize SDL events
     const Uint8*keys = SDL_GetKeyboardState(NULL);
@@ -114,9 +116,9 @@ int main(int argc, char*argv[]) {
     // Intialize the benchmark for fps
     Time timekeeper(DELAY);
     if (red.shadow_buffer==NULL)
-        red.initShadowBuffer({1000,750});
-    red.updateShadowBuffer(&shader,&fb);
+        red.initShadowBuffer({500,500});
     while (!fb.checkTerm()) {
+        //plane.vmatrix() /= translator;
 
         // SDL EVENTS
         if (keys[SDL_GetScancodeFromKey(SDLK_w)])
@@ -166,6 +168,7 @@ int main(int argc, char*argv[]) {
             std::cout<<"OnShadow"<<std::endl;
         else
             std::cout<<"nOShadow"<<std::endl;*/
+        red.updateShadowBuffer(&shader,&fb);
         shader.draw();
 
         //break;

@@ -10,13 +10,15 @@ class TfMatrix: public Matrix<float> {
     public:
 
         // Returns a shearing matrix
-        static Matrix<float> shearing(float a, float b, float c, float d, float e, float f);
+        static Matrix<float> shearing(float a, float b,
+                float c, float d, float e, float f);
 
         // Returns a translation matrix by "translate"
         static Matrix<float> translation(const Vector& translate);
 
         // Returns a scaling matrix by "scale" about point "point"
-        static Matrix<float> scaling(const Vector& scale,const Vector& point);
+        static Matrix<float> scaling(const Vector& scale,
+                const Vector& point);
 
         // Returns a rotation matrix by and angle "radian" along direction vector "axis" passing through point "point"
         static Matrix<float> rotation(float radian, const Vector& axis, const Vector& point);
