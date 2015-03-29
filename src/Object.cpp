@@ -162,6 +162,8 @@ Object::Object(const std::string& filename,const Material& m,
     // TODO load vertex normals for the file
     // Initialize the normal to the surfaces
     //initNormal();
+
+    
 }
 
 // Tesselate a polygon to triangles

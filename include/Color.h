@@ -21,5 +21,6 @@ struct Color {
 const static Color black = {0,0,0,255};
 const static Color white = {255,255,255,255};
 const static Color badcolor = {255,0,255,255};
+const static Color goodcolor = {255,100,100,255};
 
 #endif

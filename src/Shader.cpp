@@ -75,13 +75,14 @@ void Shader::draw() {
 
         if (GOURAUD) {
             // VERTEX shader
-            unsigned vnn =0;
+
+            // unsigned vnn =0;
             if (!m_objects[k]->getSurface(0).vertexNormals) {
                 m_objects[k]->initNormal();
                 /*std::cout<<m_objects[k]->vertexNormalCount()
                     <<std::endl;
                 std::cout<<m_objects[k]->vertexCount()<<std::endl;*/
-                vnn = m_objects[k]->vcmatrix().col();
+                // vnn = m_objects[k]->vcmatrix().col();
                 //std::cout<<vnn<<std::endl;
             }
 
@@ -192,7 +193,7 @@ void Shader::draw() {
     }
 
     // Clear framebuffer, we're about to plot
-    mp_drawer->clear(badcolor);
+    mp_drawer->clear(goodcolor);
 
     // Fill the surfaces
     for(int k=0;k<m_objects.size(); k++){

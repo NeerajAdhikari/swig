@@ -69,7 +69,7 @@ int main(int argc, char*argv[]) {
     // plane.vmatrix()/=TfMatrix::scaling({5,5,5,1},{0,0,0,1});
     plane.vmatrix() /= TfMatrix::translation({0, 8, 0, 0});
 
-    Object ground("resources/terrain.obj",groundMat,Shading::flat,
+    Object ground("resources/terrain2.obj",groundMat,Shading::flat,
             true,false);
 
     Object tree("resources/tree.obj",treeMat, Shading::gouraud,
@@ -117,11 +117,8 @@ int main(int argc, char*argv[]) {
             cam.vrp -= cam.vpn.normalized() / 5;
         else if (keys[SDL_GetScancodeFromKey(SDLK_a)]){
             cam.vrp -= (cam.vpn * cam.vup).normalized() / 5;
-            std::cout << cam.vrp.x << " "<< cam.vrp.y << " "<< cam.vrp.z << "\n" << std::endl;
-
         } else if (keys[SDL_GetScancodeFromKey(SDLK_d)])
             cam.vrp += (cam.vpn * cam.vup).normalized() / 5;
-
         else if (keys[SDL_GetScancodeFromKey(SDLK_g)])
             plane.setShading(Shading::gouraud);
         else if (keys[SDL_GetScancodeFromKey(SDLK_f)])
