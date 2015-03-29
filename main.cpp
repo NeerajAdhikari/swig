@@ -40,7 +40,7 @@ int main(int argc, char*argv[]) {
     shader.setAmbient(ambient);
 
     // Intialize point light sources
-    PointLight red ({{0,20,8,1},{0,-20,-8,0},
+    PointLight red ({{0,80,32,1},{0,-80,-32,0},
         {0,0,1,0}}, {8000, 8000, 8000});
     PointLight green({{0, 1000, 1000, 0},{0,-1000,-1000,0},
         {0,1,0,0}}, {0,150000,0});
@@ -67,7 +67,9 @@ int main(int argc, char*argv[]) {
     // Initialize the object
     Object plane(argv[1], planeMat, Shading::gouraud, true, true);
     // plane.vmatrix()/=TfMatrix::scaling({5,5,5,1},{0,0,0,1});
-    plane.vmatrix() /= TfMatrix::translation({0, 8, 0, 0});
+    Matrix<float> placePlane = TfMatrix::translation({0, 12, 0, 0});
+    Matrix<float> unplacePlane = TfMatrix::translation({0, -12, 0, 0});
+    plane.vmatrix() /= placePlane;
 
     Object ground("resources/terrain2.obj",groundMat,Shading::flat,
             true,false);
@@ -93,7 +95,8 @@ int main(int argc, char*argv[]) {
 
     // Initialize camera
     // view-reference point, view-plane normal, view-up vector
-    Camera cam({27.8404,37.8099,25.767}, {-27.8404,-37.8099,-25.767}, {0, 1, 0});
+    Camera cam({27.8404,37.8099,25.767},
+            {-27.8404,-37.8099,-25.767}, {0, 1, 0});
 
 
     shader.setCamera(cam);
@@ -106,7 +109,8 @@ int main(int argc, char*argv[]) {
     // Intialize the benchmark for fps
     Time timekeeper(DELAY);
     if (red.shadow_buffer==NULL)
-        red.initShadowBuffer({500,500});
+        red.initShadowBuffer({800,800});
+    red.magic = 0.0004;
     while (!fb.checkTerm()) {
         //plane.vmatrix() /= translator;
 
@@ -136,6 +140,20 @@ int main(int argc, char*argv[]) {
             plane.backface(true);
             plane.bothsides(true);
             std::cout << "Unbounded\n" << std::endl;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_n)]) {
+            red.magic /= 1.5;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_m)]) {
+            red.magic *= 1.5;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_i)]) {
+            plane.vmatrix() /= TfMatrix::translation({0,0,0.2,0});
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_k)]) {
+            plane.vmatrix() /= TfMatrix::translation({0,0,-0.2,0});
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_j)]) {
+            plane.vmatrix() /= placePlane*TfMatrix::rotationz(0.1)
+                *TfMatrix::rotationy(0.1)*unplacePlane;
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_l)]) {
+            plane.vmatrix() /= placePlane*TfMatrix::rotationz(-0.1)
+                *TfMatrix::rotationy(-0.1)*unplacePlane;
         }
 
         // For cirualar camera movement due to direction

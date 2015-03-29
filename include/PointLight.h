@@ -20,6 +20,7 @@ public:
     double* shadow_buffer;
     Pair<unsigned> dim;
     Matrix<float> shadow_xForm;
+    double magic;
 
     PointLight(Camera c, Coeffecient in) : cam(c), intensity(in),
         dim({0,0}), shadow_buffer(NULL), shadow_xForm({1,1})
@@ -80,7 +81,7 @@ inline bool PointLight::onShadow(const Vector& pt) {
     shPt /= shadow_xForm;
     shPt(0,0)/=shPt(3,0); shPt(1,0)/=shPt(3,0); shPt(2,0)/=shPt(3,0);
     return depthAt(Math::round(shPt(0,0)),Math::round(shPt(1,0)))>
-        (Math::round(shPt(2,0))+0.0007*INT32_MAX);
+        (Math::round(shPt(2,0))+magic*INT32_MAX);
 }
 
 inline int PointLight::depthAt(int x, int y) {
