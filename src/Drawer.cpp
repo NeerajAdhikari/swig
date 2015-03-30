@@ -198,6 +198,9 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
     xStart = Math::max(0,xStart);
 
+    /*Uint32* tBuf = new Uint32[xEnd-xStart+1];
+    bool* bufMask = new bool[xEnd-xStart+1];
+    unsigned startx = xStart; bool contig = true;*/
     while(xStart <= xEnd){
         // Depth clipping, checking with zero isn't necessary
         // as depth(xStart,y) is always greater than or
@@ -216,12 +219,20 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
                 Color ncol = {cl.blue*0.5,cl.green*0.5,cl.red*0.5,
                     0xff};
                 plotter->plot(xStart,y,ncol,false);
-            } else plotter->plot(xStart,y,cl,false);
+                // tBuf[xStart-startx] = plotter->RGBA(ncol);
+            } else //tBuf[xStart-startx] = plotter->RGBA(cl);
+                plotter->plot(xStart,y,cl,false);
+            //bufMask[xStart-startx] = true;
             depth(xStart,y)=de;
-        }
+        }/* else {
+            bufMask[xStart-startx] = false;
+            contig = false;
+        }*/
         ++xStart;
     }
-
+    /*plotter->writeCols(tBuf,bufMask,y,startx,xEnd-startx+1,contig);
+    delete[] tBuf;
+    delete[] bufMask;*/
 }
 
 // We need to sort the points according to their

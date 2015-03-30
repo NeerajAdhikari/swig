@@ -103,6 +103,18 @@ class SDLPlotter {
     // Blur the framebuffer
     void blur();
 
+    void writeCols(Uint32* cBuffer, bool* mask, unsigned y,
+            unsigned xStart, unsigned size, bool contiguous) {
+        if (contiguous) {
+            uint8_t *addr = ((uint8_t*)screen->pixels)+
+                screen->pitch+xStart*4;
+            memcpy(addr,(void*)cBuffer,size*4);
+        }
+        for (int x=0; x<size; x++)
+            if (mask[x])
+            *((Uint32 *)screen->pixels+y*screen->pitch/4+x+xStart) =
+                cBuffer[x];
+    }
 };
 
 #endif
