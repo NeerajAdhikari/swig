@@ -4,6 +4,7 @@
 #include "common/helper.h"
 #include "common/ex.h"
 #include "common/containers.h"
+#include "Matrix.h"
 
 class Vector: public Quadruple<float> {
     public:
@@ -66,6 +67,7 @@ class Vector: public Quadruple<float> {
         }
 
         void projectionNormalize();
+        Vector operator* (Matrix<float> mat);
 };
 
 inline Vector::Vector():
@@ -193,4 +195,10 @@ inline void Vector::display() const {
     std::cout<<"("<<x<<", "<<y<<", "<<z<<","<<w<<")"<<std::endl;
 }
 
+inline Vector Vector::operator*(Matrix<float> mat) {
+    Matrix<float> res({4,1});
+    res(0,0)=x; res(1,0)=y; res(2,0)=z; res(3,0)=w;
+    res /= mat;
+    return {res(0,0),res(1,0),res(2,0),res(3,0)};
+}
 #endif

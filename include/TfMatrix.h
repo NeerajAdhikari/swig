@@ -20,8 +20,10 @@ class TfMatrix: public Matrix<float> {
         static Matrix<float> scaling(const Vector& scale,
                 const Vector& point);
 
-        // Returns a rotation matrix by and angle "radian" along direction vector "axis" passing through point "point"
-        static Matrix<float> rotation(float radian, const Vector& axis, const Vector& point);
+        // Returns a rotation matrix by and angle "radian" along
+        // direction vector "axis" passing through point "point"
+        static Matrix<float> rotation(float radian,
+                const Vector& axis, const Vector& point);
 
         // Returns a rotation matrix along X axis by angle of "alpha"
         static Matrix<float> rotationx(float alpha);

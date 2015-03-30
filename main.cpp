@@ -61,7 +61,7 @@ int main(int argc, char*argv[]) {
 
     Material treeMat(Coeffecient(0.1,0.1,0.1),
             Coeffecient(0.2,0.4,0.0),
-            Coeffecient(0.2,0.4,0.0),80);
+            Coeffecient(0.5,0.7,0.0),1000);
 
 
     // Initialize the object
@@ -71,7 +71,7 @@ int main(int argc, char*argv[]) {
     Matrix<float> unplacePlane = TfMatrix::translation({0, -12, 0, 0});
     plane.vmatrix() /= placePlane;
 
-    Object ground("resources/terrain2.obj",groundMat,Shading::flat,
+    Object ground("resources/terrain.obj",groundMat,Shading::flat,
             true,false);
 
     Object tree("resources/tree.obj",treeMat, Shading::gouraud,
@@ -109,20 +109,46 @@ int main(int argc, char*argv[]) {
     // Intialize the benchmark for fps
     Time timekeeper(DELAY);
     if (red.shadow_buffer==NULL)
-        red.initShadowBuffer({800,800});
+        red.initShadowBuffer({1000,1000});
     red.magic = 0.0004;
     while (!fb.checkTerm()) {
         //plane.vmatrix() /= translator;
 
         // SDL EVENTS
         if (keys[SDL_GetScancodeFromKey(SDLK_w)])
-            cam.vrp += cam.vpn.normalized() / 5;
+            cam.vrp += (cam.vpn.normalized()*cam.vrp.magnitude())/5;
         else if (keys[SDL_GetScancodeFromKey(SDLK_s)])
-            cam.vrp -= cam.vpn.normalized() / 5;
+            cam.vrp -= (cam.vpn.normalized()*cam.vrp.magnitude())/5;
         else if (keys[SDL_GetScancodeFromKey(SDLK_a)]){
-            cam.vrp -= (cam.vpn * cam.vup).normalized() / 5;
-        } else if (keys[SDL_GetScancodeFromKey(SDLK_d)])
-            cam.vrp += (cam.vpn * cam.vup).normalized() / 5;
+            //cam.vrp -= ((cam.vpn*cam.vup).normalized()*
+            //         cam.vrp.magnitude())/5;
+            cam.vrp = cam.vrp*TfMatrix::rotation(0.1,{0,1,0,0},
+                    {0,0,0,1});
+            /*Vector ppn = cam.vrp+cam.vpn; ppn.w = 1;
+            ppn = ppn*TfMatrix::rotation(0.3,cam.vup,cam.vrp);
+            cam.vpn = (ppn-cam.vrp).normalized();*/
+            cam.vpn = {0,-1,-1,0};
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_q)]) {
+            /*Vector oldVpn = cam.vpn.normalized();
+            cam.vpn += cam.vup.normalized()/5;
+            cam.vup -= oldVpn/5;*/
+            //cam.vpn += {0,0.05,0,0};
+            //cam.vup += {0,0,-0.05,0};
+            cam.vrp += {0,0.5,0,0};
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_z)]) {
+            /*Vector oldVpn = cam.vpn.normalized();
+            cam.vpn -= cam.vup.normalized()/5;
+            cam.vup += oldVpn/5;*/
+            //cam.vpn -= {0,0.05,0,0};
+            //cam.vup -= {0,0,-0.05,0};
+            cam.vrp -= {0,0.5,0,0};
+        } else if (keys[SDL_GetScancodeFromKey(SDLK_d)]) {
+            //cam.vrp += ((cam.vpn * cam.vup).normalized()*
+            //        cam.vrp.magnitude())/5;
+            cam.vrp = cam.vrp*TfMatrix::rotation(-0.1,{0,1,0,0},
+                    {0,0,0,1});
+            //cam.vpn -= ((cam.vpn*cam.vup).normalized())/5;
+        }
         else if (keys[SDL_GetScancodeFromKey(SDLK_g)])
             plane.setShading(Shading::gouraud);
         else if (keys[SDL_GetScancodeFromKey(SDLK_f)])
