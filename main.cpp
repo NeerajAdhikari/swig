@@ -47,8 +47,8 @@ int main(int argc, char*argv[]) {
     PointLight blue({{0, -1000, 1000, 0},{0,1000,-1000,0},
         {0,1,0,0}}, {0, 0, 200000});
     shader.addLight(&red);
-    shader.addLight(&green);
-    shader.addLight(&blue);
+    //shader.addLight(&green);
+    //shader.addLight(&blue);
 
     // Initialize the material of object
     Material planeMat(Coeffecient(0.1, 0.1, 0.1),

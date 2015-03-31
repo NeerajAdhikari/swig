@@ -129,9 +129,15 @@ void Drawer::hLineD(int y, int xStart, int dStart,
 
     Linspace d(dStart,dEnd,xStart,xEnd);
 
-    LinspaceF rx(realvs.x.x,realvs.y.x,xStart,xEnd);
-    LinspaceF ry(realvs.x.y,realvs.y.y,xStart,xEnd);
-    LinspaceF rz(realvs.x.z,realvs.y.z,xStart,xEnd);
+    const Matrix<float>& shadow_xForm = sh->shadowMat();
+    Vector sstart = {realvs.x.x,realvs.x.y,realvs.x.z,realvs.x.w};
+    sstart = sstart * shadow_xForm;
+    Vector send = {realvs.y.x,realvs.y.y,realvs.y.z,realvs.y.w};
+    send = send * shadow_xForm;
+    LinspaceF rx(sstart.x,send.x,xStart,xEnd);
+    LinspaceF ry(sstart.y,send.y,xStart,xEnd);
+    LinspaceF rz(sstart.z,send.z,xStart,xEnd);
+    LinspaceF rw(sstart.w,send.w,xStart,xEnd);
 
     // Clipping
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
@@ -150,8 +156,8 @@ void Drawer::hLineD(int y, int xStart, int dStart,
                     de>=depth(xStart,y)) ||
             (!overwrite &&  de<=ScreenPoint::maxDepth &&
              de>depth(xStart,y)) ) {
-                if (sh->onShadow({rx.at(xStart),ry.at(xStart),
-                            rz.at(xStart),1})) {
+                if (sh->onShadow({rx.at(xStart), ry.at(xStart),
+                            rz.at(xStart), rw.at(xStart)})) {
                     Color ncol = {cl.blue*0.5,cl.green*0.5,cl.red*0.5,
                         0xff};
                     plotter->plot(xStart,y,ncol,false);
@@ -161,7 +167,6 @@ void Drawer::hLineD(int y, int xStart, int dStart,
             }
         ++xStart;
     }
-
 }
 
 
@@ -190,17 +195,20 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
     Linspace d(dStart,dEnd,xStart,xEnd);
     Lincolor c(cStart,cEnd,xStart,xEnd);
 
-    LinspaceF rx(realvs.x.x,realvs.y.x,xStart,xEnd);
-    LinspaceF ry(realvs.x.y,realvs.y.y,xStart,xEnd);
-    LinspaceF rz(realvs.x.z,realvs.y.z,xStart,xEnd);
+    const Matrix<float>& shadow_xForm = sh->shadowMat();
+    Vector sstart = {realvs.x.x,realvs.x.y,realvs.x.z,realvs.x.w};
+    sstart = sstart * shadow_xForm;
+    Vector send = {realvs.y.x,realvs.y.y,realvs.y.z,realvs.y.w};
+    send = send * shadow_xForm;
+    LinspaceF rx(sstart.x,send.x,xStart,xEnd);
+    LinspaceF ry(sstart.y,send.y,xStart,xEnd);
+    LinspaceF rz(sstart.z,send.z,xStart,xEnd);
+    LinspaceF rw(sstart.w,send.w,xStart,xEnd);
 
     // Clipping
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
     xStart = Math::max(0,xStart);
 
-    /*Uint32* tBuf = new Uint32[xEnd-xStart+1];
-    bool* bufMask = new bool[xEnd-xStart+1];
-    unsigned startx = xStart; bool contig = true;*/
     while(xStart <= xEnd){
         // Depth clipping, checking with zero isn't necessary
         // as depth(xStart,y) is always greater than or
@@ -214,25 +222,16 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
             (!overwrite && de<=ScreenPoint::maxDepth &&
              de>depth(xStart,y)) ) {
             Color cl = c.at(xStart);
-            if (sh->onShadow({rx.at(xStart),ry.at(xStart),
-                        rz.at(xStart),1})) {
+            if (sh->onShadow({rx.at(xStart), ry.at(xStart),
+                        rz.at(xStart), rw.at(xStart)})) {
                 Color ncol = {cl.blue*0.5,cl.green*0.5,cl.red*0.5,
                     0xff};
                 plotter->plot(xStart,y,ncol,false);
-                // tBuf[xStart-startx] = plotter->RGBA(ncol);
-            } else //tBuf[xStart-startx] = plotter->RGBA(cl);
-                plotter->plot(xStart,y,cl,false);
-            //bufMask[xStart-startx] = true;
+            } else plotter->plot(xStart,y,cl,false);
             depth(xStart,y)=de;
-        }/* else {
-            bufMask[xStart-startx] = false;
-            contig = false;
-        }*/
+        }
         ++xStart;
     }
-    /*plotter->writeCols(tBuf,bufMask,y,startx,xEnd-startx+1,contig);
-    delete[] tBuf;
-    delete[] bufMask;*/
 }
 
 // We need to sort the points according to their

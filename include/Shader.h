@@ -86,7 +86,11 @@ class Shader {
         return m_objects.size();
     }
 
-    inline bool onShadow(Vector pt) {
+    inline Matrix<float>& shadowMat() const {
+        return m_pointLights[0]->shadow_xForm;
+    }
+
+    inline bool onShadow(const Vector& pt) {
         for (auto ls : m_pointLights) {
             if (ls->shadow_buffer!=NULL) {
                 if (ls->onShadow(pt))

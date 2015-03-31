@@ -76,12 +76,12 @@ public:
 };
 
 inline bool PointLight::onShadow(const Vector& pt) {
-    Matrix<float> shPt({4,1}); shPt(0,0)=pt.x; shPt(1,0)=pt.y;
-    shPt(2,0)=pt.z; shPt(3,0)=pt.w;
-    shPt /= shadow_xForm;
-    shPt(0,0)/=shPt(3,0); shPt(1,0)/=shPt(3,0); shPt(2,0)/=shPt(3,0);
-    return depthAt(Math::round(shPt(0,0)),Math::round(shPt(1,0)))>
-        (Math::round(shPt(2,0))+magic*INT32_MAX);
+    // Using Math::round to round the values before checking
+    // decreases FPS by a bit
+    // return depthAt(Math::round(pt.x/pt.w),Math::round(pt.y/pt.w))
+    //     >(Math::round(pt.z/pt.w)+magic*INT32_MAX);
+    return depthAt((pt.x/pt.w),(pt.y/pt.w))
+        >((pt.z/pt.w)+magic*INT32_MAX);
 }
 
 inline int PointLight::depthAt(int x, int y) {
