@@ -12,18 +12,6 @@ void Drawer::pixel(const ScreenPoint& point){
     plotter->plot(point.x,point.y,point.color,false);
 }
 
-// Clear scren with black
-void Drawer::clear(Color clearColor) {
-    plotter->clear(clearColor);
-    // Also clear the depth-buffer
-    depth.clear();
-}
-
-// Update the screen
-void Drawer::update() {
-    plotter->update();
-}
-
 // Draw line between start and end
 // using Bresenham's famous algorithm
 void Drawer::line(const ScreenPoint& start,
@@ -132,12 +120,14 @@ void Drawer::hLineD(int y, int xStart, int dStart,
     const Matrix<float>& shadow_xForm = sh->shadowMat();
     Vector sstart = {realvs.x.x,realvs.x.y,realvs.x.z,realvs.x.w};
     sstart = sstart * shadow_xForm;
+    sstart.projectionNormalize();
     Vector send = {realvs.y.x,realvs.y.y,realvs.y.z,realvs.y.w};
     send = send * shadow_xForm;
-    LinspaceF rx(sstart.x,send.x,xStart,xEnd);
-    LinspaceF ry(sstart.y,send.y,xStart,xEnd);
-    LinspaceF rz(sstart.z,send.z,xStart,xEnd);
-    LinspaceF rw(sstart.w,send.w,xStart,xEnd);
+    send.projectionNormalize();
+
+    Vector delta = {0,0,0,0};
+    if (xStart!=xEnd)
+        delta = (send-sstart)/(double)(xEnd-xStart);
 
     // Clipping
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
@@ -156,8 +146,7 @@ void Drawer::hLineD(int y, int xStart, int dStart,
                     de>=depth(xStart,y)) ||
             (!overwrite &&  de<=ScreenPoint::maxDepth &&
              de>depth(xStart,y)) ) {
-                if (sh->onShadow({rx.at(xStart), ry.at(xStart),
-                            rz.at(xStart), rw.at(xStart)})) {
+                if (sh->onShadow(sstart)) {
                     Color ncol = {cl.blue*0.5,cl.green*0.5,cl.red*0.5,
                         0xff};
                     plotter->plot(xStart,y,ncol,false);
@@ -166,9 +155,9 @@ void Drawer::hLineD(int y, int xStart, int dStart,
                 depth(xStart,y)=de;
             }
         ++xStart;
+        sstart += delta;
     }
 }
-
 
 // This one considers the pixel depths while plotting. It only
 // plots points closer than already there.
@@ -198,12 +187,13 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
     const Matrix<float>& shadow_xForm = sh->shadowMat();
     Vector sstart = {realvs.x.x,realvs.x.y,realvs.x.z,realvs.x.w};
     sstart = sstart * shadow_xForm;
+    sstart.projectionNormalize();
     Vector send = {realvs.y.x,realvs.y.y,realvs.y.z,realvs.y.w};
     send = send * shadow_xForm;
-    LinspaceF rx(sstart.x,send.x,xStart,xEnd);
-    LinspaceF ry(sstart.y,send.y,xStart,xEnd);
-    LinspaceF rz(sstart.z,send.z,xStart,xEnd);
-    LinspaceF rw(sstart.w,send.w,xStart,xEnd);
+    send.projectionNormalize();
+    Vector delta = {0,0,0,0};
+    if (xStart!=xEnd)
+        delta = (send-sstart)/(float)(xEnd-xStart);
 
     // Clipping
     xEnd = Math::min(xEnd,(int)plotter->width()-1);
@@ -222,8 +212,7 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
             (!overwrite && de<=ScreenPoint::maxDepth &&
              de>depth(xStart,y)) ) {
             Color cl = c.at(xStart);
-            if (sh->onShadow({rx.at(xStart), ry.at(xStart),
-                        rz.at(xStart), rw.at(xStart)})) {
+            if (sh->onShadow(sstart)) {
                 Color ncol = {cl.blue*0.5,cl.green*0.5,cl.red*0.5,
                     0xff};
                 plotter->plot(xStart,y,ncol,false);
@@ -231,6 +220,7 @@ void Drawer::hLineD(int y, int xStart, int dStart, int xEnd,
             depth(xStart,y)=de;
         }
         ++xStart;
+        sstart+=delta;
     }
 }
 

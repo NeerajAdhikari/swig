@@ -3,3 +3,4 @@
 resources
 bin
 .vim_session_
+callgrind.out.*

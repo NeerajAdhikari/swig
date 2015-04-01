@@ -1,10 +1,7 @@
 TODO
-(B) Separation to two levels:
-    A viewport manager: handles windowing, framebuffer, etc
-    A primitives manager: handles primitives like lines, filling, etc
-(C) Other filling algorithms
-(C) Antialiased Filling
-(B) Object clipping
+(A) Object clipping
+(B) Early culling
+(C) Dont freeze on file not found
+(D) Improve exceptions, throw where possible
+(E) Multiple shadows
 
-(A) Load vertex normal
-(A) Shadow

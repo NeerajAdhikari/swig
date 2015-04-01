@@ -80,6 +80,7 @@ class SDLPlotter {
     // Clear scren with black
     inline void clear(Color clearColor = {255,0,255}) {
         SDL_FillRect(screen, NULL, RGBA(clearColor));
+        //memset(screen->pixels,0xff,m_height*screen->pitch);
     }
 
     // return screen width

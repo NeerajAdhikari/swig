@@ -111,8 +111,10 @@ int main(int argc, char*argv[]) {
     if (red.shadow_buffer==NULL)
         red.initShadowBuffer({1000,1000});
     red.magic = 0.0004;
+    int i = 0;
     while (!fb.checkTerm()) {
         //plane.vmatrix() /= translator;
+        //i++;
 
         // SDL EVENTS
         if (keys[SDL_GetScancodeFromKey(SDLK_w)])

@@ -33,10 +33,21 @@ class Drawer {
     Drawer(Plotter_ *pltr);
 
     // Update screen.
-    void update();
+    //void update();
+    // Update the screen
+    inline void update() {
+        plotter->update();
+    }
 
     // Clear the screen
-    void clear(Color clearColor={255,0,255});
+    //void clear(Color clearColor={255,0,255});
+
+    // Clear scren with black
+    inline void clear(Color clearColor) {
+        plotter->clear(clearColor);
+        // Also clear the depth-buffer
+        depth.clear();
+    }
 
     void pixel(const ScreenPoint& point);
 
